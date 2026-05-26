@@ -7,7 +7,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../core/constants.dart';
+import '../../core/theme.dart';
 import '../../core/widgets/skeleton_shimmer.dart';
 import '../../core/widgets/error_retry_widget.dart';
 import '../../models/models.dart';
@@ -30,6 +32,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -45,6 +48,51 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     ref.invalidate(studentProfileProvider);
     ref.read(progressProvider.notifier).getProgress();
     ref.read(questionBankProvider.notifier).getQuestionBank();
+  }
+
+  Future<void> _pickAndUploadAvatar() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
+      if (result == null || result.files.single.path == null) return;
+
+      final filePath = result.files.single.path!;
+
+      setState(() {
+        _isUploading = true;
+      });
+
+      await ApiService().uploadStudentAvatar(filePath);
+
+      if (!mounted) return;
+      setState(() {
+        _isUploading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile picture kamyabi se upload ho gayi hai!'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+
+      ref.invalidate(studentProfileProvider);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload fail ho gaya: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -138,24 +186,65 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Avatar
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.2),
-              border: Border.all(color: Colors.white.withOpacity(0.4), width: 3),
-            ),
-            child: Center(
-              child: Text(
-                initials,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
+          // Avatar Stack with Edit Overlay
+          GestureDetector(
+            onTap: _isUploading ? null : _pickAndUploadAvatar,
+            child: Stack(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.2),
+                    border: Border.all(color: Colors.white.withOpacity(0.4), width: 3),
+                    image: !_isUploading && student.profilePicture != null && student.profilePicture!.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(
+                              '${AppConstants.baseUrl.replaceAll('/api', '')}${student.profilePicture}',
+                            ),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: _isUploading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
+                        )
+                      : (student.profilePicture == null || student.profilePicture!.isEmpty
+                          ? Center(
+                              child: Text(
+                                initials,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            )
+                          : null),
                 ),
-              ),
+                if (!_isUploading)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -524,7 +613,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                       children: [
                         Text(
                           '• ${rec['topic_title']} (${rec['course_code']}) — Mastery: ${rec['mastery']}%',
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black87),
+                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: theme.colorScheme.onSurface),
                         ),
                         const SizedBox(height: 3),
                         Padding(
@@ -953,7 +1042,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: isSelected ? Colors.white : Colors.black87,
+                    color: isSelected ? Colors.white : theme.colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -1134,13 +1223,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
   }
 
   Widget _buildSettingsInfoRow(String label, String value) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: Colors.grey)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: Colors.black87)),
+          Text(value, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: theme.colorScheme.onSurface)),
         ],
       ),
     );

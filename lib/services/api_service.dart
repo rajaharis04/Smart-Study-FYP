@@ -600,4 +600,46 @@ class ApiService {
       throw Exception(_extractError(e));
     }
   }
+
+  /// Get offered registration courses/sections
+  Future<Map<String, dynamic>> getRegistrationOfferedCourses() async {
+    try {
+      final response = await _dio.get('/courses/registration/offered');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
+  /// Register student in a class section
+  Future<void> registerCourse(int sectionId) async {
+    try {
+      await _dio.post('/courses/registration/register', data: {'section_id': sectionId});
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
+  /// Withdraw student enrollment from a class section
+  Future<void> withdrawCourse(int sectionId) async {
+    try {
+      await _dio.post('/courses/registration/withdraw', data: {'section_id': sectionId});
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
+  /// Upload student profile avatar picture
+  Future<String> uploadStudentAvatar(String filepath) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filepath),
+      });
+      final response = await _dio.post('/students/avatar', data: formData);
+      final data = response.data as Map<String, dynamic>;
+      return data['profile_picture'] as String;
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
 }

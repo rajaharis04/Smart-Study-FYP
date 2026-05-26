@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/constants.dart';
 import '../../core/widgets/skeleton_shimmer.dart';
 import '../../core/widgets/error_retry_widget.dart';
 import '../../models/models.dart';
@@ -53,6 +54,13 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
           centerTitle: false,
           actions: [
             IconButton(
+              icon: const Icon(Icons.app_registration_rounded),
+              tooltip: isUrdu ? 'کورس رجسٹریشن' : 'Course Registration',
+              onPressed: () {
+                context.push(AppConstants.routeCourseRegistration);
+              },
+            ),
+            IconButton(
               icon: const Icon(Icons.saved_search_rounded),
               tooltip: isUrdu ? 'محفوظ کردہ سوالات تلاش کریں' : 'Search Saved Doubts',
               onPressed: () {
@@ -74,6 +82,9 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
   }
 
   Widget _buildBody(CoursesState state, ThemeData theme) {
+    final settings = ref.watch(settingsProvider);
+    final isUrdu = settings.language == 'Urdu';
+
     if (state.isLoading) {
       return _buildSkeletonLoader();
     }
@@ -114,6 +125,23 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
                 'Your enrolled courses will appear here',
                 style: TextStyle(
                   color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => context.push(AppConstants.routeCourseRegistration),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.app_registration_rounded, size: 18),
+                label: Text(
+                  isUrdu ? 'کورسز رجسٹر کریں' : 'Register for Courses',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ],

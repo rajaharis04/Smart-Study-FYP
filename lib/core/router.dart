@@ -19,6 +19,7 @@ import '../screens/dashboard/dashboard_shell.dart';
 import '../screens/dashboard/dashboard_home_screen.dart';
 import '../screens/courses/courses_screen.dart';
 import '../screens/courses/course_lectures_screen.dart';
+import '../screens/courses/course_registration_screen.dart';
 import '../screens/attendance/attendance_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/notification_center_screen.dart';
@@ -243,6 +244,11 @@ final GoRouter appRouter = GoRouter(
                 return CourseLecturesScreen(
                     sectionId: sectionId, courseName: courseName);
               },
+            ),
+            GoRoute(
+              path: 'registration',
+              name: 'course-registration',
+              builder: (context, state) => const CourseRegistrationScreen(),
             ),
           ],
         ),

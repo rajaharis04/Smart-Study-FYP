@@ -67,6 +67,7 @@ class Student(Base):
     reg_number = Column(String(50), unique=True, nullable=False)
     batch = Column(String(20), nullable=False)
     department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
+    profile_picture = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -90,6 +91,7 @@ class Semester(Base):
     final_start = Column(Date, nullable=True)
     final_end = Column(Date, nullable=True)
     is_active = Column(Boolean, default=True)
+    registration_deadline = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -125,6 +127,7 @@ class Section(Base):
     section_label = Column(String(10), nullable=False)   # A, B, C ...
     schedule = Column(String(200), nullable=True)         # "Mon/Wed 9:00-10:30 AM"
     room = Column(String(100), nullable=True)
+    is_registration_open = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

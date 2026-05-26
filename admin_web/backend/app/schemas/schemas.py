@@ -119,6 +119,7 @@ class StudentOut(BaseModel):
     batch: str
     department_name: Optional[str]
     is_active: bool
+    profile_picture: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -141,6 +142,7 @@ class SemesterCreate(BaseModel):
     final_start: Optional[date] = None
     final_end: Optional[date] = None
     is_active: bool = True
+    registration_deadline: Optional[datetime] = None
 
 class SemesterUpdate(BaseModel):
     name: Optional[str] = None
@@ -151,6 +153,7 @@ class SemesterUpdate(BaseModel):
     final_start: Optional[date] = None
     final_end: Optional[date] = None
     is_active: Optional[bool] = None
+    registration_deadline: Optional[datetime] = None
 
 class SemesterOut(BaseModel):
     id: int
@@ -162,6 +165,7 @@ class SemesterOut(BaseModel):
     final_start: Optional[date]
     final_end: Optional[date]
     is_active: bool
+    registration_deadline: Optional[datetime]
     created_at: datetime
 
     class Config:
@@ -208,6 +212,7 @@ class SectionCreate(BaseModel):
     semester_id: Optional[int] = None
     schedule: Optional[str] = None
     room: Optional[str] = None
+    is_registration_open: Optional[bool] = False
 
 class SectionUpdate(BaseModel):
     teacher_id: Optional[int] = None
@@ -215,6 +220,7 @@ class SectionUpdate(BaseModel):
     schedule: Optional[str] = None
     room: Optional[str] = None
     semester_id: Optional[int] = None
+    is_registration_open: Optional[bool] = None
 
 class SectionOut(BaseModel):
     id: int
@@ -226,6 +232,8 @@ class SectionOut(BaseModel):
     schedule: Optional[str]
     room: Optional[str]
     enrolled_count: int
+    semester_id: Optional[int]
+    is_registration_open: bool
     created_at: datetime
 
     class Config:

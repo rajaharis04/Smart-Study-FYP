@@ -383,6 +383,7 @@ class Student {
   final String? regNumber;
   final String? department;
   final String? batch;
+  final String? profilePicture;
 
   const Student({
     required this.id,
@@ -392,6 +393,7 @@ class Student {
     this.regNumber,
     this.department,
     this.batch,
+    this.profilePicture,
   });
 
   // ── fromJson() ──────────────────────────────────────────────────
@@ -404,6 +406,7 @@ class Student {
       regNumber:   json['reg_number']  as String?,
       department:  json['department']  as String?,
       batch:       json['batch']       as String?,
+      profilePicture: json['profile_picture'] as String?,
     );
   }
 

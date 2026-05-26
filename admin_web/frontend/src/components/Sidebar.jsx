@@ -29,6 +29,7 @@ export default function Sidebar() {
     { to: '/sections', label: 'Sections', icon: Layers },
     { to: '/enrollments', label: 'Enrollments', icon: UserCheck },
     { to: '/semesters', label: 'Semesters', icon: Calendar },
+    { to: '/registration-week', label: 'Registration Week', icon: ClipboardList },
     { to: '/reports', label: 'Reports', icon: BarChart3 },
     { to: '/accounts', label: 'Accounts', icon: Settings },
   ];

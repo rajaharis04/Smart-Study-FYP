@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants.dart';
 import '../../providers/settings_provider.dart';
+import '../profile/profile_screen.dart';
 
 class DashboardShell extends ConsumerWidget {
   /// Child widget — current tab ki screen
@@ -128,11 +129,52 @@ class DashboardShell extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: 2),
-                            Icon(
-                              isActive ? tab.activeIcon : tab.icon,
-                              color: color,
-                              size: 24,
-                            ),
+                            tab.key == 'profile'
+                                ? ref.watch(studentProfileProvider).when(
+                                      data: (student) {
+                                        if (student.profilePicture != null && student.profilePicture!.isNotEmpty) {
+                                          final imgUrl = '${AppConstants.baseUrl.replaceAll('/api', '')}${student.profilePicture}';
+                                          return Container(
+                                            width: 24,
+                                            height: 24,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: isActive ? theme.colorScheme.primary : Colors.transparent,
+                                                width: 1.5,
+                                              ),
+                                              image: DecorationImage(
+                                                image: NetworkImage(imgUrl),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                        return Icon(
+                                          isActive ? tab.activeIcon : tab.icon,
+                                          color: color,
+                                          size: 24,
+                                        );
+                                      },
+                                      loading: () => SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 1.5,
+                                          valueColor: AlwaysStoppedAnimation<Color>(color),
+                                        ),
+                                      ),
+                                      error: (_, __) => Icon(
+                                        isActive ? tab.activeIcon : tab.icon,
+                                        color: color,
+                                        size: 24,
+                                      ),
+                                    )
+                                : Icon(
+                                    isActive ? tab.activeIcon : tab.icon,
+                                    color: color,
+                                    size: 24,
+                                  ),
                             const SizedBox(height: 2),
                             Text(
                               label,

@@ -32,6 +32,14 @@ def list_semesters(db: Session = Depends(get_db), _=Depends(get_current_admin)):
     return db.query(Semester).order_by(Semester.created_at.desc()).all()
 
 
+@semesters_router.get("/active", response_model=SemesterOut)
+def get_active_semester(db: Session = Depends(get_db), _=Depends(get_current_admin)):
+    active_sem = db.query(Semester).filter(Semester.is_active == True).first()
+    if not active_sem:
+        raise HTTPException(status_code=404, detail="No active semester session found.")
+    return active_sem
+
+
 @semesters_router.post("/", response_model=SemesterOut, status_code=201)
 def create_semester(payload: SemesterCreate, db: Session = Depends(get_db), admin=Depends(get_current_admin)):
     semester = Semester(**payload.model_dump())
@@ -186,6 +194,8 @@ def _section_to_out(s: Section) -> dict:
         "schedule": s.schedule,
         "room": s.room,
         "enrolled_count": len([e for e in s.enrollments if e.is_active]),
+        "semester_id": s.semester_id,
+        "is_registration_open": s.is_registration_open,
         "created_at": s.created_at,
     }
 

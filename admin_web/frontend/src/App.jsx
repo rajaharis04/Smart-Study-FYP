@@ -15,6 +15,7 @@ import CoursesPage from './pages/CoursesPage';
 import SectionsPage from './pages/SectionsPage';
 import EnrollmentsPage from './pages/EnrollmentsPage';
 import SemestersPage from './pages/SemestersPage';
+import RegistrationWeekPage from './pages/RegistrationWeekPage';
 import ReportsPage from './pages/ReportsPage';
 import AccountsPage from './pages/AccountsPage';
 
@@ -41,6 +42,7 @@ function AppLayout() {
       case '/sections': return 'Class Sections Scheduler';
       case '/enrollments': return 'Class Enrollments';
       case '/semesters': return 'Semesters Schedule';
+      case '/registration-week': return 'Registration Week Settings';
       case '/reports': return 'Reports & Analytics';
       case '/accounts': return 'Account Settings';
       case '/teacher/topics': return 'Topics & Objectives';
@@ -89,6 +91,7 @@ function AppLayout() {
                 <Route path="/sections" element={<SectionsPage />} />
                 <Route path="/enrollments" element={<EnrollmentsPage />} />
                 <Route path="/semesters" element={<SemestersPage />} />
+                <Route path="/registration-week" element={<RegistrationWeekPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
                 <Route path="/accounts" element={<AccountsPage />} />
               </Routes>

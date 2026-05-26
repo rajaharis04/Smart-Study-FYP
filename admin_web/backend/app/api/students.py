@@ -1,4 +1,7 @@
 """Students API router — manual creation + CSV bulk upload."""
+import os
+import shutil
+from datetime import datetime
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.security import OAuth2PasswordBearer
@@ -26,6 +29,7 @@ def _student_to_out(s: Student) -> dict:
         "batch": s.batch,
         "department_name": s.department.name if s.department else None,
         "is_active": s.user.is_active,
+        "profile_picture": s.profile_picture,
         "created_at": s.created_at,
     }
 
@@ -246,6 +250,45 @@ def get_student_me(
         "role": user.role,
         "reg_number": student.reg_number,
         "batch": student.batch,
-        "department": student.department.name if student.department else "Computer Science"
+        "department": student.department.name if student.department else "Computer Science",
+        "profile_picture": student.profile_picture
     }
+
+
+@router.post("/avatar")
+def upload_student_avatar(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
+    """Allows a student to upload/update their profile avatar image."""
+    from app.services.auth_service import decode_token
+    payload = decode_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token.")
+        
+    user_id = payload.get("sub")
+    student = db.query(Student).filter(Student.user_id == int(user_id)).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found.")
+
+    # Locate uploads directory in backend directory root
+    backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    upload_dir = os.path.join(backend_dir, "uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    # Save file with a unique name using timestamp to avoid browser cache issues
+    ext = os.path.splitext(file.filename)[1]
+    filename = f"avatar_{student.id}_{int(datetime.utcnow().timestamp())}{ext}"
+    filepath = os.path.join(upload_dir, filename)
+
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Relative path mapping is clean and compatible
+    avatar_url = f"/uploads/{filename}"
+    student.profile_picture = avatar_url
+    db.commit()
+
+    return {"profile_picture": avatar_url}
 

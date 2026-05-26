@@ -74,6 +74,7 @@ export const studentApi = {
 // ─── SEMESTERS ────────────────────────────────────────────────────────────────
 export const semesterApi = {
   list: () => api.get('/semesters/'),
+  active: () => api.get('/semesters/active'),
   create: (data) => api.post('/semesters/', data),
   update: (id, data) => api.put(`/semesters/${id}`, data),
   delete: (id) => api.delete(`/semesters/${id}`),

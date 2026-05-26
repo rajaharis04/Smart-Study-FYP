@@ -662,6 +662,9 @@ def delete_lecture(
     if not lecture or lecture.section.teacher_id != teacher.id:
         raise HTTPException(status_code=404, detail="Lecture not found.")
         
+    # Delete associated attendance records first to avoid foreign key violations
+    db.query(Attendance).filter(Attendance.lecture_id == lecture_id).delete()
+
     # Delete video file
     file_name = os.path.basename(lecture.video_url)
     video_path = os.path.join(VIDEOS_DIR, file_name)

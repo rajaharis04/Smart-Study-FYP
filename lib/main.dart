@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme.dart';
 import 'core/router.dart';
 import 'core/constants.dart';
+import 'providers/settings_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,18 +16,20 @@ void main() {
 }
 
 /// Root application widget.
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+
     return MaterialApp.router(
       // ── App metadata ──────────────────────────────────────────────────────
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
 
       // ── Theme ─────────────────────────────────────────────────────────────
-      theme: AppTheme.theme,
+      theme: settings.isDarkMode ? AppTheme.darkTheme : AppTheme.theme,
 
       // ── Router ────────────────────────────────────────────────────────────
       routerConfig: appRouter,
