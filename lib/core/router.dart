@@ -1,5 +1,5 @@
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║              APP ROUTER — GoRouter Configuration (Phase 4)       ║
+// ║              APP ROUTER — GoRouter Configuration                 ║
 // ║  ShellRoute (bottom nav) + Auth Guard + all routes               ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
@@ -28,27 +28,65 @@ import '../screens/lecture/pre_assessment_screen.dart';
 import '../screens/lecture/lecture_player_screen.dart';
 
 // ════════════════════════════════════════════════════════════════════
-//  Auth Guard — JWT check for protected routes
+//  Auth Notifier — GoRouter ko batata hai jab auth state change ho
+//  Yeh ChangeNotifier GoRouter ke refreshListenable se connected hai
 // ════════════════════════════════════════════════════════════════════
 
-/// Public routes — token check nahi karna
+/// GoRouter refreshListenable — Auth state change par router rebuild karta hai.
+///
+/// IMPORTANT: Sirf login/logout par use karo, navigation par nahi.
+/// Async guard ki jagah synchronous check use karte hain.
+class AppAuthNotifier extends ChangeNotifier {
+  // ── Singleton ────────────────────────────────────────────────────
+  static final AppAuthNotifier instance = AppAuthNotifier._();
+  AppAuthNotifier._();
+
+  // ── Internal state ───────────────────────────────────────────────
+  bool _isLoggedIn = false;
+
+  /// Kya user logged in hai?
+  bool get isLoggedIn => _isLoggedIn;
+
+  /// Login ke baad call karo — router rebuild hoga
+  void setLoggedIn(bool value) {
+    if (_isLoggedIn == value) return;
+    _isLoggedIn = value;
+    notifyListeners(); // GoRouter rebuild trigger hoga
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  Auth Guard — SYNCHRONOUS (async nahi)
+//  GoRouter 13.x mein async redirect navigation cancel kar sakta hai
+//  Isliye in-memory token check use karte hain
+// ════════════════════════════════════════════════════════════════════
+
+/// Public routes — auth check nahi karna
 const _publicPaths = [
   AppConstants.routeSplash,
   AppConstants.routeOnboarding,
   AppConstants.routeLogin,
 ];
 
-Future<String?> _authGuard(BuildContext context, GoRouterState state) async {
+/// Synchronous redirect — har navigation par token in-memory se check karo.
+///
+/// WHY SYNCHRONOUS? GoRouter 13.x mein `Future<String?> redirect` (async)
+/// har navigation ke sath await karta hai. Agar async delay ho, navigation
+/// cancel ho sakta hai — especially macOS desktop par.
+///
+/// SOLUTION: StorageService._fallbackStorage (static in-memory Map) se
+/// synchronously token check karo — no await, no cancellation.
+String? _authGuardSync(BuildContext context, GoRouterState state) {
   final path = state.matchedLocation;
 
-  // Splash aur auth screens public hain — always allow
-  if (_publicPaths.any((p) => path.startsWith(p))) return null;
+  // Public routes — always allow karo
+  if (_publicPaths.any((p) => p == '/' ? path == '/' : path.startsWith(p))) {
+    return null;
+  }
 
-  // Baaki sab routes ke liye token check karo
-  final storage = StorageService();
-  final hasToken = await storage.hasToken();
-
-  if (!hasToken) {
+  // In-memory token check — synchronous, no await
+  final token = StorageService.fallbackToken;
+  if (token == null || token.isEmpty) {
     // Token nahi — login par bhejo
     return AppConstants.routeLogin;
   }
@@ -101,7 +139,16 @@ class _ErrorScreen extends StatelessWidget {
 
 final GoRouter appRouter = GoRouter(
   initialLocation: AppConstants.routeSplash,
-  redirect: _authGuard,
+
+  // ── SYNCHRONOUS redirect ─────────────────────────────────────────
+  // IMPORTANT: Async redirect (Future<String?>) use nahi kiya
+  // kyunki GoRouter 13.x mein async redirect har navigation cancel
+  // kar sakta hai, especially macOS desktop par.
+  redirect: _authGuardSync,
+
+  // ── Rebuild router jab auth state change ho ──────────────────────
+  refreshListenable: AppAuthNotifier.instance,
+
   errorBuilder: (context, state) => _ErrorScreen(error: state.error),
 
   routes: [
@@ -127,14 +174,13 @@ final GoRouter appRouter = GoRouter(
     ),
 
     // ── Change Password ───────────────────────────────────────────────
-    // (protected — auth guard checks token)
     GoRoute(
       path: AppConstants.routeChangePassword,
       name: 'change-password',
       builder: (context, state) => const ChangePasswordScreen(),
     ),
 
-    // ── Pre-Assessment (before lecture) ────────────────────────────────────
+    // ── Pre-Assessment (before lecture) ───────────────────────────────
     GoRoute(
       path: '${AppConstants.routePreAssessment}/:lectureId',
       name: 'pre-assessment',
@@ -144,7 +190,7 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
-    // ── Lecture Player ──────────────────────────────────────────────────────
+    // ── Lecture Player ────────────────────────────────────────────────
     GoRoute(
       path: '${AppConstants.routeLecturePlayer}/:lectureId',
       name: 'lecture-player',
@@ -154,7 +200,7 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
-    // ── Lecture (old placeholder → redirect to pre-assessment) ──────────────
+    // ── Lecture (old route → redirect to pre-assessment) ─────────────
     GoRoute(
       path: '${AppConstants.routeLecture}/:lectureId',
       name: 'lecture',
@@ -164,71 +210,71 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
-    // ── Dashboard — ShellRoute with BottomNavBar ───────────────────────
+    // ── Dashboard — ShellRoute with BottomNavBar ──────────────────────
     // ShellRoute: persistent bottom nav — child screens swap inside
     ShellRoute(
-      // DashboardShell = wrapper with bottom nav bar
       builder: (context, state, child) =>
           DashboardShell(child: child),
 
       routes: [
-        // /dashboard → redirect to /dashboard/home
+        // Tab 1: Home
         GoRoute(
-          path: AppConstants.routeDashboard,
-          name: 'dashboard',
-          redirect: (context, state) =>
-              state.matchedLocation == AppConstants.routeDashboard
-                  ? AppConstants.routeDashboardHome
-                  : null,
+          path: AppConstants.routeDashboardHome,
+          name: 'dashboard-home',
+          builder: (context, state) => const DashboardHomeScreen(),
+        ),
+
+        // Tab 2: Courses
+        GoRoute(
+          path: AppConstants.routeDashboardCourses,
+          name: 'dashboard-courses',
+          builder: (context, state) => const CoursesScreen(),
           routes: [
-            // Tab 1: Home
             GoRoute(
-              path: 'home',
-              name: 'dashboard-home',
-              builder: (context, state) => const DashboardHomeScreen(),
+              path: 'lectures/:sectionId',
+              name: 'course-lectures',
+              builder: (context, state) {
+                final sectionId = int.tryParse(
+                        state.pathParameters['sectionId'] ?? '0') ??
+                    0;
+                final courseName =
+                    state.uri.queryParameters['courseName'] ??
+                        'Lectures';
+                return CourseLecturesScreen(
+                    sectionId: sectionId, courseName: courseName);
+              },
             ),
+          ],
+        ),
 
-            // Tab 2: Courses
-            GoRoute(
-              path: 'courses',
-              name: 'dashboard-courses',
-              builder: (context, state) => const CoursesScreen(),
-              routes: [
-                GoRoute(
-                  path: 'lectures/:sectionId',
-                  name: 'course-lectures',
-                  builder: (context, state) {
-                    final sectionId = int.tryParse(state.pathParameters['sectionId'] ?? '0') ?? 0;
-                    final courseName = state.uri.queryParameters['courseName'] ?? 'Lectures';
-                    return CourseLecturesScreen(sectionId: sectionId, courseName: courseName);
-                  },
-                ),
-              ],
-            ),
+        // Tab 3: Attendance
+        GoRoute(
+          path: AppConstants.routeDashboardAttendance,
+          name: 'dashboard-attendance',
+          builder: (context, state) => const AttendanceScreen(),
+        ),
 
-            // Tab 3: Attendance
+        // Tab 4: Profile
+        GoRoute(
+          path: AppConstants.routeDashboardProfile,
+          name: 'dashboard-profile',
+          builder: (context, state) => const ProfileScreen(),
+          routes: [
             GoRoute(
-              path: 'attendance',
-              name: 'dashboard-attendance',
-              builder: (context, state) => const AttendanceScreen(),
-            ),
-
-            // Tab 4: Profile
-            GoRoute(
-              path: 'profile',
-              name: 'dashboard-profile',
-              builder: (context, state) => const ProfileScreen(),
-              routes: [
-                GoRoute(
-                  path: 'notifications',
-                  name: 'notification-center',
-                  builder: (context, state) => const NotificationCenterScreen(),
-                ),
-              ],
+              path: 'notifications',
+              name: 'notification-center',
+              builder: (context, state) =>
+                  const NotificationCenterScreen(),
             ),
           ],
         ),
       ],
+    ),
+
+    // ── /dashboard redirect ──────────────────────────────────────────
+    GoRoute(
+      path: AppConstants.routeDashboard,
+      redirect: (context, state) => AppConstants.routeDashboardHome,
     ),
   ],
 );

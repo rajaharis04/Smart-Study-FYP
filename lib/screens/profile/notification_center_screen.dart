@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/storage_service.dart';
+import '../../services/api_service.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 class NotificationCenterScreen extends ConsumerStatefulWidget {
@@ -19,6 +20,7 @@ class NotificationCenterScreen extends ConsumerStatefulWidget {
 
 class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScreen> {
   final StorageService _storage = StorageService();
+  final ApiService _api = ApiService();
   List<Map<String, dynamic>> _notifications = [];
   bool _isLoading = true;
 
@@ -30,14 +32,25 @@ class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScr
 
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
-    final logs = await _storage.getNotificationLogs();
-    setState(() {
-      _notifications = logs;
-      _isLoading = false;
-    });
+    try {
+      final logs = await _api.getMyNotifications();
+      setState(() {
+        _notifications = logs;
+        _isLoading = false;
+      });
+    } catch (e) {
+      final logs = await _storage.getNotificationLogs();
+      setState(() {
+        _notifications = logs;
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _markAsRead(String id) async {
+    try {
+      await _api.markNotificationAsRead(id);
+    } catch (_) {}
     await _storage.markNotificationRead(id);
     // Reload state locally
     final updated = _notifications.map((n) {
@@ -99,7 +112,7 @@ class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScr
     return Directionality(
       textDirection: isUrdu ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
-        backgroundColor: theme.colorScheme.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
           title: Text(
             title,

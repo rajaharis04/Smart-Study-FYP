@@ -46,7 +46,7 @@ class _CourseLecturesScreenState extends ConsumerState<CourseLecturesScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           widget.courseName,

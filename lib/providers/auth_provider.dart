@@ -7,6 +7,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
+import '../core/router.dart'; // AppAuthNotifier ke liye
 
 // ════════════════════════════════════════════════════════════════════
 //  AuthState — State ka structure
@@ -275,6 +276,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // ── Token mila — user logged in hai ──────────────────────────
       final role = await _storage.getUserRole();
       final name = await _storage.getUserName();
+      // GoRouter ko batao ke user logged in hai (synchronous redirect ke liye)
+      AppAuthNotifier.instance.setLoggedIn(true);
       state = state.copyWith(
         isAuthenticated: true,
         userRole: role,
@@ -282,6 +285,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
     } else {
       // ── Token nahi — user ko login karna hoga ────────────────────
+      AppAuthNotifier.instance.setLoggedIn(false);
       state = state.copyWith(isAuthenticated: false);
     }
   }

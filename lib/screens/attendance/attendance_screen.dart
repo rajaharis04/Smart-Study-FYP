@@ -65,7 +65,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> with Single
     final settings = ref.watch(settingsProvider);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(settings.translate('attendance')),
         backgroundColor: theme.colorScheme.surface,
@@ -485,7 +485,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> with Single
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w700,
-            color: theme.colorScheme.onBackground,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         TextButton.icon(

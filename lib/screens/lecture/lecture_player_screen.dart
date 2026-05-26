@@ -42,7 +42,6 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
     with WidgetsBindingObserver {
 
   VideoPlayerController? _controller;
-  String? _loadedVideoUrl;
   bool _showControls = true;
   bool _showQna = false;
   bool _isFullScreen = false;
@@ -76,7 +75,6 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
   }
 
   Future<void> _initVideo(String videoUrl) async {
-    _loadedVideoUrl = videoUrl;
     _controller = VideoPlayerController.networkUrl(
       Uri.parse(videoUrl),
     );
@@ -597,7 +595,7 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
 
   Widget _buildInfoPanel(ThemeData theme, LectureState lectureState) {
     return Container(
-      color: theme.colorScheme.background,
+      color: theme.scaffoldBackgroundColor,
       child: DefaultTabController(
         length: 2,
         child: Column(

@@ -47,9 +47,16 @@ class DashboardShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final currentLocation = GoRouterState.of(context).matchedLocation;
     final settings = ref.watch(settingsProvider);
     final isUrdu = settings.language == 'Urdu';
+
+    // ── Current location — GoRouterState se parhna ───────────────────
+    // IMPORTANT: GoRouterState.of(context) aur context.go() same context
+    // mein use karne se circular rebuild issue ho sakta hai.
+    // Isliye hum GoRouter.of(context) se router nikaalte hain aur
+    // location GoRouterState.of(context) se alag context mein padhte hain.
+    final router = GoRouter.of(context);
+    final currentLocation = GoRouterState.of(context).matchedLocation;
 
     // Current tab index detect karo
     int activeIndex = 0;
@@ -88,12 +95,23 @@ class DashboardShell extends ConsumerWidget {
                   final label = settings.translate(tab.key);
 
                   return Expanded(
-                    child: InkWell(
-                      onTap: () => context.go(tab.path),
-                      borderRadius: BorderRadius.circular(12),
+                    child: GestureDetector(
+                      // GestureDetector use karo — InkWell ke bajaye
+                      // Desktop par GestureDetector more reliable hai
+                      // jab parent aur child contexts alag hoon
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        // router.go() use karo — context.go() nahi
+                        // Yeh same GoRouter instance use karta hai
+                        // lekin context binding se bachata hai
+                        router.go(tab.path);
+                      },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         curve: Curves.easeInOut,
+                        color: isActive
+                            ? theme.colorScheme.primary.withOpacity(0.06)
+                            : Colors.transparent,
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,

@@ -8,7 +8,8 @@ from app.db.database import get_db
 from datetime import datetime
 from app.models.models import (
     Semester, Course, Section, Enrollment, Student,
-    Teacher, Department, User, AuditLog, GlobalAnnouncement
+    Teacher, Department, User, AuditLog, GlobalAnnouncement,
+    Attendance, QuizResponse, Quiz, Lecture, Notification
 )
 from app.schemas.schemas import (
     SemesterCreate, SemesterUpdate, SemesterOut,
@@ -575,6 +576,42 @@ def create_announcement(
     db.add(ann)
     db.commit()
     db.refresh(ann)
+    
+    # Propagate global announcements to individual users in the Notification table
+    target_role = ann.target_role
+    dept_id = ann.department_id
+    users_to_notify = []
+
+    if target_role == "teachers":
+        t_query = db.query(User).join(Teacher, Teacher.user_id == User.id).filter(User.is_active == True)
+        if dept_id:
+            t_query = t_query.filter(Teacher.department_id == dept_id)
+        users_to_notify = t_query.all()
+    elif target_role == "students":
+        s_query = db.query(User).join(Student, Student.user_id == User.id).filter(User.is_active == True)
+        if dept_id:
+            s_query = s_query.filter(Student.department_id == dept_id)
+        users_to_notify = s_query.all()
+    elif target_role == "all":
+        t_query = db.query(User).join(Teacher, Teacher.user_id == User.id).filter(User.is_active == True)
+        if dept_id:
+            t_query = t_query.filter(Teacher.department_id == dept_id)
+        
+        s_query = db.query(User).join(Student, Student.user_id == User.id).filter(User.is_active == True)
+        if dept_id:
+            s_query = s_query.filter(Student.department_id == dept_id)
+        
+        users_to_notify = t_query.all() + s_query.all()
+
+    for u in users_to_notify:
+        notif = Notification(
+            user_id=u.id,
+            title=f"📢 {ann.title}",
+            message=ann.content,
+            created_at=ann.created_at
+        )
+        db.add(notif)
+    db.commit()
     
     log_action(db, admin.email, "CREATE_GLOBAL_ANNOUNCEMENT", f"Created global announcement '{ann.title}' targeting '{ann.target_role}'.")
     

@@ -12,7 +12,8 @@ from sqlalchemy import func
 from app.db.database import get_db
 from app.models.models import (
     User, Student, Enrollment, Section, Course, Lecture,
-    LectureSession, Attendance, Quiz, QuizQuestion, QuizResponse, Topic
+    LectureSession, Attendance, Quiz, QuizQuestion, QuizResponse, Topic,
+    Notification
 )
 from app.services.auth_service import decode_token
 
@@ -56,10 +57,17 @@ def get_my_attendance(
         sec = e.section
         if sec and sec.course:
             section_ids.append(sec.id)
+            teacher = sec.teacher
+            instructor_name = "TBA"
+            if teacher and teacher.user:
+                instructor_name = teacher.user.full_name
             courses_list.append({
-                "course_id": sec.course.id,
-                "course_code": sec.course.code,
-                "course_name": sec.course.name
+                "id": sec.course.id,
+                "name": sec.course.name,
+                "code": sec.course.code,
+                "instructor": instructor_name,
+                "credit_hours": sec.course.credit_hours,
+                "section_id": sec.id
             })
             
     # Find all published lectures for these sections
@@ -284,6 +292,46 @@ def get_my_progress(
         "recommendations": weak_topics_recommendations,
         "insights": insights_list
     }
+
+
+# ─── PROFILE NOTIFICATIONS ────────────────────────────────────────────────────
+
+@profile_router.get("/notifications")
+def get_student_notifications(
+    student: Student = Depends(_get_current_student),
+    db: Session = Depends(get_db)
+):
+    notifications = db.query(Notification).filter(
+        Notification.user_id == student.user_id
+    ).order_by(Notification.created_at.desc()).all()
+    
+    return [
+        {
+            "id": str(n.id),
+            "title": n.title,
+            "content": n.message,
+            "timestamp": n.created_at.isoformat() if n.created_at else datetime.utcnow().isoformat(),
+            "read": n.is_read
+        }
+        for n in notifications
+    ]
+
+
+@profile_router.post("/notifications/{notification_id}/read")
+def mark_student_notification_as_read(
+    notification_id: int,
+    student: Student = Depends(_get_current_student),
+    db: Session = Depends(get_db)
+):
+    n = db.query(Notification).filter(
+        Notification.id == notification_id,
+        Notification.user_id == student.user_id
+    ).first()
+    if not n:
+        raise HTTPException(status_code=404, detail="Notification not found.")
+    n.is_read = True
+    db.commit()
+    return {"message": "Notification marked as read."}
 
 
 # ─── QUESTION BANK ROUTER ──────────────────────────────────────────────────────

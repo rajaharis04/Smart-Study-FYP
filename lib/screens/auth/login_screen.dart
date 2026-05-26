@@ -881,37 +881,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
-  // Password sent confirmation banner
-  Widget _buildPasswordSentBanner() {
-    final email = _emailController.text.trim();
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.success.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: AppColors.success.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.mark_email_read_rounded,
-              color: AppColors.success, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              '✅ Password sent to $email\nApna email check karo',
-              style: const TextStyle(
-                color: AppColors.success,
-                fontSize: 13,
-                height: 1.4,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   // Error banner
   Widget _buildErrorBanner(String error) {

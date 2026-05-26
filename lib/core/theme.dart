@@ -43,6 +43,12 @@ class AppTheme {
           onError: AppColors.onPrimary,
           surface: AppColors.surface,
           onSurface: AppColors.onSurface,
+          // ── Added missing fields (used throughout the app) ───────────────
+          background: AppColors.background,
+          onBackground: AppColors.onBackground,
+          surfaceVariant: Color(0xFFF0F4F3),
+          onSurfaceVariant: Color(0xFF4A5568),
+          outline: Color(0xFFCBD5E0),
         ),
         scaffoldBackgroundColor: AppColors.background,
 

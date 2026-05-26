@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 /// App-wide constants for SmartStudyInstructor.
 ///
 /// Usage:
@@ -8,7 +11,15 @@ class AppConstants {
   AppConstants._();
 
   /// Base URL for all API requests.
-  static const String baseUrl = 'http://localhost:8001/api';
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:8001/api';
+    }
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8001/api';
+    }
+    return 'http://localhost:8001/api';
+  }
 
   /// Human-readable application name.
   static const String appName = 'SmartStudy';

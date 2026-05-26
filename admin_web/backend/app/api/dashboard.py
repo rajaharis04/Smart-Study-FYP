@@ -207,6 +207,7 @@ def get_active_quizzes(
             "quiz_id":       q.id,
             "quiz_type":     q.quiz_type,
             "lecture_title": q.lecture.title,
+            "lecture_id":    q.lecture_id,
             "due_date":      None,         # Can add deadline field to Quiz model later
             "is_attempted":  False,
         })

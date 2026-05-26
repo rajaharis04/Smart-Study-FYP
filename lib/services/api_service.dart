@@ -580,4 +580,24 @@ class ApiService {
     // Return standard dummy pdf url for demo download
     return "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
   }
+
+  /// Get notifications for logged-in student
+  Future<List<Map<String, dynamic>>> getMyNotifications() async {
+    try {
+      final response = await _dio.get('/profile/notifications');
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
+  /// Mark student notification as read
+  Future<void> markNotificationAsRead(String id) async {
+    try {
+      await _dio.post('/profile/notifications/$id/read');
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
 }

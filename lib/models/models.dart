@@ -494,6 +494,7 @@ class ActiveQuiz {
   final String lectureTitle; // Kis lecture se related
   final DateTime? dueDate;  // Deadline (null ho sakti hai)
   final bool isAttempted;   // Attempt kiya ja chuka hai?
+  final int? lectureId;     // Lecture ID link
 
   const ActiveQuiz({
     required this.quizId,
@@ -501,6 +502,7 @@ class ActiveQuiz {
     required this.lectureTitle,
     this.dueDate,            // Optional — nullable
     required this.isAttempted,
+    this.lectureId,
   });
 
   factory ActiveQuiz.fromJson(Map<String, dynamic> json) {
@@ -513,6 +515,7 @@ class ActiveQuiz {
           ? DateTime.parse(json['due_date'] as String)
           : null,
       isAttempted: json['is_attempted'] as bool,
+      lectureId:    json['lecture_id']   as int?,
     );
   }
 

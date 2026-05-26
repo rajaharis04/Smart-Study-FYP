@@ -45,7 +45,7 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
     final firstName = (authState.userName ?? 'Student').split(' ').first;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: RefreshIndicator(
         color: theme.colorScheme.primary,
         onRefresh: () => ref.read(dashboardProvider.notifier).refresh(),
@@ -66,13 +66,22 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
             ] else ...[
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Progress card
                       _buildProgressCard(theme, dashState.dashboardData),
                       const SizedBox(height: 24),
+                      // Announcements from Admin/Teacher
+                      if ((dashState.announcements ?? []).isNotEmpty) ...[
+                        _buildSectionHeader(theme, isUrdu ? 'اعلانات' : 'Announcements', onViewAll: () {
+                          context.push('/dashboard/profile/notifications');
+                        }),
+                        const SizedBox(height: 12),
+                        _buildAnnouncementsList(theme, dashState.announcements ?? []),
+                        const SizedBox(height: 28),
+                      ],
                       // Summary tiles grid
                       _buildSummaryGrid(theme, dashState.dashboardData),
                       const SizedBox(height: 28),
@@ -304,14 +313,14 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
         label: 'Courses',
         value: '${data?.totalCourses ?? 0}',
         color: const Color(0xFF6C63FF),
-        onTap: () => context.go(AppConstants.routeDashboardCourses),
+        onTap: () => GoRouter.of(context).go(AppConstants.routeDashboardCourses),
       ),
       _SummaryTile(
         icon: Icons.fact_check_rounded,
         label: 'Attendance',
         value: '${(data?.attendancePercentage ?? 0).toInt()}%',
         color: const Color(0xFF00BFA5),
-        onTap: () => context.go(AppConstants.routeDashboardAttendance),
+        onTap: () => GoRouter.of(context).go(AppConstants.routeDashboardAttendance),
       ),
       _SummaryTile(
         icon: Icons.quiz_rounded,
@@ -341,7 +350,19 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
   }
 
   Widget _buildSummaryTile(ThemeData theme, _SummaryTile tile) {
+    if (tile.onTap == null) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: tile.color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: tile.color.withOpacity(0.2)),
+        ),
+        child: _buildSummaryTileContent(theme, tile),
+      );
+    }
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: tile.onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -350,44 +371,48 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: tile.color.withOpacity(0.2)),
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: tile.color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(tile.icon, color: tile.color, size: 20),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    tile.value,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: tile.color,
-                    ),
-                  ),
-                  Text(
-                    tile.label,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        child: _buildSummaryTileContent(theme, tile),
       ),
+    );
+  }
+
+  Widget _buildSummaryTileContent(ThemeData theme, _SummaryTile tile) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: tile.color.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(tile.icon, color: tile.color, size: 20),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                tile.value,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: tile.color,
+                ),
+              ),
+              Text(
+                tile.label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -406,22 +431,99 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: theme.colorScheme.onBackground,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         if (onViewAll != null)
-          GestureDetector(
-            onTap: onViewAll,
-            child: Text(
-              isUrdu ? 'سب دیکھیں' : 'View All',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.primary,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onViewAll,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text(
+                  isUrdu ? 'سب دیکھیں' : 'View All',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
               ),
             ),
           ),
       ],
+    );
+  }
+
+  // ── Announcements list ───────────────────────────────────────────
+
+  Widget _buildAnnouncementsList(ThemeData theme, List<Map<String, dynamic>> list) {
+    return Column(
+      children: list.take(2).map((ann) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.primary.withOpacity(0.08),
+                theme.colorScheme.secondary.withOpacity(0.04),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.colorScheme.primary.withOpacity(0.2),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.campaign_rounded,
+                  color: theme.colorScheme.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      ann['title'] ?? '',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      ann['content'] ?? '',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        height: 1.4,
+                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -448,71 +550,83 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
   }
 
   Widget _buildCourseCard(ThemeData theme, Course course, Color color) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          final sectionId = course.sectionId ?? 0;
+          context.push(
+            '/dashboard/courses/lectures/$sectionId?courseName=${Uri.encodeComponent(course.name)}',
+          );
+        },
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                course.code.substring(0, math.min(2, course.code.length)),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: color,
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(
+                    course.code.substring(0, math.min(2, course.code.length)),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  course.name,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      course.name,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      course.instructor,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  course.instructor,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
           ),
-          Icon(
-            Icons.chevron_right_rounded,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -536,92 +650,96 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
     final time = '${lecture.scheduledTime.hour.toString().padLeft(2, '0')}:'
         '${lecture.scheduledTime.minute.toString().padLeft(2, '0')}';
 
-    return GestureDetector(
-      onTap: () => context.push(
-          '${AppConstants.routeLecture}/${lecture.lectureId}'),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: lecture.isCompleted
-              ? Border.all(
-                  color: theme.colorScheme.primary.withOpacity(0.3))
-              : null,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: lecture.isCompleted
-                    ? theme.colorScheme.primary.withOpacity(0.12)
-                    : const Color(0xFF6C63FF).withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => context.push(
+            '${AppConstants.routeLecture}/${lecture.lectureId}'),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: lecture.isCompleted
+                ? Border.all(
+                    color: theme.colorScheme.primary.withOpacity(0.3))
+                : null,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
               ),
-              child: Icon(
-                lecture.isCompleted
-                    ? Icons.check_circle_rounded
-                    : Icons.play_circle_rounded,
-                color: lecture.isCompleted
-                    ? theme.colorScheme.primary
-                    : const Color(0xFF6C63FF),
-                size: 26,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    lecture.title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '${lecture.courseName}  •  $time',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (lecture.isCompleted)
+            ],
+          ),
+          child: Row(
+            children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: lecture.isCompleted
+                      ? theme.colorScheme.primary.withOpacity(0.12)
+                      : const Color(0xFF6C63FF).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  'Done',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.primary,
-                  ),
+                child: Icon(
+                  lecture.isCompleted
+                      ? Icons.check_circle_rounded
+                      : Icons.play_circle_rounded,
+                  color: lecture.isCompleted
+                      ? theme.colorScheme.primary
+                      : const Color(0xFF6C63FF),
+                  size: 26,
                 ),
               ),
-          ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      lecture.title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${lecture.courseName}  •  $time',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (lecture.isCompleted)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Done',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -643,61 +761,72 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
         ? 'Due ${quiz.dueDate!.day}/${quiz.dueDate!.month}'
         : 'No deadline';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFF6B6B).withOpacity(0.06),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          if (quiz.lectureId != null) {
+            context.push('${AppConstants.routeLecture}/${quiz.lectureId}');
+          }
+        },
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFFF6B6B).withOpacity(0.2),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFF6B6B).withOpacity(0.06),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFFFF6B6B).withOpacity(0.2),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6B6B).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.quiz_rounded,
+                  color: Color(0xFFFF6B6B),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      quiz.lectureTitle,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${quiz.quizTypeLabel}  •  $dueText',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFFFF6B6B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFF6B6B).withOpacity(0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.quiz_rounded,
-              color: Color(0xFFFF6B6B),
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  quiz.lectureTitle,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '${quiz.quizTypeLabel}  •  $dueText',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFFFF6B6B),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.chevron_right_rounded,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ],
       ),
     );
   }
@@ -788,7 +917,7 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: theme.colorScheme.onBackground,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),

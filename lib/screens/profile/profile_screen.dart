@@ -59,7 +59,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [

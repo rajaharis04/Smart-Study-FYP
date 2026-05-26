@@ -84,7 +84,7 @@ class _PreAssessmentScreenState extends ConsumerState<PreAssessmentScreen>
     final isLast = questions.isEmpty || _currentIndex == questions.length - 1;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -156,7 +156,7 @@ class _PreAssessmentScreenState extends ConsumerState<PreAssessmentScreen>
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: theme.colorScheme.onBackground,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     Text(

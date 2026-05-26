@@ -18,6 +18,7 @@ class DashboardState {
   final List<TodayLecture>? todayLectures;
   final List<ActiveQuiz>? activeQuizzes;
   final List<Course>? courses;
+  final List<Map<String, dynamic>>? announcements;
 
   const DashboardState({
     this.isLoading = false,
@@ -26,6 +27,7 @@ class DashboardState {
     this.todayLectures,
     this.activeQuizzes,
     this.courses,
+    this.announcements,
   });
 
   bool get hasData =>
@@ -40,6 +42,7 @@ class DashboardState {
     List<TodayLecture>? todayLectures,
     List<ActiveQuiz>? activeQuizzes,
     List<Course>? courses,
+    List<Map<String, dynamic>>? announcements,
     bool clearError = false,
   }) {
     return DashboardState(
@@ -49,6 +52,7 @@ class DashboardState {
       todayLectures:  todayLectures  ?? this.todayLectures,
       activeQuizzes:  activeQuizzes  ?? this.activeQuizzes,
       courses:        courses        ?? this.courses,
+      announcements:  announcements  ?? this.announcements,
     );
   }
 }
@@ -69,12 +73,13 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      // ── Parallel API calls — ek saath teeno chalte hain ───────────
+      // ── Parallel API calls — ek saath chalte hain ───────────
       final results = await Future.wait([
         _api.getDashboard(),          // Call 1: overall stats
         _api.getTodayLectures(),      // Call 2: today's lectures
         _api.getActiveQuizzes(),      // Call 3: active quizzes
         _api.getCourses(),            // Call 4: enrolled courses
+        _getNotificationsSafe(),      // Call 5: announcements
       ]);
 
       state = state.copyWith(
@@ -83,12 +88,21 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
         todayLectures: results[1] as List<TodayLecture>,
         activeQuizzes: results[2] as List<ActiveQuiz>,
         courses:       results[3] as List<Course>,
+        announcements: results[4] as List<Map<String, dynamic>>,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: _parseError(e),
       );
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _getNotificationsSafe() async {
+    try {
+      return await _api.getMyNotifications();
+    } catch (_) {
+      return [];
     }
   }
 

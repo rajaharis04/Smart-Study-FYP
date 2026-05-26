@@ -45,7 +45,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
     return Directionality(
       textDirection: isUrdu ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
-        backgroundColor: theme.colorScheme.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
           title: Text(settings.translate('my_courses')),
           backgroundColor: theme.colorScheme.surface,
@@ -158,7 +158,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: theme.colorScheme.onBackground,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 4),

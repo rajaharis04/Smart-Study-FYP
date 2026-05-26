@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/constants.dart';
+import '../core/router.dart'; // AppAuthNotifier ke liye
 
 /// ──────────────────────────────────────────────────────────────────
 /// StorageService
@@ -30,6 +31,10 @@ class StorageService {
   // Static in-memory fallback cache to allow the app to work seamlessly
   // and avoid annoying macOS Keychain password dialogs during local execution.
   static final Map<String, String> _fallbackStorage = {};
+
+  /// Router ke liye synchronous token access — no async needed.
+  /// GoRouter redirect function mein use hota hai.
+  static String? get fallbackToken => _fallbackStorage[AppConstants.keyAuthToken];
 
   // Check if target platform is macOS desktop
   bool get _isMac => Platform.isMacOS;
@@ -58,6 +63,8 @@ class StorageService {
   /// Kab call hota hai: Login successful hone par
   Future<void> saveToken(String token) async {
     _fallbackStorage[AppConstants.keyAuthToken] = token;
+    // Auth notifier ko batao — GoRouter logged-in state update karega
+    AppAuthNotifier.instance.setLoggedIn(true);
     if (_isMac) {
       // macOS par dialog bypass karne ke liye local memory storage use karte hain
       return;
@@ -107,6 +114,8 @@ class StorageService {
   /// Kab call hota hai: Logout button press karne par
   Future<void> deleteToken() async {
     _fallbackStorage.remove(AppConstants.keyAuthToken);
+    // Auth notifier ko batao — GoRouter redirect karega login par
+    AppAuthNotifier.instance.setLoggedIn(false);
     if (_isMac) {
       return;
     }
