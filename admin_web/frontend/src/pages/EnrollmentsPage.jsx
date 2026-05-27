@@ -1,40 +1,51 @@
 import { useState, useEffect } from 'react';
-import { enrollmentApi, sectionApi, studentApi } from '../services/api';
+import { enrollmentApi, sectionApi } from '../services/api';
 import DataTable from '../components/DataTable';
-import Modal from '../components/Modal';
-import CSVUploader from '../components/CSVUploader';
-import { Plus, Upload, Trash2, AlertCircle, CheckSquare, Square } from 'lucide-react';
+import { 
+  Trash2, 
+  AlertCircle, 
+  Filter, 
+  Check, 
+  X, 
+  RefreshCw,
+  UserCheck,
+  Grid,
+  List,
+  BookOpen,
+  Users,
+  ChevronLeft,
+  ArrowRight
+} from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState([]);
   const [sections, setSections] = useState([]);
-  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Modals
-  const [enrollModalOpen, setEnrollModalOpen] = useState(false);
-  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  // View state
+  const [viewMode, setViewMode] = useState('SECTIONS'); // 'SECTIONS' | 'ALL'
+  const [selectedSection, setSelectedSection] = useState(null);
 
-  // Form states
-  const [sectionId, setSectionId] = useState('');
-  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
-  const [studentSearchQuery, setStudentSearchQuery] = useState('');
+  // Filters state (only used in ALL mode)
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState('');
+  const [selectedSectionFilter, setSelectedSectionFilter] = useState('');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('ACTIVE'); // Default to ACTIVE
 
   const fetchData = async () => {
     setLoading(true);
+    setError('');
     try {
-      const [eRes, sRes, stdRes] = await Promise.all([
+      const [eRes, sRes] = await Promise.all([
         enrollmentApi.list(),
-        sectionApi.list(),
-        studentApi.list()
+        sectionApi.list()
       ]);
-      setEnrollments(eRes.data.filter(e => e.is_active));
+      setEnrollments(eRes.data);
       setSections(sRes.data);
-      setStudents(stdRes.data.filter(s => s.is_active));
     } catch (err) {
-      setError('Failed to load enrollments schema datasets.');
+      console.error(err);
+      setError('Failed to load enrollments data. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -44,46 +55,6 @@ export default function EnrollmentsPage() {
     fetchData();
   }, []);
 
-  const openEnrollModal = () => {
-    setSectionId('');
-    setSelectedStudentIds([]);
-    setStudentSearchQuery('');
-    setEnrollModalOpen(true);
-  };
-
-  const openUploadModal = () => {
-    setSectionId('');
-    setUploadModalOpen(true);
-  };
-
-  const handleEnrollSubmit = async (e) => {
-    e.preventDefault();
-    if (!sectionId) {
-      toast.error('Please select a class section.');
-      return;
-    }
-    if (selectedStudentIds.length === 0) {
-      toast.error('Please select at least one student to enroll.');
-      return;
-    }
-
-    try {
-      const payload = {
-        section_id: parseInt(sectionId),
-        student_ids: selectedStudentIds.map(id => parseInt(id)),
-      };
-      const res = await enrollmentApi.enroll(payload);
-      toast.success(`Successfully enrolled ${res.data.enrolled} students!`);
-      if (res.data.errors && res.data.errors.length > 0) {
-        toast.error(`Skipped / Errors: ${res.data.errors.join(', ')}`);
-      }
-      setEnrollModalOpen(false);
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || 'Enrollment transaction failed.');
-    }
-  };
-
   const handleDeactivate = async (id, name, courseCode, sectionLabel) => {
     if (!window.confirm(`Are you sure you want to drop student ${name} from course section ${courseCode} - ${sectionLabel}?`)) return;
     try {
@@ -91,236 +62,544 @@ export default function EnrollmentsPage() {
       toast.success('Student dropped from course section successfully');
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to drop student from section.');
+      toast.error(err.response?.data?.detail || 'Failed to drop student.');
     }
   };
 
-  const handleCSVUpload = async (file) => {
-    if (!sectionId) {
-      throw new Error('Please select a section before uploading the CSV.');
-    }
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await enrollmentApi.bulkUpload(parseInt(sectionId), formData);
-    fetchData();
-    return res.data;
-  };
-
-  const toggleStudentSelection = (id) => {
-    if (selectedStudentIds.includes(id)) {
-      setSelectedStudentIds(selectedStudentIds.filter(x => x !== id));
-    } else {
-      setSelectedStudentIds([...selectedStudentIds, id]);
+  const handleApproveStatus = async (id, name) => {
+    try {
+      await enrollmentApi.updateStatus(id, 'ACTIVE');
+      toast.success(`Enrollment for ${name} approved and activated.`);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to approve enrollment.');
     }
   };
 
-  // Filter students displayed in the checklist search
-  const filteredStudents = students.filter(student =>
-    student.full_name.toLowerCase().includes(studentSearchQuery.toLowerCase()) ||
-    student.reg_number.toLowerCase().includes(studentSearchQuery.toLowerCase())
-  );
+  // Dynamic filter lists for global ALL view
+  const uniqueCourses = [...new Set(enrollments.map(e => e.course_name))].filter(Boolean);
+  const uniqueSections = [...new Set(enrollments.map(e => e.section_label))].filter(Boolean);
+
+  // Filter global list
+  const filteredEnrollments = enrollments.filter(e => {
+    const courseMatch = selectedCourseFilter ? e.course_name === selectedCourseFilter : true;
+    const sectionMatch = selectedSectionFilter ? e.section_label === selectedSectionFilter : true;
+    
+    let statusMatch = true;
+    if (selectedStatusFilter !== 'ALL') {
+      statusMatch = e.status === selectedStatusFilter;
+    }
+    return courseMatch && sectionMatch && statusMatch;
+  });
 
   const headers = [
     { key: 'student_reg', label: 'Registration No' },
     { key: 'student_name', label: 'Student Name' },
-    { key: 'course_name', label: 'Enrolled Course' },
+    { key: 'course_name', label: 'Course' },
+    { key: 'credit_hours', label: 'Credits' },
     { key: 'section_label', label: 'Section' },
+    { key: 'teacher_name', label: 'Instructor' },
+    { key: 'semester_name', label: 'Semester' },
+    { key: 'status', label: 'Status' },
+    { key: 'enrolled_at', label: 'Date Joined', sortable: false },
+    { key: 'actions', label: 'Actions', sortable: false },
+  ];
+
+  // Specific section headers (removes course & section info as they are in the header card)
+  const sectionRosterHeaders = [
+    { key: 'student_reg', label: 'Registration No' },
+    { key: 'student_name', label: 'Student Name' },
+    { key: 'semester_name', label: 'Semester' },
+    { key: 'status', label: 'Status' },
     { key: 'enrolled_at', label: 'Date Joined', sortable: false },
     { key: 'actions', label: 'Actions', sortable: false },
   ];
 
   return (
-    <div>
-      <div className="page-header">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      
+      {/* Page Header */}
+      <div className="page-header" style={{ marginBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 className="page-title">Class Enrollments</h1>
-          <p className="page-subtitle">Assign students to class sections, upload rosters, and manage dropouts.</p>
+          <h1 className="page-title">Enrolled Students Directory</h1>
+          <p className="page-subtitle">Track, filter, and manage student rosters grouped by sections or globally.</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="btn btn-secondary" onClick={openUploadModal}>
-            <Upload size={16} />
-            <span>CSV Bulk Enroll</span>
+        
+        {/* View Switcher segment control */}
+        <div style={{
+          display: 'flex',
+          background: 'rgba(255,255,255,0.03)',
+          padding: '4px',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--border)'
+        }}>
+          <button
+            onClick={() => { setViewMode('SECTIONS'); setSelectedSection(null); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              background: viewMode === 'SECTIONS' ? 'var(--accent)' : 'transparent',
+              color: viewMode === 'SECTIONS' ? '#fff' : 'var(--text-secondary)',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 600,
+              transition: 'all 0.2s'
+            }}
+          >
+            <Grid size={15} />
+            <span>Grouped by Sections</span>
           </button>
-          <button className="btn btn-primary" onClick={openEnrollModal}>
-            <Plus size={16} />
-            <span>Enroll Students</span>
+          <button
+            onClick={() => setViewMode('ALL')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              background: viewMode === 'ALL' ? 'var(--accent)' : 'transparent',
+              color: viewMode === 'ALL' ? '#fff' : 'var(--text-secondary)',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 600,
+              transition: 'all 0.2s'
+            }}
+          >
+            <List size={15} />
+            <span>All Enrollments List</span>
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="result-box error mb-4" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <AlertCircle size={18} />
+        <div className="result-box error" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <AlertCircle size={20} />
           <span>{error}</span>
         </div>
       )}
 
       {loading ? (
-        <div className="loading" style={{ textAlign: 'center', padding: '24px' }}>Loading enrollment rosters...</div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', gap: '12px' }}>
+          <RefreshCw size={32} className="spin text-accent" />
+          <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Loading student directory...</span>
+        </div>
       ) : (
-        <DataTable
-          headers={headers}
-          data={enrollments}
-          searchKeys={['student_name', 'student_reg', 'course_name', 'section_label']}
-          searchPlaceholder="Search enrollments..."
-          renderRow={(e) => (
-            <>
-              <td><span className="badge badge-accent">{e.student_reg}</span></td>
-              <td>{e.student_name}</td>
-              <td>{e.course_name}</td>
-              <td><span className="badge badge-info">{e.section_label}</span></td>
-              <td>{new Date(e.enrolled_at).toLocaleDateString()}</td>
-              <td>
-                <button
-                  className="btn btn-danger btn-sm btn-icon"
-                  onClick={() => handleDeactivate(e.id, e.student_name, e.course_name, e.section_label)}
-                  title="Drop Student"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </td>
-            </>
-          )}
-        />
-      )}
+        <>
+          {/* ─── GROUPED BY SECTIONS VIEW ─── */}
+          {viewMode === 'SECTIONS' && !selectedSection && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              gap: '24px'
+            }}>
+              {sections.length === 0 ? (
+                <div style={{
+                  gridColumn: '1 / -1',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-xl)',
+                  padding: '48px',
+                  textAlign: 'center',
+                  color: 'var(--text-secondary)'
+                }}>
+                  No active course offerings found to show rosters.
+                </div>
+              ) : (
+                sections.map(sec => {
+                  const secEnrollments = enrollments.filter(e => e.section_id === sec.id);
+                  const activeCount = secEnrollments.filter(e => e.status === 'ACTIVE').length;
+                  const pendingCount = secEnrollments.filter(e => e.status === 'PENDING').length;
 
-      {/* MANUAL ENROLLMENT MODAL */}
-      <Modal
-        isOpen={enrollModalOpen}
-        onClose={() => setEnrollModalOpen(false)}
-        title="Enroll Students to Section"
-        footer={
-          <>
-            <button className="btn btn-secondary" onClick={() => setEnrollModalOpen(false)}>Cancel</button>
-            <button className="btn btn-primary" onClick={handleEnrollSubmit}>Enroll Selected</button>
-          </>
-        }
-      >
-        <form onSubmit={handleEnrollSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div className="form-group">
-            <label className="form-label">Target Class Section</label>
-            <select
-              className="form-control"
-              required
-              value={sectionId}
-              onChange={(e) => setSectionId(e.target.value)}
-            >
-              <option value="">-- Select Section --</option>
-              {sections.map((sec) => (
-                <option key={sec.id} value={sec.id}>
-                  {sec.course_code} - {sec.course_name} (Sec {sec.section_label})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Search Students</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Type name or registration number..."
-              value={studentSearchQuery}
-              onChange={(e) => setStudentSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Select Students ({selectedStudentIds.length} chosen)</label>
-            <div
-              style={{
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--bg-input)',
-                maxHeight: '180px',
-                overflowY: 'auto',
-                padding: '6px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2px',
-              }}
-            >
-              {filteredStudents.length > 0 ? (
-                filteredStudents.map((std) => {
-                  const isSelected = selectedStudentIds.includes(std.id);
                   return (
-                    <div
-                      key={std.id}
-                      onClick={() => toggleStudentSelection(std.id)}
+                    <div 
+                      key={sec.id}
+                      onClick={() => setSelectedSection(sec)}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '8px',
-                        borderRadius: 'var(--radius-sm)',
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-lg)',
+                        padding: '24px',
                         cursor: 'pointer',
-                        background: isSelected ? 'var(--accent-glow)' : 'transparent',
-                        transition: 'background 0.2s',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '16px',
+                        transition: 'transform 0.2s, border-color 0.2s',
+                        boxShadow: 'var(--shadow-sm)'
+                      }}
+                      className="section-card"
+                      onMouseEnter={e => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.borderColor = 'var(--accent)';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.borderColor = 'var(--border)';
                       }}
                     >
-                      {isSelected ? (
-                        <CheckSquare size={16} className="text-success" />
-                      ) : (
-                        <Square size={16} style={{ color: 'var(--text-muted)' }} />
-                      )}
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>
-                          {std.full_name}
-                        </span>
-                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                          {std.reg_number} - {std.batch}
-                        </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-light)', background: 'rgba(99,102,241,0.1)', padding: '4px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>
+                            {sec.course_code}
+                          </span>
+                          
+                          {sec.target_student_reg ? (
+                            <span className="badge" style={{ fontSize: '10px', fontWeight: 700, background: 'rgba(245, 158, 11, 0.08)', color: 'var(--warning)', border: 'none' }}>
+                              Single Student
+                            </span>
+                          ) : (
+                            <span className="badge badge-accent" style={{ fontSize: '10px', fontWeight: 700 }}>
+                              {sec.academic_section_label || 'Class-wide'}
+                            </span>
+                          )}
+                        </div>
+                        <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '4px 0 0 0', lineHeight: '1.3' }}>
+                          {sec.course_name}
+                        </h3>
+                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>
+                          Section Label: <strong>{sec.section_label}</strong> • Instructor: <strong>{sec.teacher_name || 'TBA'}</strong>
+                        </p>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '8px' }}>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Enrolled</span>
+                            <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--success)' }}>{activeCount}</span>
+                          </div>
+                          {pendingCount > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Pending</span>
+                              <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--warning)' }}>{pendingCount}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div style={{ color: 'var(--accent-light)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600 }}>
+                          <span>Open Roster</span>
+                          <ArrowRight size={14} />
+                        </div>
                       </div>
                     </div>
                   );
                 })
-              ) : (
-                <div className="text-muted" style={{ padding: '12px', textAlign: 'center', fontSize: '13px' }}>
-                  No students found.
-                </div>
               )}
             </div>
-          </div>
-        </form>
-      </Modal>
+          )}
 
-      {/* CSV UPLOAD ENROLLMENT MODAL */}
-      <Modal
-        isOpen={uploadModalOpen}
-        onClose={() => setUploadModalOpen(false)}
-        title="CSV Bulk Enrollment"
-        footer={
-          <button className="btn btn-secondary w-full" onClick={() => setUploadModalOpen(false)}>Close</button>
-        }
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div className="form-group">
-            <label className="form-label">Target Class Section</label>
-            <select
-              className="form-control"
-              required
-              value={sectionId}
-              onChange={(e) => setSectionId(e.target.value)}
-            >
-              <option value="">-- Select Section --</option>
-              {sections.map((sec) => (
-                <option key={sec.id} value={sec.id}>
-                  {sec.course_code} - {sec.course_name} (Sec {sec.section_label})
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* ─── GROUPED SECTION ROSTER DETAILED VIEW ─── */}
+          {viewMode === 'SECTIONS' && selectedSection && (
+            <div>
+              <button
+                onClick={() => setSelectedSection(null)}
+                className="btn btn-secondary"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginBottom: '16px',
+                  padding: '8px 14px',
+                  borderRadius: 'var(--radius-md)'
+                }}
+              >
+                <ChevronLeft size={16} />
+                <span>Back to Sections</span>
+              </button>
+              
+              <div style={{
+                background: 'linear-gradient(135deg, var(--bg-secondary) 0%, rgba(99, 102, 241, 0.05) 100%)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '24px 28px',
+                marginBottom: '24px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                boxShadow: 'var(--shadow-sm)',
+                flexWrap: 'wrap',
+                gap: '16px'
+              }}>
+                <div>
+                  <span className="badge badge-accent" style={{ marginBottom: '8px', fontSize: '11px', display: 'inline-block' }}>
+                    {selectedSection.course_code}
+                  </span>
+                  <h2 style={{ fontSize: '20px', fontWeight: 800, margin: 0 }}>
+                    Roster: {selectedSection.course_name}
+                  </h2>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '6px 0 0 0' }}>
+                    Section: <strong>{selectedSection.section_label}</strong> • Instructor: <strong>{selectedSection.teacher_name || 'TBA'}</strong> • Target: <strong>{selectedSection.target_student_reg ? `Single Student (${selectedSection.target_student_reg})` : (selectedSection.academic_section_label || 'All Sections')}</strong>
+                  </p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'block', fontWeight: 600 }}>Total Enrolled</span>
+                  <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--success)' }}>
+                    {enrollments.filter(e => e.section_id === selectedSection.id && e.status === 'ACTIVE').length} Students
+                  </span>
+                </div>
+              </div>
 
-          <CSVUploader
-            title="Upload Enrollment CSV"
-            subtitle="Columns: RegNumber"
-            onUpload={handleCSVUpload}
-          />
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-            <strong>Note:</strong> Select the section first, then drag your CSV list. The spreadsheet should contain a single column named <code>RegNumber</code>. All matching registration numbers will be registered to this section.
-          </div>
-        </div>
-      </Modal>
+              {/* DataTable for this Section */}
+              <div style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                overflow: 'hidden'
+              }}>
+                <DataTable
+                  headers={sectionRosterHeaders}
+                  data={enrollments.filter(e => e.section_id === selectedSection.id)}
+                  searchKeys={['student_name', 'student_reg']}
+                  searchPlaceholder="Search students in this roster..."
+                  renderRow={(e) => {
+                    let statusBg = 'rgba(255,255,255,0.05)';
+                    let statusColor = 'var(--text-secondary)';
+                    if (e.status === 'ACTIVE') {
+                      statusBg = 'rgba(16,185,129,0.1)';
+                      statusColor = 'var(--success)';
+                    } else if (e.status === 'PENDING') {
+                      statusBg = 'rgba(245,158,11,0.08)';
+                      statusColor = 'var(--warning)';
+                    } else if (e.status === 'DROPPED') {
+                      statusBg = 'rgba(239,68,68,0.1)';
+                      statusColor = 'var(--danger)';
+                    }
+
+                    return (
+                      <>
+                        <td><span className="badge badge-accent" style={{ fontWeight: 700 }}>{e.student_reg}</span></td>
+                        <td style={{ fontWeight: 500 }}>{e.student_name}</td>
+                        <td>{e.semester_name || <span className="text-muted">-</span>}</td>
+                        <td>
+                          <span 
+                            className="badge" 
+                            style={{ 
+                              background: statusBg, 
+                              color: statusColor, 
+                              border: 'none', 
+                              fontWeight: 700, 
+                              fontSize: '11px',
+                              textTransform: 'uppercase'
+                            }}
+                          >
+                            {e.status}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(e.enrolled_at).toLocaleDateString()}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {e.status === 'PENDING' && (
+                              <button
+                                className="btn btn-success btn-sm btn-icon"
+                                onClick={() => handleApproveStatus(e.id, e.student_name)}
+                                title="Approve Enrollment"
+                                style={{ background: 'var(--success)', color: '#fff', border: 'none', borderRadius: '6px', width: '28px', height: '28px' }}
+                              >
+                                <Check size={14} />
+                              </button>
+                            )}
+                            
+                            {e.status === 'DROPPED' && (
+                              <button
+                                className="btn btn-success btn-sm btn-icon"
+                                onClick={() => handleApproveStatus(e.id, e.student_name)}
+                                title="Reactivate Student"
+                                style={{ background: 'rgba(16,185,129,0.1)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '6px', width: '28px', height: '28px' }}
+                              >
+                                <UserCheck size={14} />
+                              </button>
+                            )}
+
+                            {e.status !== 'DROPPED' && (
+                              <button
+                                className="btn btn-danger btn-sm btn-icon"
+                                onClick={() => handleDeactivate(e.id, e.student_name, e.course_name, e.section_label)}
+                                title="Drop Student"
+                                style={{ borderRadius: '6px', width: '28px', height: '28px' }}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </>
+                    );
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ─── GLOBAL FLAT LIST VIEW (ALL mode) ─── */}
+          {viewMode === 'ALL' && (
+            <>
+              {/* Filters Card */}
+              <div style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '20px 24px',
+                boxShadow: 'var(--shadow-sm)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--accent-light)' }}>
+                  <Filter size={18} />
+                  <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Filter Roster</h3>
+                </div>
+
+                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                  {/* Course filter */}
+                  <div className="form-group" style={{ flex: '1', minWidth: '200px', margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '11px', textTransform: 'uppercase', marginBottom: '6px' }}>Filter by Course</label>
+                    <select
+                      className="form-control"
+                      value={selectedCourseFilter}
+                      onChange={(e) => setSelectedCourseFilter(e.target.value)}
+                    >
+                      <option value="">All Courses</option>
+                      {uniqueCourses.map(course => (
+                        <option key={course} value={course}>{course}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Section filter */}
+                  <div className="form-group" style={{ flex: '1', minWidth: '150px', margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '11px', textTransform: 'uppercase', marginBottom: '6px' }}>Filter by Section</label>
+                    <select
+                      className="form-control"
+                      value={selectedSectionFilter}
+                      onChange={(e) => setSelectedSectionFilter(e.target.value)}
+                    >
+                      <option value="">All Sections</option>
+                      {uniqueSections.map(sec => (
+                        <option key={sec} value={sec}>{sec}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Status filter */}
+                  <div className="form-group" style={{ flex: '1', minWidth: '150px', margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '11px', textTransform: 'uppercase', marginBottom: '6px' }}>Filter by Status</label>
+                    <select
+                      className="form-control"
+                      value={selectedStatusFilter}
+                      onChange={(e) => setSelectedStatusFilter(e.target.value)}
+                    >
+                      <option value="ALL">All States</option>
+                      <option value="ACTIVE">Active (Confirmed)</option>
+                      <option value="PENDING">Pending (Self-Registered)</option>
+                      <option value="DROPPED">Dropped (Inactive)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Table */}
+              <div style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                overflow: 'hidden'
+              }}>
+                <DataTable
+                  headers={headers}
+                  data={filteredEnrollments}
+                  searchKeys={['student_name', 'student_reg', 'course_name', 'section_label', 'teacher_name']}
+                  searchPlaceholder="Search by reg number, student name, instructor..."
+                  renderRow={(e) => {
+                    let statusBg = 'rgba(255,255,255,0.05)';
+                    let statusColor = 'var(--text-secondary)';
+                    if (e.status === 'ACTIVE') {
+                      statusBg = 'rgba(16,185,129,0.1)';
+                      statusColor = 'var(--success)';
+                    } else if (e.status === 'PENDING') {
+                      statusBg = 'rgba(245,158,11,0.08)';
+                      statusColor = 'var(--warning)';
+                    } else if (e.status === 'DROPPED') {
+                      statusBg = 'rgba(239,68,68,0.1)';
+                      statusColor = 'var(--danger)';
+                    }
+
+                    return (
+                      <>
+                        <td><span className="badge badge-accent" style={{ fontWeight: 700 }}>{e.student_reg}</span></td>
+                        <td style={{ fontWeight: 500 }}>{e.student_name}</td>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 500 }}>{e.course_name}</span>
+                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{e.course_code}</span>
+                          </div>
+                        </td>
+                        <td><span className="badge badge-secondary">{e.credit_hours} Cr</span></td>
+                        <td><span className="badge badge-info">{e.section_label}</span></td>
+                        <td>{e.teacher_name || <span className="text-muted" style={{ fontStyle: 'italic' }}>TBA</span>}</td>
+                        <td>{e.semester_name || <span className="text-muted">-</span>}</td>
+                        <td>
+                          <span 
+                            className="badge" 
+                            style={{ 
+                              background: statusBg, 
+                              color: statusColor, 
+                              border: 'none', 
+                              fontWeight: 700, 
+                              fontSize: '11px',
+                              textTransform: 'uppercase'
+                            }}
+                          >
+                            {e.status}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(e.enrolled_at).toLocaleDateString()}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {e.status === 'PENDING' && (
+                              <button
+                                className="btn btn-success btn-sm btn-icon"
+                                onClick={() => handleApproveStatus(e.id, e.student_name)}
+                                title="Approve Enrollment"
+                                style={{ background: 'var(--success)', color: '#fff', border: 'none', borderRadius: '6px', width: '28px', height: '28px' }}
+                              >
+                                <Check size={14} />
+                              </button>
+                            )}
+                            
+                            {e.status === 'DROPPED' && (
+                              <button
+                                className="btn btn-success btn-sm btn-icon"
+                                onClick={() => handleApproveStatus(e.id, e.student_name)}
+                                title="Reactivate Student"
+                                style={{ background: 'rgba(16,185,129,0.1)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '6px', width: '28px', height: '28px' }}
+                              >
+                                <UserCheck size={14} />
+                              </button>
+                            )}
+
+                            {e.status !== 'DROPPED' && (
+                              <button
+                                className="btn btn-danger btn-sm btn-icon"
+                                onClick={() => handleDeactivate(e.id, e.student_name, e.course_name, e.section_label)}
+                                title="Drop Student"
+                                style={{ borderRadius: '6px', width: '28px', height: '28px' }}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </>
+                    );
+                  }}
+                />
+              </div>
+            </>
+          )}
+        </>
+      )}
+
     </div>
   );
 }

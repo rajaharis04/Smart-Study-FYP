@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Send
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
@@ -35,6 +36,11 @@ export default function DashboardPage() {
   const [atRiskList, setAtRiskList] = useState([]);
   const [loadingRisk, setLoadingRisk] = useState(true);
 
+  // Visual Charts state
+  const [deptKpis, setDeptKpis] = useState([]);
+  const [studentsPerSec, setStudentsPerSec] = useState([]);
+  const [loadingCharts, setLoadingCharts] = useState(true);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -52,18 +58,23 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchNoticeboardAndRisk() {
       try {
-        const [annsRes, deptsRes, riskRes] = await Promise.all([
+        const [annsRes, deptsRes, riskRes, kpisRes, secRes] = await Promise.all([
           announcementApi.list(),
           deptApi.list(),
-          reportsApi.atRiskSummary()
+          reportsApi.atRiskSummary(),
+          reportsApi.departmentalKpis(),
+          reportsApi.studentsPerSection()
         ]);
         setAnnouncements(annsRes.data);
         setDepts(deptsRes.data);
         setAtRiskList(riskRes.data);
+        setDeptKpis(kpisRes.data);
+        setStudentsPerSec(secRes.data);
       } catch (err) {
         console.error('Failed to load dashboard extensions:', err);
       } finally {
         setLoadingRisk(false);
+        setLoadingCharts(false);
       }
     }
     fetchNoticeboardAndRisk();
@@ -176,6 +187,85 @@ export default function DashboardPage() {
           icon={UserCheck}
           color="var(--accent-light)"
         />
+      </div>
+
+      {/* ─── VISUAL TELEMETRY & ANALYTICS CHARTS ─── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '24px', marginTop: '24px' }}>
+        
+        {/* Chart 1: Department Workload (Students & Teachers) */}
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Building2 className="text-accent" size={20} />
+            <h3 className="card-title">Department Workload Distribution</h3>
+          </div>
+          <div className="card-body" style={{ minHeight: '300px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            {loadingCharts ? (
+              <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Loading workload distribution...</div>
+            ) : deptKpis.length > 0 ? (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={deptKpis} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="code" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'var(--bg-secondary)',
+                      borderColor: 'var(--border)',
+                      borderRadius: '8px',
+                      color: 'var(--text-primary)',
+                      fontSize: '12px'
+                    }}
+                  />
+                  <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '11px' }} />
+                  <Bar name="Total Students" dataKey="total_students" fill="var(--accent)" radius={[4, 4, 0, 0]} />
+                  <Bar name="Total Teachers" dataKey="total_teachers" fill="var(--info)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                No department data available.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Chart 2: Comparative Department Performance */}
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <UserCheck className="text-success" size={20} />
+            <h3 className="card-title">Comparative Academic Performance</h3>
+          </div>
+          <div className="card-body" style={{ minHeight: '300px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            {loadingCharts ? (
+              <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Loading academic metrics...</div>
+            ) : deptKpis.length > 0 ? (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={deptKpis} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="code" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} domain={[0, 100]} />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'var(--bg-secondary)',
+                      borderColor: 'var(--border)',
+                      borderRadius: '8px',
+                      color: 'var(--text-primary)',
+                      fontSize: '12px'
+                    }}
+                  />
+                  <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '11px' }} />
+                  <Bar name="Avg Attendance %" dataKey="average_attendance" fill="var(--success)" radius={[4, 4, 0, 0]} />
+                  <Bar name="Quiz Mastery %" dataKey="average_quiz_success" fill="var(--warning)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                No performance telemetry available.
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '24px', marginTop: '24px' }}>

@@ -14,7 +14,16 @@ import '../../providers/courses_provider.dart';
 import '../../services/api_service.dart';
 
 class CourseRegistrationScreen extends ConsumerStatefulWidget {
-  const CourseRegistrationScreen({super.key});
+  final bool showBackButton;
+  final bool hideAppBar;
+  final VoidCallback? onDeadlinePassed;
+
+  const CourseRegistrationScreen({
+    super.key,
+    this.showBackButton = true,
+    this.hideAppBar = false,
+    this.onDeadlinePassed,
+  });
 
   @override
   ConsumerState<CourseRegistrationScreen> createState() =>
@@ -27,8 +36,11 @@ class _CourseRegistrationScreenState
   
   String? _semesterName;
   DateTime? _registrationDeadline;
+  DateTime? _serverTime;
+  DateTime? _responseReceivedAt;
   List<dynamic>? _sections;
   bool _isLoading = true;
+  bool _isActionLoading = false;
   String? _errorMessage;
   Timer? _countdownTimer;
 
@@ -39,6 +51,11 @@ class _CourseRegistrationScreenState
     // Setup countdown refresh timer
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted && _registrationDeadline != null) {
+        final remaining = _getRemainingDuration();
+        if (remaining != null && remaining.isNegative) {
+          _countdownTimer?.cancel();
+          widget.onDeadlinePassed?.call();
+        }
         setState(() {});
       }
     });
@@ -48,6 +65,15 @@ class _CourseRegistrationScreenState
   void dispose() {
     _countdownTimer?.cancel();
     super.dispose();
+  }
+
+  Duration? _getRemainingDuration() {
+    if (_registrationDeadline == null || _serverTime == null || _responseReceivedAt == null) {
+      return null;
+    }
+    final initialDiff = _registrationDeadline!.difference(_serverTime!);
+    final elapsed = DateTime.now().difference(_responseReceivedAt!);
+    return initialDiff - elapsed;
   }
 
   Future<void> _fetchData() async {
@@ -63,8 +89,21 @@ class _CourseRegistrationScreenState
       setState(() {
         _semesterName = data['semester_name'] as String?;
         final deadlineStr = data['registration_deadline'] as String?;
-        _registrationDeadline =
-            deadlineStr != null ? DateTime.parse(deadlineStr).toLocal() : null;
+        final serverTimeStr = data['server_time'] as String?;
+
+        String? normDeadline = deadlineStr;
+        if (normDeadline != null && !normDeadline.endsWith('Z') && !normDeadline.contains(RegExp(r'[+-]\d{2}:\d{2}$'))) {
+          normDeadline += 'Z';
+        }
+        _registrationDeadline = normDeadline != null ? DateTime.parse(normDeadline).toLocal() : null;
+
+        String? normServer = serverTimeStr;
+        if (normServer != null && !normServer.endsWith('Z') && !normServer.contains(RegExp(r'[+-]\d{2}:\d{2}$'))) {
+          normServer += 'Z';
+        }
+        _serverTime = normServer != null ? DateTime.parse(normServer).toLocal() : null;
+        _responseReceivedAt = DateTime.now();
+
         _sections = data['sections'] as List<dynamic>?;
         _isLoading = false;
       });
@@ -78,20 +117,13 @@ class _CourseRegistrationScreenState
   }
 
   Future<void> _register(int sectionId, String courseName) async {
+    setState(() {
+      _isActionLoading = true;
+    });
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-      
       await _apiService.registerCourse(sectionId);
       
       if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
-      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -107,14 +139,18 @@ class _CourseRegistrationScreenState
       ref.read(coursesProvider.notifier).getMyCourses(); // Refresh student courses
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
-      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString().replaceAll('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isActionLoading = false;
+        });
+      }
     }
   }
 
@@ -150,20 +186,13 @@ class _CourseRegistrationScreenState
 
     if (confirm != true) return;
 
+    setState(() {
+      _isActionLoading = true;
+    });
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-      
       await _apiService.withdrawCourse(sectionId);
       
       if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
-      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -179,29 +208,33 @@ class _CourseRegistrationScreenState
       ref.read(coursesProvider.notifier).getMyCourses(); // Refresh student courses
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
-      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString().replaceAll('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isActionLoading = false;
+        });
+      }
     }
   }
 
-  String _getCountdownText(DateTime deadline, bool isUrdu) {
-    final now = DateTime.now();
-    final difference = deadline.difference(now);
-
-    if (difference.isNegative) {
+  String _getCountdownText(Duration? remaining, bool isUrdu) {
+    if (remaining == null) {
+      return '';
+    }
+    if (remaining.isNegative) {
       return isUrdu ? 'وقت ختم ہو چکا ہے' : 'Deadline Passed';
     }
 
-    final days = difference.inDays;
-    final hours = difference.inHours % 24;
-    final minutes = difference.inMinutes % 60;
-    final seconds = difference.inSeconds % 60;
+    final days = remaining.inDays;
+    final hours = remaining.inHours % 24;
+    final minutes = remaining.inMinutes % 60;
+    final seconds = remaining.inSeconds % 60;
 
     if (isUrdu) {
       return '$days دن، $hours گھنٹے، $minutes منٹ، $seconds سیکنڈ باقی';
@@ -215,26 +248,41 @@ class _CourseRegistrationScreenState
     final settings = ref.watch(settingsProvider);
     final isUrdu = settings.language == 'Urdu';
 
-    final isClosed = _registrationDeadline != null &&
-        DateTime.now().isAfter(_registrationDeadline!);
+    final remaining = _getRemainingDuration();
+    final isClosed = remaining != null && remaining.isNegative;
 
     return Directionality(
       textDirection: isUrdu ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          title: Text(
-            isUrdu ? 'کورسز کی رجسٹریشن' : 'Course Registration',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: theme.colorScheme.surface,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () => context.pop(),
-          ),
+        appBar: widget.hideAppBar
+            ? null
+            : AppBar(
+                title: Text(
+                  isUrdu ? 'کورسز کی رجسٹریشن' : 'Course Registration',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                backgroundColor: theme.colorScheme.surface,
+                elevation: 0,
+                leading: widget.showBackButton
+                    ? IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded),
+                        onPressed: () => context.pop(),
+                      )
+                    : null,
+              ),
+        body: Stack(
+          children: [
+            _buildBody(theme, isUrdu, isClosed),
+            if (_isActionLoading)
+              Container(
+                color: Colors.black54,
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+          ],
         ),
-        body: _buildBody(theme, isUrdu, isClosed),
       ),
     );
   }
@@ -271,6 +319,9 @@ class _CourseRegistrationScreenState
     }
 
     final sectionsList = _sections ?? [];
+    final availableSections = sectionsList.where((sec) => (sec['is_registered'] as bool? ?? false) == false).toList();
+    final registeredSections = sectionsList.where((sec) => (sec['is_registered'] as bool? ?? false) == true).toList();
+    final remaining = _getRemainingDuration();
 
     return RefreshIndicator(
       onRefresh: _fetchData,
@@ -348,7 +399,7 @@ class _CourseRegistrationScreenState
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          _getCountdownText(_registrationDeadline!, isUrdu),
+                          _getCountdownText(remaining, isUrdu),
                           style: TextStyle(
                             color: isClosed ? Colors.red[300] : Colors.amber[200],
                             fontSize: 13,
@@ -378,234 +429,131 @@ class _CourseRegistrationScreenState
             ),
           ),
 
-          // ── Catalog Title ──────────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: Text(
-                isUrdu ? 'دستیاب کورسز کا نصاب' : 'Offered Courses Catalog',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-
-          // ── Catalog List ───────────────────────────────────────────────
-          if (sectionsList.isEmpty)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.menu_book_rounded, size: 64, color: theme.colorScheme.primary.withOpacity(0.2)),
-                      const SizedBox(height: 16),
-                      Text(
-                        isUrdu
-                            ? 'اس سیشن میں فی الحال کوئی خودکار رجسٹریشن کے لیے کورس دستیاب نہیں ہے۔'
-                            : 'No courses are offered for self-registration right now.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6), fontWeight: FontWeight.w600),
-                      ),
-                    ],
+          if (!isClosed) ...[
+            // ── AVAILABLE COURSES SECTION ──────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Text(
+                  isUrdu ? 'دستیاب کورسز' : 'Available Courses',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-            )
-          else
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final sec = sectionsList[index];
-                  final isRegistered = sec['is_registered'] as bool? ?? false;
-                  final sectionId = sec['section_id'] as int;
-                  final courseCode = sec['course_code'] as String;
-                  final courseName = sec['course_name'] as String;
-                  final instructor = sec['instructor'] as String;
-                  final sectionLabel = sec['section_label'] as String;
-                  final schedule = sec['schedule'] as String?;
-                  final room = sec['room'] as String?;
-                  final creditHours = sec['credit_hours'] as int? ?? 3;
+            ),
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-                    child: Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                          color: isRegistered
-                              ? Colors.green.withOpacity(0.5)
-                              : theme.colorScheme.outline.withOpacity(0.08),
-                          width: isRegistered ? 2.0 : 1.0,
-                        ),
-                      ),
-                      color: isRegistered
-                          ? Colors.green.withOpacity(0.02)
-                          : theme.colorScheme.surface,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Badge and Code row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary.withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    courseCode,
-                                    style: TextStyle(
-                                      color: theme.colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.secondary.withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    isUrdu ? 'سیکشن $sectionLabel' : 'Section $sectionLabel',
-                                    style: TextStyle(
-                                      color: theme.colorScheme.secondary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            // Course Name
-                            Text(
-                              courseName,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            // Details (Instructor, Credit Hours)
-                            Row(
-                              children: [
-                                const Icon(Icons.person_rounded, size: 14, color: Colors.grey),
-                                const SizedBox(width: 4),
-                                Text(
-                                  instructor,
-                                  style: const TextStyle(fontSize: 13, color: Colors.grey),
-                                ),
-                                const SizedBox(width: 16),
-                                const Icon(Icons.credit_card_rounded, size: 14, color: Colors.grey),
-                                const SizedBox(width: 4),
-                                Text(
-                                  isUrdu ? '$creditHours کریڈٹ آورز' : '$creditHours Cr. Hours',
-                                  style: const TextStyle(fontSize: 13, color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                            // Schedule / Room if present
-                            if ((schedule != null && schedule.isNotEmpty) ||
-                                (room != null && room.isNotEmpty)) ...[
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  if (schedule != null && schedule.isNotEmpty) ...[
-                                    const Icon(Icons.calendar_today_rounded, size: 14, color: Colors.grey),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      schedule,
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                    ),
-                                    const SizedBox(width: 16),
-                                  ],
-                                  if (room != null && room.isNotEmpty) ...[
-                                    const Icon(Icons.meeting_room_rounded, size: 14, color: Colors.grey),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      isUrdu ? 'کمرہ $room' : 'Room $room',
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                            const SizedBox(height: 16),
-                            const Divider(height: 1),
-                            const SizedBox(height: 12),
-                            // Action Buttons
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                if (isRegistered) ...[
-                                  // Registered Status Badge
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        isUrdu ? 'رجسٹرڈ' : 'Registered',
-                                        style: const TextStyle(
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const Spacer(),
-                                  // Delete / Withdraw Button (Visible ONLY before deadline)
-                                  if (!isClosed)
-                                    TextButton.icon(
-                                      onPressed: () => _withdraw(sectionId, courseName),
-                                      icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red),
-                                      label: Text(
-                                        isUrdu ? 'خارج کریں' : 'Unregister',
-                                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600, fontSize: 13),
-                                      ),
-                                    ),
-                                ] else ...[
-                                  // Register Button
-                                  ElevatedButton.icon(
-                                    onPressed: isClosed ? null : () => _register(sectionId, courseName),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: theme.colorScheme.primary,
-                                      foregroundColor: Colors.white,
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    icon: const Icon(Icons.app_registration_rounded, size: 16),
-                                    label: Text(
-                                      isUrdu ? 'رجسٹر کریں' : 'Register',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ],
-                        ),
+            if (availableSections.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+                  child: Center(
+                    child: Text(
+                      isUrdu
+                          ? 'تمام دستیاب کورسز رجسٹرڈ ہیں۔'
+                          : 'All available courses are registered.',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6),
+                        fontStyle: FontStyle.italic,
                       ),
                     ),
-                  );
-                },
-                childCount: sectionsList.length,
+                  ),
+                ),
+              )
+            else
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return _buildCourseCard(context, availableSections[index], isUrdu, isClosed, theme);
+                  },
+                  childCount: availableSections.length,
+                ),
+              ),
+
+            // ── REGISTERED COURSES SECTION ──────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+                child: Text(
+                  isUrdu ? 'رجسٹرڈ کورسز' : 'Registered Courses',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
+
+            if (registeredSections.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+                  child: Center(
+                    child: Text(
+                      isUrdu
+                          ? 'آپ نے ابھی تک کوئی کورس رجسٹر نہیں کیا ہے۔'
+                          : 'You have not registered for any courses yet.',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return _buildCourseCard(context, registeredSections[index], isUrdu, isClosed, theme);
+                  },
+                  childCount: registeredSections.length,
+                ),
+              ),
+          ] else ...[
+            // ── ENROLLED COURSES (AFTER DEADLINE) ─────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Text(
+                  isUrdu ? 'شامل شدہ کورسز' : 'Enrolled Courses',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
+            if (registeredSections.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+                  child: Center(
+                    child: Text(
+                      isUrdu
+                          ? 'رجسٹریشن کی آخری تاریخ گزر چکی ہے اور آپ نے کوئی کورس رجسٹر نہیں کیا تھا۔'
+                          : 'Registration deadline has passed and you did not register for any courses.',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return _buildCourseCard(context, registeredSections[index], isUrdu, isClosed, theme);
+                  },
+                  childCount: registeredSections.length,
+                ),
+              ),
+          ],
+
           // Bottom spacing
           const SliverToBoxAdapter(
             child: SizedBox(height: 40),
@@ -614,4 +562,200 @@ class _CourseRegistrationScreenState
       ),
     );
   }
+
+  Widget _buildCourseCard(BuildContext context, dynamic sec, bool isUrdu, bool isClosed, ThemeData theme) {
+    final isRegistered = sec['is_registered'] as bool? ?? false;
+    final sectionId = sec['section_id'] as int;
+    final courseCode = sec['course_code'] as String;
+    final courseName = sec['course_name'] as String;
+    final instructor = sec['instructor'] as String;
+    final sectionLabel = sec['section_label'] as String;
+    final schedule = sec['schedule'] as String?;
+    final room = sec['room'] as String?;
+    final creditHours = sec['credit_hours'] as int? ?? 3;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: isRegistered
+                ? Colors.green.withOpacity(0.5)
+                : theme.colorScheme.outline.withOpacity(0.08),
+            width: isRegistered ? 2.0 : 1.0,
+          ),
+        ),
+        color: isRegistered
+            ? Colors.green.withOpacity(0.02)
+            : theme.colorScheme.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Badge and Code row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      courseCode,
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.secondary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      isUrdu ? 'سیکشن $sectionLabel' : 'Section $sectionLabel',
+                      style: TextStyle(
+                        color: theme.colorScheme.secondary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Course Name
+              Text(
+                courseName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Details (Instructor, Credit Hours)
+              Row(
+                children: [
+                  const Icon(Icons.person_rounded, size: 14, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    instructor,
+                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  const SizedBox(width: 16),
+                  const Icon(Icons.credit_card_rounded, size: 14, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    isUrdu ? '$creditHours کریڈٹ آورز' : '$creditHours Cr. Hours',
+                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                ],
+              ),
+              // Schedule / Room if present
+              if ((schedule != null && schedule.isNotEmpty) ||
+                  (room != null && room.isNotEmpty)) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    if (schedule != null && schedule.isNotEmpty) ...[
+                      const Icon(Icons.calendar_today_rounded, size: 14, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Text(
+                        schedule,
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      const SizedBox(width: 16),
+                    ],
+                    if (room != null && room.isNotEmpty) ...[
+                      const Icon(Icons.meeting_room_rounded, size: 14, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Text(
+                        isUrdu ? 'کمرہ $room' : 'Room $room',
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              // Action Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (isClosed) ...[
+                    Row(
+                      children: [
+                        const Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
+                        const SizedBox(width: 4),
+                        Text(
+                          isUrdu ? 'ثبت شدہ (رجسٹرڈ)' : 'Enrolled',
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else if (isRegistered) ...[
+                    Row(
+                      children: [
+                        const Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
+                        const SizedBox(width: 4),
+                        Text(
+                          isUrdu ? 'رجسٹرڈ' : 'Registered',
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    TextButton.icon(
+                      onPressed: () => _withdraw(sectionId, courseName),
+                      icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red),
+                      label: Text(
+                        isUrdu ? 'خارج کریں' : 'Unregister',
+                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
+                    ),
+                  ] else ...[
+                    ElevatedButton.icon(
+                      onPressed: () => _register(sectionId, courseName),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      icon: const Icon(Icons.app_registration_rounded, size: 16),
+                      label: Text(
+                        isUrdu ? 'رجسٹر کریں' : 'Register',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
+

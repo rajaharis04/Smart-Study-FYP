@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Building2,
   Users,
-  GraduationCap,
   BookOpen,
   Layers,
   Calendar,
@@ -14,8 +13,10 @@ import {
   LogOut,
   Video,
   ClipboardList,
-  FileSpreadsheet
+  FileSpreadsheet,
+  School
 } from 'lucide-react';
+
 
 export default function Sidebar() {
   const { logout, user } = useAuth();
@@ -24,10 +25,9 @@ export default function Sidebar() {
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/departments', label: 'Departments', icon: Building2 },
     { to: '/teachers', label: 'Teachers', icon: Users },
-    { to: '/students', label: 'Students', icon: GraduationCap },
+    { to: '/academic-sections', label: 'Students & Sections', icon: School },
     { to: '/courses', label: 'Courses', icon: BookOpen },
-    { to: '/sections', label: 'Sections', icon: Layers },
-    { to: '/enrollments', label: 'Enrollments', icon: UserCheck },
+    { to: '/enrollments', label: 'Enrolled', icon: UserCheck },
     { to: '/semesters', label: 'Semesters', icon: Calendar },
     { to: '/registration-week', label: 'Registration Week', icon: ClipboardList },
     { to: '/reports', label: 'Reports', icon: BarChart3 },

@@ -30,11 +30,30 @@ export default function SemestersPage() {
   const [rollingOver, setRollingOver] = useState(false);
   const [rolloverResult, setRolloverResult] = useState(null);
 
+  // Next semester configuration states (Wizard Step 3)
+  const [nextName, setNextName] = useState('');
+  const [nextStartDate, setNextStartDate] = useState('');
+  const [nextMidStart, setNextMidStart] = useState('');
+  const [nextMidEnd, setNextMidEnd] = useState('');
+  const [nextEndDate, setNextEndDate] = useState('');
+  const [nextFinalStart, setNextFinalStart] = useState('');
+  const [nextFinalEnd, setNextFinalEnd] = useState('');
+  const [creatingNext, setCreatingNext] = useState(false);
+  const [nextSemResult, setNextSemResult] = useState(null);
+
   const openRolloverWizard = (sem) => {
     setRolloverSem(sem);
     setRolloverStep(1);
     setConfirmText('');
     setRolloverResult(null);
+    setNextName('');
+    setNextStartDate('');
+    setNextMidStart('');
+    setNextMidEnd('');
+    setNextEndDate('');
+    setNextFinalStart('');
+    setNextFinalEnd('');
+    setNextSemResult(null);
     setRolloverModalOpen(true);
   };
 
@@ -47,13 +66,60 @@ export default function SemestersPage() {
     try {
       const res = await semesterApi.rollover(rolloverSem.id);
       setRolloverResult(res.data);
-      toast.success('Semester successfully rolled over!');
+      toast.success('Current semester archived successfully.');
+      
+      // Auto-suggest next semester name if format matches e.g. "Spring 2026"
+      if (rolloverSem && rolloverSem.name) {
+        const parts = rolloverSem.name.split(' ');
+        if (parts.length === 2) {
+          const semType = parts[0].toLowerCase();
+          const year = parseInt(parts[1], 10);
+          if (semType === 'fall') {
+            setNextName(`Spring ${year + 1}`);
+          } else if (semType === 'spring') {
+            setNextName(`Fall ${year}`);
+          } else if (semType === 'summer') {
+            setNextName(`Fall ${year}`);
+          }
+        }
+      }
+      
       setRolloverStep(3);
       fetchSemesters();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Rollover execution failed.');
     } finally {
       setRollingOver(false);
+    }
+  };
+
+  const handleCreateNextSemester = async (e) => {
+    if (e) e.preventDefault();
+    if (!nextName.trim()) {
+      toast.error('Semester name is required.');
+      return;
+    }
+    setCreatingNext(true);
+    try {
+      const payload = {
+        name: nextName,
+        start_date: nextStartDate || null,
+        mid_start: nextMidStart || null,
+        mid_end: nextMidEnd || null,
+        end_date: nextEndDate || null,
+        final_start: nextFinalStart || null,
+        final_end: nextFinalEnd || null,
+        is_active: true,
+      };
+      const res = await semesterApi.create(payload);
+      setNextSemResult(res.data);
+      toast.success(`New active semester "${res.data.name}" initialized!`);
+      setRolloverStep(4);
+      fetchSemesters();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to initialize next semester.');
+    } finally {
+      setCreatingNext(false);
     }
   };
 
@@ -342,8 +408,8 @@ export default function SemestersPage() {
       {/* SEMESTER ROLLOVER STEPPER WIZARD MODAL */}
       <Modal
         isOpen={rolloverModalOpen}
-        onClose={() => !rollingOver && setRolloverModalOpen(false)}
-        title={`Semester Rollover Wizard: ${rolloverSem?.name}`}
+        onClose={() => !rollingOver && !creatingNext && setRolloverModalOpen(false)}
+        title={`Semester Transition Wizard: ${rolloverSem?.name}`}
         footer={
           <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
             <div>
@@ -360,8 +426,8 @@ export default function SemestersPage() {
               )}
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              {rolloverStep !== 3 && (
-                <button className="btn btn-secondary" disabled={rollingOver} onClick={() => setRolloverModalOpen(false)}>
+              {rolloverStep !== 4 && (
+                <button className="btn btn-secondary" disabled={rollingOver || creatingNext} onClick={() => setRolloverModalOpen(false)}>
                   Cancel
                 </button>
               )}
@@ -390,6 +456,18 @@ export default function SemestersPage() {
               )}
 
               {rolloverStep === 3 && (
+                <button
+                  className="btn btn-success"
+                  disabled={creatingNext || !nextName}
+                  onClick={handleCreateNextSemester}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <span>{creatingNext ? 'Initializing...' : 'Initialize & Activate'}</span>
+                  <ArrowRight size={14} />
+                </button>
+              )}
+
+              {rolloverStep === 4 && (
                 <button className="btn btn-primary" onClick={() => setRolloverModalOpen(false)}>
                   Done
                 </button>
@@ -414,7 +492,7 @@ export default function SemestersPage() {
               position: 'absolute',
               top: '14px',
               left: '10%',
-              width: rolloverStep === 1 ? '0%' : rolloverStep === 2 ? '50%' : '100%',
+              width: rolloverStep === 1 ? '0%' : rolloverStep === 2 ? '33.3%' : rolloverStep === 3 ? '66.6%' : '100%',
               height: '2px',
               background: 'var(--accent)',
               zIndex: 0,
@@ -435,7 +513,7 @@ export default function SemestersPage() {
                 color: '#fff',
                 fontSize: '12px'
               }}>1</div>
-              <span style={{ fontSize: '11px', marginTop: '4px', color: rolloverStep >= 1 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Impact Summary</span>
+              <span style={{ fontSize: '10px', marginTop: '4px', color: rolloverStep >= 1 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Impact Summary</span>
             </div>
 
             <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
@@ -452,7 +530,7 @@ export default function SemestersPage() {
                 color: '#fff',
                 fontSize: '12px'
               }}>2</div>
-              <span style={{ fontSize: '11px', marginTop: '4px', color: rolloverStep >= 2 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Authorization</span>
+              <span style={{ fontSize: '10px', marginTop: '4px', color: rolloverStep >= 2 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Authorization</span>
             </div>
 
             <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
@@ -460,7 +538,7 @@ export default function SemestersPage() {
                 width: '30px',
                 height: '30px',
                 borderRadius: '50%',
-                background: rolloverStep >= 3 ? 'var(--success)' : 'var(--bg-secondary)',
+                background: rolloverStep >= 3 ? 'var(--accent)' : 'var(--bg-secondary)',
                 border: '2px solid var(--border)',
                 display: 'flex',
                 alignItems: 'center',
@@ -468,8 +546,25 @@ export default function SemestersPage() {
                 fontWeight: 600,
                 color: '#fff',
                 fontSize: '12px'
-              }}>{rolloverStep === 3 ? <CheckCircle size={14} /> : '3'}</div>
-              <span style={{ fontSize: '11px', marginTop: '4px', color: rolloverStep >= 3 ? 'var(--success)' : 'var(--text-secondary)' }}>Execution</span>
+              }}>3</div>
+              <span style={{ fontSize: '10px', marginTop: '4px', color: rolloverStep >= 3 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>Next Semester</span>
+            </div>
+
+            <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+              <div style={{
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                background: rolloverStep >= 4 ? 'var(--success)' : 'var(--bg-secondary)',
+                border: '2px solid var(--border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 600,
+                color: '#fff',
+                fontSize: '12px'
+              }}>{rolloverStep === 4 ? <CheckCircle size={14} /> : '4'}</div>
+              <span style={{ fontSize: '10px', marginTop: '4px', color: rolloverStep >= 4 ? 'var(--success)' : 'var(--text-secondary)' }}>Completion</span>
             </div>
           </div>
 
@@ -529,8 +624,105 @@ export default function SemestersPage() {
             </div>
           )}
 
-          {/* STEP 3: Complete Execution */}
-          {rolloverStep === 3 && rolloverResult && (
+          {/* STEP 3: Configure Next Semester */}
+          {rolloverStep === 3 && (
+            <form onSubmit={handleCreateNextSemester} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{
+                background: 'rgba(99, 102, 241, 0.08)',
+                border: '1px solid rgba(99, 102, 241, 0.25)',
+                borderRadius: 'var(--radius-md)',
+                padding: '14px',
+                fontSize: '13px',
+                color: 'var(--text-secondary)'
+              }}>
+                <strong>Current active semester has been rolled over and archived.</strong> Now, initialize the next active semester calendar session to keep the platform active.
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Semester Name *</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="e.g. Fall 2026, Spring 2027"
+                  required
+                  value={nextName}
+                  onChange={(e) => setNextName(e.target.value)}
+                />
+              </div>
+
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Start Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={nextStartDate}
+                    onChange={(e) => setNextStartDate(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">End Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={nextEndDate}
+                    onChange={(e) => setNextEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <fieldset style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <legend style={{ padding: '0 8px', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Midterm Exams Slot</legend>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label className="form-label">Mids Start Date</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={nextMidStart}
+                      onChange={(e) => setNextMidStart(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Mids End Date</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={nextMidEnd}
+                      onChange={(e) => setNextMidEnd(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <legend style={{ padding: '0 8px', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Final Exams Slot</legend>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label className="form-label">Finals Start Date</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={nextFinalStart}
+                      onChange={(e) => setNextFinalStart(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Finals End Date</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={nextFinalEnd}
+                      onChange={(e) => setNextFinalEnd(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </fieldset>
+            </form>
+          )}
+
+          {/* STEP 4: Success & Finish */}
+          {rolloverStep === 4 && (
             <div style={{ textAlign: 'center', padding: '16px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
               <div style={{
                 width: '60px',
@@ -545,28 +737,42 @@ export default function SemestersPage() {
               }}>
                 <CheckCircle size={32} />
               </div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Rollover Success!</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Semester Transition Complete!</h3>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '380px' }}>
-                Semester <strong>{rolloverSem?.name}</strong> has been successfully archived.
+                Semester transition has been executed successfully. The database has been updated.
               </p>
-              
+
               <div style={{
                 background: 'rgba(255,255,255,0.02)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-md)',
                 padding: '16px',
                 width: '100%',
-                maxWidth: '340px',
+                maxWidth: '400px',
                 marginTop: '8px',
-                textAlign: 'left'
+                textAlign: 'left',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid var(--border)', paddingBottom: '8px', marginBottom: '8px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>Archived Session ({rolloverSem?.name})</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
                   <span style={{ color: 'var(--text-secondary)' }}>Courses Archived:</span>
-                  <span style={{ fontWeight: 600 }}>{rolloverResult.courses_archived}</span>
+                  <span style={{ fontWeight: 600 }}>{rolloverResult?.courses_archived}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
                   <span style={{ color: 'var(--text-secondary)' }}>Enrollments Deactivated:</span>
-                  <span style={{ fontWeight: 600 }}>{rolloverResult.enrollments_deactivated}</span>
+                  <span style={{ fontWeight: 600 }}>{rolloverResult?.enrollments_deactivated}</span>
+                </div>
+
+                <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--accent-light)', borderBottom: '1px solid var(--border)', paddingBottom: '4px', marginTop: '12px' }}>Activated Session ({nextSemResult?.name})</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Status:</span>
+                  <span style={{ fontWeight: 600, color: 'var(--success)' }}>Active Academic Session</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Start Date:</span>
+                  <span style={{ fontWeight: 600 }}>{nextSemResult?.start_date ? new Date(nextSemResult.start_date).toLocaleDateString() : 'TBD'}</span>
                 </div>
               </div>
             </div>

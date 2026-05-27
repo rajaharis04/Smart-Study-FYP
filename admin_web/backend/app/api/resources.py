@@ -189,12 +189,18 @@ def _section_to_out(s: Section) -> dict:
         "section_label": s.section_label,
         "course_name": s.course.name if s.course else "",
         "course_code": s.course.code if s.course else "",
-        "teacher_name": s.teacher.user.full_name if s.teacher else None,
+        "teacher_name": s.teacher.user.full_name if s.teacher and s.teacher.user else None,
         "semester_name": s.semester.name if s.semester else None,
         "schedule": s.schedule,
         "room": s.room,
         "enrolled_count": len([e for e in s.enrollments if e.is_active]),
         "semester_id": s.semester_id,
+        "academic_section_id": s.academic_section_id,
+        "academic_section_label": s.academic_section.full_label if s.academic_section else None,
+        "target_student_id": s.target_student_id,
+        "target_student_reg": s.target_student.reg_number if s.target_student else None,
+        "target_student_name": s.target_student.user.full_name if s.target_student and s.target_student.user else None,
+        "credit_hours": s.course.credit_hours if s.course else 3,
         "is_registration_open": s.is_registration_open,
         "created_at": s.created_at,
     }
@@ -213,7 +219,17 @@ def create_section(payload: SectionCreate, db: Session = Depends(get_db), admin=
     if not course:
         raise HTTPException(status_code=404, detail="Course not found.")
 
-    section = Section(**payload.model_dump())
+    data = payload.model_dump()
+    target_student_reg = data.pop("target_student_reg", None)
+    
+    if target_student_reg and target_student_reg.strip():
+        student = db.query(Student).filter(Student.reg_number == target_student_reg.strip()).first()
+        if not student:
+            raise HTTPException(status_code=404, detail=f"Student with registration number '{target_student_reg}' not found.")
+        data["target_student_id"] = student.id
+        data["academic_section_id"] = student.academic_section_id
+
+    section = Section(**data)
     db.add(section)
     db.commit()
     db.refresh(section)
@@ -226,8 +242,22 @@ def update_section(section_id: int, payload: SectionUpdate, db: Session = Depend
     section = db.query(Section).filter(Section.id == section_id).first()
     if not section:
         raise HTTPException(status_code=404, detail="Section not found.")
-    for field, value in payload.model_dump(exclude_none=True).items():
+    
+    data = payload.model_dump(exclude_none=True)
+    target_student_reg = data.pop("target_student_reg", None)
+    
+    if target_student_reg and target_student_reg.strip():
+        student = db.query(Student).filter(Student.reg_number == target_student_reg.strip()).first()
+        if not student:
+            raise HTTPException(status_code=404, detail=f"Student with registration number '{target_student_reg}' not found.")
+        data["target_student_id"] = student.id
+        data["academic_section_id"] = student.academic_section_id
+    elif "target_student_reg" in payload.model_dump():  # If target_student_reg was explicitly set to None/empty
+        data["target_student_id"] = None
+
+    for field, value in data.items():
         setattr(section, field, value)
+        
     db.commit()
     db.refresh(section)
     course_name = section.course.name if section.course else "Unknown"
@@ -237,11 +267,39 @@ def update_section(section_id: int, payload: SectionUpdate, db: Session = Depend
 
 @sections_router.delete("/{section_id}")
 def delete_section(section_id: int, db: Session = Depends(get_db), admin=Depends(get_current_admin)):
+    import os
     section = db.query(Section).filter(Section.id == section_id).first()
     if not section:
         raise HTTPException(status_code=404, detail="Section not found.")
     label = section.section_label
     course_name = section.course.name if section.course else "Unknown"
+
+    # Find all lectures for this section to delete video files and attendance
+    lectures = db.query(Lecture).filter(Lecture.section_id == section_id).all()
+    lecture_ids = [l.id for l in lectures]
+
+    # Delete video files from disk
+    UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "uploads")
+    VIDEOS_DIR = os.path.join(UPLOAD_DIR, "videos")
+    for lecture in lectures:
+        if lecture.video_url:
+            file_name = os.path.basename(lecture.video_url)
+            video_path = os.path.join(VIDEOS_DIR, file_name)
+            if os.path.exists(video_path):
+                try:
+                    os.remove(video_path)
+                except Exception:
+                    pass
+
+    # Delete attendance records (by lecture_ids or section_id)
+    if lecture_ids:
+        db.query(Attendance).filter(Attendance.lecture_id.in_(lecture_ids)).delete(synchronize_session=False)
+    db.query(Attendance).filter(Attendance.section_id == section_id).delete(synchronize_session=False)
+
+    # Delete enrollments
+    db.query(Enrollment).filter(Enrollment.section_id == section_id).delete(synchronize_session=False)
+
+    # Delete the section itself (lectures and announcements will cascade delete)
     db.delete(section)
     db.commit()
     log_action(db, admin.email, "DELETE_SECTION", f"Deleted section '{label}' of course '{course_name}' (ID: {section_id}).")
@@ -255,17 +313,26 @@ enrollments_router = APIRouter(prefix="/enrollments", tags=["Enrollments"])
 def _enrollment_to_out(e: Enrollment) -> dict:
     return {
         "id": e.id,
-        "student_name": e.student.user.full_name,
-        "student_reg": e.student.reg_number,
-        "section_label": e.section.section_label,
-        "course_name": e.section.course.name if e.section.course else "",
+        "student_id": e.student_id,
+        "student_name": e.student.user.full_name if e.student and e.student.user else "",
+        "student_reg": e.student.reg_number if e.student else "",
+        "section_id": e.section_id,
+        "section_label": e.section.section_label if e.section else "",
+        "course_name": e.section.course.name if e.section and e.section.course else "",
+        "course_code": e.section.course.code if e.section and e.section.course else "",
+        "credit_hours": e.section.course.credit_hours if e.section and e.section.course else 3,
+        "teacher_name": e.section.teacher.user.full_name if e.section and e.section.teacher and e.section.teacher.user else None,
+        "semester_name": e.section.semester.name if e.section and e.section.semester else None,
         "is_active": e.is_active,
+        "status": e.status,
         "enrolled_at": e.enrolled_at,
     }
 
 
 @enrollments_router.get("/", response_model=List[EnrollmentOut])
 def list_enrollments(db: Session = Depends(get_db), _=Depends(get_current_admin)):
+    from app.api.student_courses import auto_finalize_registrations
+    auto_finalize_registrations(db)
     enrollments = db.query(Enrollment).all()
     return [_enrollment_to_out(e) for e in enrollments]
 
@@ -358,6 +425,7 @@ def deactivate_enrollment(enrollment_id: int, db: Session = Depends(get_db), adm
     if not enrollment:
         raise HTTPException(status_code=404, detail="Enrollment not found.")
     enrollment.is_active = False
+    enrollment.status = "DROPPED"
     student_name = enrollment.student.user.full_name
     reg = enrollment.student.reg_number
     sec_label = enrollment.section.section_label
@@ -365,6 +433,49 @@ def deactivate_enrollment(enrollment_id: int, db: Session = Depends(get_db), adm
     db.commit()
     log_action(db, admin.email, "DEACTIVATE_ENROLLMENT", f"Deactivated enrollment for student '{student_name}' ({reg}) in section '{sec_label}' of course '{course_name}'.")
     return {"message": "Enrollment deactivated (student dropped)."}
+
+
+@enrollments_router.post("/finalize")
+def finalize_enrollments(db: Session = Depends(get_db), admin=Depends(get_current_admin)):
+    active_semester = db.query(Semester).filter(Semester.is_active == True).first()
+    if not active_semester:
+        raise HTTPException(status_code=400, detail="No active semester found.")
+    
+    # Filter pending enrollments for sections in the active semester
+    pending_enrollments = db.query(Enrollment).join(Section).filter(
+        Enrollment.status == "PENDING",
+        Section.semester_id == active_semester.id
+    ).all()
+    
+    count = 0
+    for e in pending_enrollments:
+        e.status = "ACTIVE"
+        count += 1
+    db.commit()
+    log_action(db, admin.email, "FINALIZE_ENROLLMENTS", f"Finalized {count} pending registrations to ACTIVE for semester '{active_semester.name}'.")
+    return {"message": f"Successfully finalized {count} registrations.", "finalized_count": count}
+
+
+@enrollments_router.put("/{enrollment_id}/status")
+def update_enrollment_status(enrollment_id: int, status: str, db: Session = Depends(get_db), admin=Depends(get_current_admin)):
+    enrollment = db.query(Enrollment).filter(Enrollment.id == enrollment_id).first()
+    if not enrollment:
+        raise HTTPException(status_code=404, detail="Enrollment not found.")
+    
+    status = status.upper()
+    if status not in ["ACTIVE", "PENDING", "DROPPED"]:
+        raise HTTPException(status_code=400, detail="Invalid status. Must be ACTIVE, PENDING, or DROPPED.")
+        
+    enrollment.status = status
+    if status == "ACTIVE":
+        enrollment.is_active = True
+    else:
+        enrollment.is_active = False
+        
+    db.commit()
+    db.refresh(enrollment)
+    log_action(db, admin.email, "UPDATE_ENROLLMENT_STATUS", f"Updated enrollment status for student '{enrollment.student.user.full_name}' to {status}.")
+    return _enrollment_to_out(enrollment)
 
 
 # ─── REPORTS ──────────────────────────────────────────────────────────────────

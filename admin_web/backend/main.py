@@ -26,6 +26,7 @@ from app.api.resources import (
     reports_router,
     announcements_router,
 )
+from app.api.academic_sections import router as academic_sections_router
 
 # ── Create all tables ───────────────────────────────────────────────────────
 Base.metadata.create_all(bind=engine)
@@ -50,6 +51,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
         "http://localhost:3000",
     ],
     allow_credentials=True,
@@ -77,6 +80,7 @@ app.include_router(attendance_router,     prefix=API_PREFIX)
 app.include_router(profile_router,        prefix=API_PREFIX)
 app.include_router(questionbank_router,   prefix=API_PREFIX)
 app.include_router(qa_router,             prefix=API_PREFIX)
+app.include_router(academic_sections_router, prefix=API_PREFIX)
 
 
 @app.get("/")

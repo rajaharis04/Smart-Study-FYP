@@ -1,7 +1,7 @@
 """Pydantic schemas for all API requests and responses."""
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_serializer, Field
 
 
 # ─── AUTH ─────────────────────────────────────────────────────────────────────
@@ -167,6 +167,21 @@ class SemesterOut(BaseModel):
     is_active: bool
     registration_deadline: Optional[datetime]
     created_at: datetime
+    server_time: datetime = Field(default_factory=datetime.utcnow)
+
+    @field_serializer('registration_deadline')
+    def serialize_deadline(self, val: Optional[datetime]) -> Optional[str]:
+        if val is None:
+            return None
+        if val.tzinfo is None:
+            val = val.replace(tzinfo=timezone.utc)
+        return val.isoformat()
+
+    @field_serializer('server_time')
+    def serialize_server_time(self, val: datetime) -> str:
+        if val.tzinfo is None:
+            val = val.replace(tzinfo=timezone.utc)
+        return val.isoformat()
 
     class Config:
         from_attributes = True
@@ -210,6 +225,9 @@ class SectionCreate(BaseModel):
     section_label: str
     teacher_id: Optional[int] = None
     semester_id: Optional[int] = None
+    academic_section_id: Optional[int] = None
+    target_student_id: Optional[int] = None
+    target_student_reg: Optional[str] = None
     schedule: Optional[str] = None
     room: Optional[str] = None
     is_registration_open: Optional[bool] = False
@@ -220,6 +238,9 @@ class SectionUpdate(BaseModel):
     schedule: Optional[str] = None
     room: Optional[str] = None
     semester_id: Optional[int] = None
+    academic_section_id: Optional[int] = None
+    target_student_id: Optional[int] = None
+    target_student_reg: Optional[str] = None
     is_registration_open: Optional[bool] = None
 
 class SectionOut(BaseModel):
@@ -233,6 +254,12 @@ class SectionOut(BaseModel):
     room: Optional[str]
     enrolled_count: int
     semester_id: Optional[int]
+    academic_section_id: Optional[int]
+    academic_section_label: Optional[str]
+    target_student_id: Optional[int] = None
+    target_student_reg: Optional[str] = None
+    target_student_name: Optional[str] = None
+    credit_hours: int
     is_registration_open: bool
     created_at: datetime
 
@@ -248,11 +275,18 @@ class EnrollmentCreate(BaseModel):
 
 class EnrollmentOut(BaseModel):
     id: int
+    student_id: int
     student_name: str
     student_reg: str
+    section_id: int
     section_label: str
     course_name: str
+    course_code: str
+    credit_hours: int
+    teacher_name: Optional[str]
+    semester_name: Optional[str]
     is_active: bool
+    status: str
     enrolled_at: datetime
 
     class Config:

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { studentApi, deptApi } from '../services/api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import CSVUploader from '../components/CSVUploader';
-import { Plus, Upload, Key, ToggleLeft, ToggleRight, AlertCircle, Eye, EyeOff, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Upload, Key, ToggleLeft, ToggleRight, AlertCircle, Eye, EyeOff, Edit2, Trash2, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function StudentsPage() {
+  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +33,10 @@ export default function StudentsPage() {
   const [regNumber, setRegNumber] = useState('');
   const [batch, setBatch] = useState('');
   const [departmentId, setDepartmentId] = useState('');
+
+  const handleOpenDetails = (student) => {
+    navigate(`/students/${student.id}`);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -190,18 +196,35 @@ export default function StudentsPage() {
           searchPlaceholder="Search students..."
           renderRow={(s) => (
             <>
-              <td><span className="badge badge-accent">{s.reg_number}</span></td>
-              <td>{s.full_name}</td>
-              <td>{s.email}</td>
-              <td>{s.batch}</td>
-              <td>{s.department_name || <span className="text-muted">Unassigned</span>}</td>
-              <td>
+              <td 
+                style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--accent-light)' }}
+                onClick={() => handleOpenDetails(s)}
+              >
+                <span className="badge badge-accent" style={{ cursor: 'pointer' }}>{s.reg_number}</span>
+              </td>
+              <td 
+                style={{ cursor: 'pointer', fontWeight: 500 }}
+                onClick={() => handleOpenDetails(s)}
+              >
+                {s.full_name}
+              </td>
+              <td style={{ cursor: 'pointer' }} onClick={() => handleOpenDetails(s)}>{s.email}</td>
+              <td style={{ cursor: 'pointer' }} onClick={() => handleOpenDetails(s)}>{s.batch}</td>
+              <td style={{ cursor: 'pointer' }} onClick={() => handleOpenDetails(s)}>{s.department_name || <span className="text-muted">Unassigned</span>}</td>
+              <td style={{ cursor: 'pointer' }} onClick={() => handleOpenDetails(s)}>
                 <span className={`badge ${s.is_active ? 'badge-success' : 'badge-danger'}`}>
                   {s.is_active ? 'Active' : 'Inactive'}
                 </span>
               </td>
               <td>
                 <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    className="btn btn-secondary btn-sm btn-icon"
+                    onClick={() => handleOpenDetails(s)}
+                    title="View Details"
+                  >
+                    <Eye size={14} />
+                  </button>
                   <button
                     className="btn btn-secondary btn-sm btn-icon"
                     onClick={() => openEditModal(s)}
@@ -381,6 +404,7 @@ export default function StudentsPage() {
           </button>
         </div>
       </Modal>
+
     </div>
   );
 }

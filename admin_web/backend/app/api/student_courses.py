@@ -5,7 +5,7 @@ Returns the enrolled courses for the logged-in student.
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.db.database import get_db
 from app.models.models import User, Student, Enrollment, Section, Course, Lecture, Attendance, Semester
@@ -40,6 +40,25 @@ def _get_current_student(
     return student
 
 
+def auto_finalize_registrations(db: Session):
+    """
+    Automatically transitions all PENDING registrations to ACTIVE for the active semester
+    if the registration deadline has passed.
+    """
+    active_sem = db.query(Semester).filter(Semester.is_active == True).first()
+    if active_sem and active_sem.registration_deadline:
+        if datetime.utcnow() > active_sem.registration_deadline:
+            # Find all pending enrollments in the active semester
+            pending = db.query(Enrollment).join(Section).filter(
+                Section.semester_id == active_sem.id,
+                Enrollment.status == "PENDING"
+            ).all()
+            if pending:
+                for e in pending:
+                    e.status = "ACTIVE"
+                db.commit()
+
+
 @router.get("")
 @router.get("/my")
 def get_student_courses(
@@ -50,9 +69,12 @@ def get_student_courses(
     Returns all active enrolled courses with progress for the logged-in student.
     GET /api/courses/my
     """
+    auto_finalize_registrations(db)
+
     enrollments = db.query(Enrollment).filter(
         Enrollment.student_id == student.id,
         Enrollment.is_active == True,
+        Enrollment.status == "ACTIVE",
     ).all()
 
     result = []
@@ -108,13 +130,21 @@ def get_registration_offered_courses(
     Returns all sections offered for registration in the active semester,
     along with student enrollment status and registration deadline details.
     """
+    from sqlalchemy import or_, and_
     active_semester = db.query(Semester).filter(Semester.is_active == True).first()
     if not active_semester:
         raise HTTPException(status_code=404, detail="No active academic semester found.")
 
     sections = db.query(Section).filter(
         Section.semester_id == active_semester.id,
-        Section.is_registration_open == True
+        Section.is_registration_open == True,
+        or_(
+            Section.target_student_id == student.id,
+            and_(
+                Section.academic_section_id == student.academic_section_id,
+                Section.target_student_id == None
+            )
+        )
     ).all()
 
     enrolled_section_ids = {
@@ -150,7 +180,8 @@ def get_registration_offered_courses(
 
     return {
         "semester_name": active_semester.name,
-        "registration_deadline": active_semester.registration_deadline.isoformat() if active_semester.registration_deadline else None,
+        "registration_deadline": active_semester.registration_deadline.replace(tzinfo=timezone.utc).isoformat() if active_semester.registration_deadline else None,
+        "server_time": datetime.utcnow().replace(tzinfo=timezone.utc).isoformat(),
         "sections": sections_list
     }
 
@@ -177,7 +208,15 @@ def register_course(
         Section.is_registration_open == True
     ).first()
     if not section:
-        raise HTTPException(status_code=404, detail="Section is not offered for self-registration.")
+        raise HTTPException(status_code=404, detail="Section not found or not open for registration.")
+
+    # Validate target student or academic section
+    if section.target_student_id is not None:
+        if section.target_student_id != student.id:
+            raise HTTPException(status_code=403, detail="This section is not offered to you.")
+    else:
+        if section.academic_section_id != student.academic_section_id:
+            raise HTTPException(status_code=403, detail="This section is not offered to your batch section.")
 
     # Check if student is already enrolled (active or inactive)
     existing = db.query(Enrollment).filter(
@@ -190,6 +229,7 @@ def register_course(
             return {"message": "Already registered in this section."}
         else:
             existing.is_active = True
+            existing.status = "PENDING"
             db.commit()
             return {"message": "Successfully registered."}
 
@@ -197,7 +237,8 @@ def register_course(
     new_enrollment = Enrollment(
         student_id=student.id,
         section_id=section.id,
-        is_active=True
+        is_active=True,
+        status="PENDING"
     )
     db.add(new_enrollment)
     db.commit()

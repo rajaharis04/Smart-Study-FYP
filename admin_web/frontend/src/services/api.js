@@ -40,10 +40,10 @@ export const authApi = {
     api.post('/auth/setup-password', { email, otp, password }),
 };
 
-
 // ─── DEPARTMENTS ──────────────────────────────────────────────────────────────
 export const deptApi = {
   list: () => api.get('/departments/'),
+  detail: (id) => api.get(`/departments/${id}/detail`),
   create: (data) => api.post('/departments/', data),
   update: (id, data) => api.put(`/departments/${id}`, data),
   delete: (id) => api.delete(`/departments/${id}`),
@@ -52,6 +52,7 @@ export const deptApi = {
 // ─── TEACHERS ─────────────────────────────────────────────────────────────────
 export const teacherApi = {
   list: () => api.get('/teachers/'),
+  detail: (id) => api.get(`/teachers/${id}/detail`),
   create: (data) => api.post('/teachers/', data),
   update: (id, data) => api.put(`/teachers/${id}`, data),
   resetPassword: (id) => api.post(`/teachers/${id}/reset-password`),
@@ -61,6 +62,7 @@ export const teacherApi = {
 // ─── STUDENTS ─────────────────────────────────────────────────────────────────
 export const studentApi = {
   list: () => api.get('/students/'),
+  detail: (id) => api.get(`/students/${id}/detail`),
   create: (data) => api.post('/students/', data),
   update: (id, data) => api.put(`/students/${id}`, data),
   resetPassword: (id) => api.post(`/students/${id}/reset-password`),
@@ -106,6 +108,8 @@ export const enrollmentApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
   deactivate: (id) => api.delete(`/enrollments/${id}`),
+  finalize: () => api.post('/enrollments/finalize'),
+  updateStatus: (id, status) => api.put(`/enrollments/${id}/status?status=${status}`),
 };
 
 // ─── REPORTS ──────────────────────────────────────────────────────────────────
@@ -159,5 +163,31 @@ export const teacherPortalApi = {
   deleteAnnouncement: (announcementId) => api.delete(`/teacher/announcements/${announcementId}`),
 };
 
-export default api;
 
+// ─── ACADEMIC SECTIONS ────────────────────────────────────────────────────────
+export const academicSectionApi = {
+  // Grouped: Batch → Dept → Section (for the main hierarchy view)
+  listGrouped: () => api.get('/academic-sections/'),
+  // Flat list for dropdowns
+  listFlat: () => api.get('/academic-sections/flat'),
+  // CRUD
+  create: (data) => api.post('/academic-sections/', data),
+  update: (id, data) => api.put(`/academic-sections/${id}`, data),
+  delete: (id) => api.delete(`/academic-sections/${id}`),
+  // Students inside a section
+  getSectionStudents: (sectionId) => api.get(`/academic-sections/${sectionId}/students`),
+  assignStudent: (sectionId, studentId) =>
+    api.post(`/academic-sections/${sectionId}/students`, { student_id: studentId }),
+  removeStudent: (sectionId, studentId) =>
+    api.delete(`/academic-sections/${sectionId}/students/${studentId}`),
+  // Unassigned students dropdown
+  unassigned: () => api.get('/academic-sections/unassigned-students'),
+  // Bulk upload CSV → directly into section (create + assign in one step)
+  bulkUploadToSection: (sectionId, formData) =>
+    api.post(`/academic-sections/${sectionId}/bulk-upload`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+};
+
+
+export default api;

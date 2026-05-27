@@ -42,6 +42,7 @@ class Department(Base):
     teachers = relationship("Teacher", back_populates="department")
     students = relationship("Student", back_populates="department")
     courses = relationship("Course", back_populates="department")
+    academic_sections = relationship("AcademicSection", back_populates="department")
 
 
 class Teacher(Base):
@@ -67,19 +68,47 @@ class Student(Base):
     reg_number = Column(String(50), unique=True, nullable=False)
     batch = Column(String(20), nullable=False)
     department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
+    academic_section_id = Column(Integer, ForeignKey("academic_sections.id"), nullable=True)
     profile_picture = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     user = relationship("User", back_populates="student_profile")
     department = relationship("Department", back_populates="students")
+    academic_section = relationship("AcademicSection", back_populates="students", foreign_keys="Student.academic_section_id")
     enrollments = relationship("Enrollment", back_populates="student")
     lecture_sessions = relationship("LectureSession", back_populates="student")
     attendance_records = relationship("Attendance", back_populates="student")
     quiz_responses = relationship("QuizResponse", back_populates="student")
 
 
+
+# ════════════════════════════════════════════════════════════════════
+#  AcademicSection — Admin-defined class groups: Batch → Dept → Sec
+#  e.g., SP23 → BCS → A   →  "SP23-BCS-A"
+# ════════════════════════════════════════════════════════════════════
+class AcademicSection(Base):
+    __tablename__ = "academic_sections"
+
+    id             = Column(Integer, primary_key=True, index=True)
+    batch          = Column(String(20), nullable=False)    # e.g., SP23
+    department_id  = Column(Integer, ForeignKey("departments.id"), nullable=False)
+    section_name   = Column(String(10), nullable=False)    # e.g., A, B, C
+    created_at     = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    department = relationship("Department", back_populates="academic_sections")
+    students   = relationship("Student", back_populates="academic_section")
+
+    @property
+    def full_label(self):
+        """Returns formatted label like SP23-BCS-A"""
+        dept_code = self.department.code if self.department else "?"
+        return f"{self.batch}-{dept_code}-{self.section_name}"
+
+
 class Semester(Base):
+
     __tablename__ = "semesters"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -124,6 +153,8 @@ class Section(Base):
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
     teacher_id = Column(Integer, ForeignKey("teachers.id"), nullable=True)
     semester_id = Column(Integer, ForeignKey("semesters.id"), nullable=True)
+    academic_section_id = Column(Integer, ForeignKey("academic_sections.id", ondelete="SET NULL"), nullable=True)
+    target_student_id = Column(Integer, ForeignKey("students.id", ondelete="SET NULL"), nullable=True)
     section_label = Column(String(10), nullable=False)   # A, B, C ...
     schedule = Column(String(200), nullable=True)         # "Mon/Wed 9:00-10:30 AM"
     room = Column(String(100), nullable=True)
@@ -134,6 +165,8 @@ class Section(Base):
     course = relationship("Course", back_populates="sections")
     teacher = relationship("Teacher", back_populates="sections")
     semester = relationship("Semester", back_populates="sections")
+    academic_section = relationship("AcademicSection")
+    target_student = relationship("Student")
     enrollments = relationship("Enrollment", back_populates="section")
     lectures = relationship("Lecture", back_populates="section", cascade="all, delete-orphan")
     announcements = relationship("Announcement", back_populates="section", cascade="all, delete-orphan")
@@ -146,6 +179,7 @@ class Enrollment(Base):
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
     section_id = Column(Integer, ForeignKey("sections.id"), nullable=False)
     is_active = Column(Boolean, default=True)
+    status = Column(String(20), default="ACTIVE")  # ACTIVE | PENDING | DROPPED
     enrolled_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { teacherApi, deptApi } from '../services/api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import { Plus, Key, ToggleLeft, ToggleRight, AlertCircle, Eye, EyeOff, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Key, ToggleLeft, ToggleRight, AlertCircle, Eye, EyeOff, Edit2, Trash2, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function TeachersPage() {
@@ -29,6 +29,29 @@ export default function TeachersPage() {
   const [employeeId, setEmployeeId] = useState('');
   const [departmentId, setDepartmentId] = useState('');
   const [manualPassword, setManualPassword] = useState('');
+
+  // Teacher detail state
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const handleOpenDetails = async (teacher) => {
+    console.log("handleOpenDetails triggered for teacher:", teacher);
+    setSelectedTeacher(teacher);
+    setDetailLoading(true);
+    try {
+      const res = await teacherApi.detail(teacher.id);
+      console.log("teacherApi.detail response data:", res.data);
+      setSelectedTeacher((prev) => ({
+        ...prev,
+        ...res.data,
+      }));
+    } catch (err) {
+      console.error("Error fetching teacher details:", err);
+      toast.error('Failed to load teacher details.');
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -175,17 +198,34 @@ export default function TeachersPage() {
           searchPlaceholder="Search teachers..."
           renderRow={(t) => (
             <>
-              <td><span className="badge badge-accent">{t.employee_id}</span></td>
-              <td>{t.full_name}</td>
-              <td>{t.email}</td>
-              <td>{t.department_name || <span className="text-muted">Unassigned</span>}</td>
-              <td>
+              <td 
+                style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--accent-light)' }}
+                onClick={() => handleOpenDetails(t)}
+              >
+                <span className="badge badge-accent" style={{ cursor: 'pointer' }}>{t.employee_id}</span>
+              </td>
+              <td 
+                style={{ cursor: 'pointer', fontWeight: 500 }}
+                onClick={() => handleOpenDetails(t)}
+              >
+                {t.full_name}
+              </td>
+              <td style={{ cursor: 'pointer' }} onClick={() => handleOpenDetails(t)}>{t.email}</td>
+              <td style={{ cursor: 'pointer' }} onClick={() => handleOpenDetails(t)}>{t.department_name || <span className="text-muted">Unassigned</span>}</td>
+              <td style={{ cursor: 'pointer' }} onClick={() => handleOpenDetails(t)}>
                 <span className={`badge ${t.is_active ? 'badge-success' : 'badge-danger'}`}>
                   {t.is_active ? 'Active' : 'Inactive'}
                 </span>
               </td>
               <td>
                 <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    className="btn btn-secondary btn-sm btn-icon"
+                    onClick={() => handleOpenDetails(t)}
+                    title="View Details"
+                  >
+                    <Eye size={14} />
+                  </button>
                   <button
                     className="btn btn-secondary btn-sm btn-icon"
                     onClick={() => openEditModal(t)}
@@ -331,6 +371,176 @@ export default function TeachersPage() {
           </button>
         </div>
       </Modal>
+
+      {/* ─── SLIDE-OVER DETAIL DRAWER ─── */}
+      <div 
+        className={`drawer-overlay ${selectedTeacher ? 'active' : ''}`} 
+        onClick={() => setSelectedTeacher(null)}
+      >
+        <div 
+          className={`drawer-content ${selectedTeacher ? 'active' : ''}`} 
+          onClick={(e) => e.stopPropagation()}
+        >
+          {selectedTeacher && (
+            <>
+              <div className="drawer-header">
+                <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="badge badge-accent" style={{ fontSize: '13px', padding: '6px 10px' }}>
+                    {selectedTeacher.employee_id}
+                  </span>
+                </h2>
+                <button className="drawer-close" onClick={() => setSelectedTeacher(null)}>
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="drawer-body">
+                {/* Teacher Header Card */}
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(99,102,241,0.05) 100%)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px'
+                }}>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    background: 'var(--accent)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px',
+                    fontWeight: 700,
+                    color: '#fff',
+                    textTransform: 'uppercase',
+                    boxShadow: 'var(--shadow-accent)'
+                  }}>
+                    {selectedTeacher.full_name?.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{selectedTeacher.full_name}</h3>
+                    <span className={`badge ${selectedTeacher.is_active ? 'badge-success' : 'badge-danger'}`} style={{ marginTop: '6px', display: 'inline-block' }}>
+                      {selectedTeacher.is_active ? 'Active Account' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Profile Info Details Grid */}
+                <div>
+                  <h4 className="drawer-section-title">Teacher Profile</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Email Address</span>
+                      <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '4px', wordBreak: 'break-all' }}>{selectedTeacher.email}</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Department</span>
+                      <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '4px' }}>{selectedTeacher.department_name || 'Unassigned'}</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)', gridColumn: 'span 2' }}>
+                      <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Joined Date</span>
+                      <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '4px' }}>{selectedTeacher.created_at ? new Date(selectedTeacher.created_at).toLocaleDateString() : '-'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Assigned Sections list */}
+                <div>
+                  <h4 className="drawer-section-title">Assigned Class Sections</h4>
+                  {detailLoading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+                      <div className="loading" style={{ color: 'var(--accent-light)', fontSize: '13px' }}>Loading assigned classes...</div>
+                    </div>
+                  ) : !selectedTeacher.sections || selectedTeacher.sections.length === 0 ? (
+                    <div style={{
+                      padding: '24px',
+                      background: 'rgba(255,255,255,0.01)',
+                      border: '1px dashed var(--border)',
+                      borderRadius: 'var(--radius-md)',
+                      textAlign: 'center',
+                      color: 'var(--text-secondary)',
+                      fontSize: '13px'
+                    }}>
+                      No assigned classes active for this teacher.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {selectedTeacher.sections.map((sec) => (
+                        <div 
+                          key={sec.section_id} 
+                          style={{
+                            background: 'rgba(255,255,255,0.02)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-md)',
+                            padding: '16px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span className="badge badge-accent" style={{ fontSize: '10px' }}>
+                                {sec.course_code}
+                              </span>
+                              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                                Section {sec.section_label}
+                              </span>
+                            </div>
+                            <h5 style={{ fontSize: '13px', fontWeight: 700, margin: '6px 0 2px 0' }}>{sec.course_name}</h5>
+                            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0 }}>Target: {sec.academic_section_label}</p>
+                            {sec.semester_name && <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>Semester: {sec.semester_name}</p>}
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--success)' }}>
+                              {sec.enrolled_count} <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 500 }}>Active</span>
+                            </div>
+                            {sec.pending_count > 0 && (
+                              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--warning)', marginTop: '2px' }}>
+                                {sec.pending_count} Pending
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="drawer-footer">
+                <button 
+                  className="btn btn-danger" 
+                  onClick={() => {
+                    handleDelete(selectedTeacher.id, selectedTeacher.full_name);
+                    setSelectedTeacher(null);
+                  }}
+                  style={{ marginRight: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Trash2 size={14} />
+                  <span>Delete Teacher</span>
+                </button>
+                <button className="btn btn-secondary" onClick={() => setSelectedTeacher(null)}>Close</button>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => {
+                    openEditModal(selectedTeacher);
+                    setSelectedTeacher(null);
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Edit2 size={14} />
+                  <span>Edit Profile</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

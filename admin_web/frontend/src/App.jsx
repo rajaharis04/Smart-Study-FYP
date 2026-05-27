@@ -11,6 +11,7 @@ import DashboardPage from './pages/DashboardPage';
 import DepartmentsPage from './pages/DepartmentsPage';
 import TeachersPage from './pages/TeachersPage';
 import StudentsPage from './pages/StudentsPage';
+import StudentDetailPage from './pages/StudentDetailPage';
 import CoursesPage from './pages/CoursesPage';
 import SectionsPage from './pages/SectionsPage';
 import EnrollmentsPage from './pages/EnrollmentsPage';
@@ -18,6 +19,7 @@ import SemestersPage from './pages/SemestersPage';
 import RegistrationWeekPage from './pages/RegistrationWeekPage';
 import ReportsPage from './pages/ReportsPage';
 import AccountsPage from './pages/AccountsPage';
+import AcademicSectionsPage from './pages/AcademicSectionsPage';
 
 // Teacher Pages
 import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage';
@@ -33,14 +35,16 @@ function AppLayout() {
   const isLoginPage = location.pathname === '/login';
 
   const getPageTitle = (path) => {
+    if (path.startsWith('/students/')) return 'Student Profile';
     switch (path) {
       case '/': return 'Dashboard';
       case '/departments': return 'Departments';
       case '/teachers': return 'Teachers Directory';
       case '/students': return 'Students Directory';
+      case '/academic-sections': return 'Students & Sections';
       case '/courses': return 'Course Catalog';
       case '/sections': return 'Class Sections Scheduler';
-      case '/enrollments': return 'Class Enrollments';
+      case '/enrollments': return 'Enrolled Students';
       case '/semesters': return 'Semesters Schedule';
       case '/registration-week': return 'Registration Week Settings';
       case '/reports': return 'Reports & Analytics';
@@ -87,6 +91,8 @@ function AppLayout() {
                 <Route path="/departments" element={<DepartmentsPage />} />
                 <Route path="/teachers" element={<TeachersPage />} />
                 <Route path="/students" element={<StudentsPage />} />
+                <Route path="/students/:id" element={<StudentDetailPage />} />
+                <Route path="/academic-sections" element={<AcademicSectionsPage />} />
                 <Route path="/courses" element={<CoursesPage />} />
                 <Route path="/sections" element={<SectionsPage />} />
                 <Route path="/enrollments" element={<EnrollmentsPage />} />

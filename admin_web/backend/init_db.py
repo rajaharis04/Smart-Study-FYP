@@ -9,7 +9,7 @@ from app.models.models import (
     User, Department, Teacher, Student, Semester, Course, Section, Enrollment,
     Topic, LearningObjective, TopicMaterial, Lecture, Attendance, Quiz,
     QuizQuestion, QuizResponse, LectureSession, Announcement, GlobalAnnouncement, AuditLog,
-    StudentLearningProfile, StudentQA
+    StudentLearningProfile, StudentQA, AcademicSection
 )
 from app.services.auth_service import hash_password
 from app.core.config import settings

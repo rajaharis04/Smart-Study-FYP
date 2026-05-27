@@ -197,6 +197,54 @@ def reset_student_password(
     )
 
 
+@router.get("/{student_id}/detail")
+def get_student_detail(
+    student_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_admin)
+):
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found.")
+    
+    enrollments_list = []
+    for enrollment in student.enrollments:
+        section = enrollment.section
+        if not section:
+            continue
+        course = section.course
+        if not course:
+            continue
+        teacher = section.teacher
+        instructor_name = teacher.user.full_name if teacher and teacher.user else "TBA"
+        
+        enrollments_list.append({
+            "id": enrollment.id,
+            "section_id": section.id,
+            "section_label": section.section_label,
+            "course_code": course.code,
+            "course_name": course.name,
+            "instructor_name": instructor_name,
+            "status": enrollment.status,
+            "is_active": enrollment.is_active,
+            "enrolled_at": enrollment.enrolled_at,
+        })
+        
+    return {
+        "id": student.id,
+        "reg_number": student.reg_number,
+        "full_name": student.user.full_name,
+        "email": student.user.email,
+        "batch": student.batch,
+        "department_name": student.department.name if student.department else None,
+        "academic_section_label": student.academic_section.full_label if student.academic_section else "Unassigned",
+        "is_active": student.user.is_active,
+        "profile_picture": student.profile_picture,
+        "created_at": student.created_at,
+        "enrollments": enrollments_list
+    }
+
+
 @router.delete("/{student_id}")
 def delete_student(
     student_id: int,

@@ -120,6 +120,58 @@ def reset_teacher_password(
     )
 
 
+@router.get("/{teacher_id}/detail")
+def get_teacher_detail(
+    teacher_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_admin)
+):
+    teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found.")
+    
+    sections_list = []
+    for sec in teacher.sections:
+        course = sec.course
+        if not course:
+            continue
+        
+        from app.models.models import Enrollment
+        enrolled_count = db.query(Enrollment).filter(
+            Enrollment.section_id == sec.id,
+            Enrollment.is_active == True,
+            Enrollment.status == "ACTIVE"
+        ).count()
+        
+        pending_count = db.query(Enrollment).filter(
+            Enrollment.section_id == sec.id,
+            Enrollment.is_active == True,
+            Enrollment.status == "PENDING"
+        ).count()
+
+        sections_list.append({
+            "section_id": sec.id,
+            "section_label": sec.section_label,
+            "course_code": course.code,
+            "course_name": course.name,
+            "semester_name": sec.semester.name if sec.semester else None,
+            "academic_section_label": sec.academic_section.full_label if sec.academic_section else (sec.target_student.reg_number if sec.target_student_id else "Class-wide"),
+            "enrolled_count": enrolled_count,
+            "pending_count": pending_count,
+        })
+        
+    return {
+        "id": teacher.id,
+        "employee_id": teacher.employee_id,
+        "full_name": teacher.user.full_name,
+        "email": teacher.user.email,
+        "department_name": teacher.department.name if teacher.department else None,
+        "is_active": teacher.user.is_active,
+        "created_at": teacher.created_at,
+        "sections": sections_list
+    }
+
+
 @router.delete("/{teacher_id}")
 def delete_teacher(
     teacher_id: int,

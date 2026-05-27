@@ -57,6 +57,57 @@ def update_department(
     return dept
 
 
+@router.get("/{dept_id}/detail")
+def get_department_detail(
+    dept_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_admin)
+):
+    dept = db.query(Department).filter(Department.id == dept_id).first()
+    if not dept:
+        raise HTTPException(status_code=404, detail="Department not found.")
+    
+    teachers_list = []
+    for t in dept.teachers:
+        teachers_list.append({
+            "id": t.id,
+            "employee_id": t.employee_id,
+            "full_name": t.user.full_name,
+            "email": t.user.email,
+            "is_active": t.user.is_active,
+        })
+        
+    courses_list = []
+    for c in dept.courses:
+        courses_list.append({
+            "id": c.id,
+            "code": c.code,
+            "name": c.name,
+            "credit_hours": c.credit_hours,
+        })
+        
+    sections_list = []
+    for sec in dept.academic_sections:
+        sections_list.append({
+            "id": sec.id,
+            "batch": sec.batch,
+            "section_name": sec.section_name,
+            "full_label": sec.full_label,
+        })
+        
+    return {
+        "id": dept.id,
+        "name": dept.name,
+        "code": dept.code,
+        "hod_name": dept.hod_name,
+        "created_at": dept.created_at,
+        "teachers": teachers_list,
+        "courses": courses_list,
+        "academic_sections": sections_list,
+        "student_count": len(dept.students)
+    }
+
+
 @router.delete("/{dept_id}")
 def delete_department(dept_id: int, db: Session = Depends(get_db), _=Depends(get_current_admin)):
     dept = db.query(Department).filter(Department.id == dept_id).first()

@@ -14,6 +14,8 @@ import '../../providers/courses_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/qa_history_provider.dart';
 import '../lecture/qa_search_delegate.dart';
+import '../../services/api_service.dart';
+import 'course_registration_screen.dart';
 
 class CoursesScreen extends ConsumerStatefulWidget {
   const CoursesScreen({super.key});
@@ -23,16 +25,64 @@ class CoursesScreen extends ConsumerStatefulWidget {
 }
 
 class _CoursesScreenState extends ConsumerState<CoursesScreen> {
+  bool _isRegistrationActive = false;
+  bool _checkingRegistration = true;
+  final ApiService _apiService = ApiService();
+
   @override
   void initState() {
     super.initState();
-    // Load enrolled courses when screen is opened
     Future.microtask(() {
+      _checkRegistrationStatus();
       ref.read(coursesProvider.notifier).getMyCourses();
     });
   }
 
+  Future<void> _checkRegistrationStatus() async {
+    try {
+      final data = await _apiService.getRegistrationOfferedCourses();
+      final deadlineStr = data['registration_deadline'] as String?;
+      final serverTimeStr = data['server_time'] as String?;
+      
+      if (deadlineStr != null) {
+        String normDeadline = deadlineStr;
+        if (!normDeadline.endsWith('Z') && !normDeadline.contains(RegExp(r'[+-]\d{2}:\d{2}$'))) {
+          normDeadline += 'Z';
+        }
+        final deadline = DateTime.parse(normDeadline).toLocal();
+
+        DateTime nowReference;
+        if (serverTimeStr != null) {
+          String normServer = serverTimeStr;
+          if (!normServer.endsWith('Z') && !normServer.contains(RegExp(r'[+-]\d{2}:\d{2}$'))) {
+            normServer += 'Z';
+          }
+          nowReference = DateTime.parse(normServer).toLocal();
+        } else {
+          nowReference = DateTime.now();
+        }
+
+        if (nowReference.isBefore(deadline)) {
+          if (mounted) {
+            setState(() {
+              _isRegistrationActive = true;
+              _checkingRegistration = false;
+            });
+            return;
+          }
+        }
+      }
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _isRegistrationActive = false;
+        _checkingRegistration = false;
+      });
+    }
+  }
+
   Future<void> _refresh() async {
+    await _checkRegistrationStatus();
     await ref.read(coursesProvider.notifier).getMyCourses();
   }
 
@@ -42,6 +92,47 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
     final isUrdu = settings.language == 'Urdu';
+
+    if (_checkingRegistration) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_isRegistrationActive) {
+      return Directionality(
+        textDirection: isUrdu ? TextDirection.rtl : TextDirection.ltr,
+        child: Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: AppBar(
+            title: Text(
+              isUrdu ? 'کورسز کی رجسٹریشن' : 'Course Registration',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: theme.colorScheme.surface,
+            elevation: 0,
+            centerTitle: false,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded),
+                onPressed: _refresh,
+              ),
+            ],
+          ),
+          body: CourseRegistrationScreen(
+            showBackButton: false,
+            hideAppBar: true,
+            onDeadlinePassed: () {
+              _checkRegistrationStatus();
+              ref.read(coursesProvider.notifier).getMyCourses();
+            },
+          ),
+        ),
+      );
+    }
 
     return Directionality(
       textDirection: isUrdu ? TextDirection.rtl : TextDirection.ltr,
@@ -53,13 +144,6 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
           elevation: 0,
           centerTitle: false,
           actions: [
-            IconButton(
-              icon: const Icon(Icons.app_registration_rounded),
-              tooltip: isUrdu ? 'کورس رجسٹریشن' : 'Course Registration',
-              onPressed: () {
-                context.push(AppConstants.routeCourseRegistration);
-              },
-            ),
             IconButton(
               icon: const Icon(Icons.saved_search_rounded),
               tooltip: isUrdu ? 'محفوظ کردہ سوالات تلاش کریں' : 'Search Saved Doubts',

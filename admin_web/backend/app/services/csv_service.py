@@ -6,16 +6,17 @@ import csv
 import io
 from typing import List, Dict, Any
 
-STUDENT_CSV_COLUMNS = {"Name", "Email", "RegNumber", "Batch", "Department"}
+STUDENT_CSV_REQUIRED = {"Name", "Email", "RegNumber"}
+STUDENT_CSV_OPTIONAL = {"Batch", "Department"}   # Optional — section se inherit ho sakti hai
 
 
 def parse_student_csv(file_bytes: bytes) -> List[Dict[str, Any]]:
     """
     Parse a student CSV file and return a list of student dicts.
-    Expected columns: Name, Email, RegNumber, Batch, Department
+    Required columns: Name, Email, RegNumber
+    Optional columns: Batch, Department (section se inherit hogi agar missing ho)
     """
     try:
-        # Decode bytes to string
         text = file_bytes.decode('utf-8')
         f = io.StringIO(text)
         reader = csv.DictReader(f)
@@ -27,29 +28,31 @@ def parse_student_csv(file_bytes: bytes) -> List[Dict[str, Any]]:
             raise ValueError("CSV is empty or missing headers.")
 
         columns = set(reader.fieldnames)
-        missing = STUDENT_CSV_COLUMNS - columns
+        missing = STUDENT_CSV_REQUIRED - columns
         if missing:
-            raise ValueError(f"Missing columns in CSV: {', '.join(missing)}")
+            raise ValueError(f"Missing required columns in CSV: {', '.join(missing)}")
 
         records = []
         for row in reader:
-            # Clean each field value (strip whitespace)
             clean_row = {k: (v.strip() if v else "") for k, v in row.items()}
 
-            # Skip if Email or RegNumber is missing or empty
+            # Skip if Email or RegNumber is empty
             if not clean_row.get("Email") or not clean_row.get("RegNumber"):
                 continue
 
             records.append({
-                "full_name": clean_row["Name"],
-                "email": clean_row["Email"],
-                "reg_number": clean_row["RegNumber"],
-                "batch": clean_row["Batch"],
-                "department_code": clean_row["Department"],
+                "full_name":       clean_row.get("Name", ""),
+                "email":           clean_row["Email"],
+                "reg_number":      clean_row["RegNumber"],
+                "batch":           clean_row.get("Batch", ""),          # empty = use section batch
+                "department_code": clean_row.get("Department", ""),     # empty = use section dept
             })
         return records
+    except ValueError:
+        raise
     except Exception as e:
         raise ValueError(f"CSV parsing error: {str(e)}")
+
 
 
 def parse_enrollment_csv(file_bytes: bytes) -> List[str]:
