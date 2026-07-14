@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { enrollmentApi, sectionApi } from '../services/api';
+import { enrollmentApi, sectionApi, teacherApi } from '../services/api';
 import DataTable from '../components/DataTable';
+import Modal from '../components/Modal';
 import { 
   Trash2, 
   AlertCircle, 
@@ -14,7 +15,8 @@ import {
   BookOpen,
   Users,
   ChevronLeft,
-  ArrowRight
+  ArrowRight,
+  Edit2
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -28,6 +30,12 @@ export default function EnrollmentsPage() {
   const [viewMode, setViewMode] = useState('SECTIONS'); // 'SECTIONS' | 'ALL'
   const [selectedSection, setSelectedSection] = useState(null);
 
+  // Edit Teacher State
+  const [teachers, setTeachers] = useState([]);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editTeacherId, setEditTeacherId] = useState('');
+  const [savingTeacher, setSavingTeacher] = useState(false);
+
   // Filters state (only used in ALL mode)
   const [selectedCourseFilter, setSelectedCourseFilter] = useState('');
   const [selectedSectionFilter, setSelectedSectionFilter] = useState('');
@@ -37,12 +45,15 @@ export default function EnrollmentsPage() {
     setLoading(true);
     setError('');
     try {
-      const [eRes, sRes] = await Promise.all([
+      const [eRes, sRes, tRes] = await Promise.all([
         enrollmentApi.list(),
-        sectionApi.list()
+        sectionApi.list(),
+        teacherApi.list()
       ]);
       setEnrollments(eRes.data);
       setSections(sRes.data);
+      const activeTeachers = tRes.data.filter(t => t.is_active);
+      setTeachers(activeTeachers);
     } catch (err) {
       console.error(err);
       setError('Failed to load enrollments data. Please check your connection.');
@@ -73,6 +84,27 @@ export default function EnrollmentsPage() {
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to approve enrollment.');
+    }
+  };
+
+  const handleUpdateTeacher = async (e) => {
+    e.preventDefault();
+    if (!selectedSection) return;
+    setSavingTeacher(true);
+    try {
+      const payload = {
+        teacher_id: editTeacherId ? parseInt(editTeacherId, 10) : null
+      };
+      const response = await sectionApi.update(selectedSection.id, payload);
+      toast.success('Instructor updated successfully');
+      setSelectedSection(response.data);
+      setEditModalOpen(false);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.detail || 'Failed to update instructor.');
+    } finally {
+      setSavingTeacher(false);
     }
   };
 
@@ -128,7 +160,7 @@ export default function EnrollmentsPage() {
         {/* View Switcher segment control */}
         <div style={{
           display: 'flex',
-          background: 'rgba(255,255,255,0.03)',
+          background: 'rgba(0,0,0,0.03)',
           padding: '4px',
           borderRadius: 'var(--radius-md)',
           border: '1px solid var(--border)'
@@ -244,7 +276,7 @@ export default function EnrollmentsPage() {
                     >
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-light)', background: 'rgba(99,102,241,0.1)', padding: '4px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-light)', background: 'rgba(13,148,136,0.1)', padding: '4px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>
                             {sec.course_code}
                           </span>
                           
@@ -312,7 +344,7 @@ export default function EnrollmentsPage() {
               </button>
               
               <div style={{
-                background: 'linear-gradient(135deg, var(--bg-secondary) 0%, rgba(99, 102, 241, 0.05) 100%)',
+                background: 'linear-gradient(135deg, var(--bg-secondary) 0%, rgba(13, 148, 136, 0.05) 100%)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '24px 28px',
@@ -331,8 +363,47 @@ export default function EnrollmentsPage() {
                   <h2 style={{ fontSize: '20px', fontWeight: 800, margin: 0 }}>
                     Roster: {selectedSection.course_name}
                   </h2>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '6px 0 0 0' }}>
-                    Section: <strong>{selectedSection.section_label}</strong> • Instructor: <strong>{selectedSection.teacher_name || 'TBA'}</strong> • Target: <strong>{selectedSection.target_student_reg ? `Single Student (${selectedSection.target_student_reg})` : (selectedSection.academic_section_label || 'All Sections')}</strong>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '6px 0 0 0', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+                    <span>Section: <strong>{selectedSection.section_label}</strong></span>
+                    <span>•</span>
+                    <span>Instructor:</span>
+                    <span 
+                      style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '6px', 
+                        background: 'rgba(13, 148, 136, 0.08)', 
+                        padding: '2px 8px', 
+                        borderRadius: '6px', 
+                        border: '1px solid rgba(13, 148, 136, 0.15)'
+                      }}
+                    >
+                      <strong style={{ color: 'var(--accent-light)' }}>{selectedSection.teacher_name || 'TBA'}</strong>
+                      <button
+                        onClick={() => {
+                          setEditTeacherId(selectedSection.teacher_id || '');
+                          setEditModalOpen(true);
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: 'var(--accent-light)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '2px',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                        }}
+                        title="Change Instructor"
+                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--accent-light)'}
+                      >
+                        <Edit2 size={13} />
+                      </button>
+                    </span>
+                    <span>•</span>
+                    <span>Target: <strong>{selectedSection.target_student_reg ? `Single Student (${selectedSection.target_student_reg})` : (selectedSection.academic_section_label || 'All Sections')}</strong></span>
                   </p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -356,7 +427,7 @@ export default function EnrollmentsPage() {
                   searchKeys={['student_name', 'student_reg']}
                   searchPlaceholder="Search students in this roster..."
                   renderRow={(e) => {
-                    let statusBg = 'rgba(255,255,255,0.05)';
+                    let statusBg = 'rgba(0,0,0,0.05)';
                     let statusColor = 'var(--text-secondary)';
                     if (e.status === 'ACTIVE') {
                       statusBg = 'rgba(16,185,129,0.1)';
@@ -511,7 +582,7 @@ export default function EnrollmentsPage() {
                   searchKeys={['student_name', 'student_reg', 'course_name', 'section_label', 'teacher_name']}
                   searchPlaceholder="Search by reg number, student name, instructor..."
                   renderRow={(e) => {
-                    let statusBg = 'rgba(255,255,255,0.05)';
+                    let statusBg = 'rgba(0,0,0,0.05)';
                     let statusColor = 'var(--text-secondary)';
                     if (e.status === 'ACTIVE') {
                       statusBg = 'rgba(16,185,129,0.1)';
@@ -599,6 +670,56 @@ export default function EnrollmentsPage() {
           )}
         </>
       )}
+      {/* Edit Teacher Modal */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Assign Instructor"
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', width: '100%' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setEditModalOpen(false)}
+              disabled={savingTeacher}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="edit-teacher-form"
+              className="btn btn-primary"
+              disabled={savingTeacher}
+            >
+              {savingTeacher ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        }
+      >
+        <form id="edit-teacher-form" onSubmit={handleUpdateTeacher}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>
+              Select Instructor for {selectedSection?.course_name} ({selectedSection?.section_label})
+            </label>
+            <select
+              className="form-control"
+              value={editTeacherId}
+              onChange={(e) => setEditTeacherId(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-md)' }}
+            >
+              <option value="">Unassigned (N/A / TBA)</option>
+              {teachers.map((teacher) => (
+                <option key={teacher.id} value={teacher.id}>
+                  {teacher.full_name} {teacher.department_name ? `(${teacher.department_name})` : ''}
+                </option>
+              ))}
+            </select>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: '1.4' }}>
+              Assigning a new instructor will update the class roster owner. Setting it to "Unassigned" will clear the instructor and display TBA, without deleting any enrolled students or course resources.
+            </p>
+          </div>
+        </form>
+      </Modal>
 
     </div>
   );

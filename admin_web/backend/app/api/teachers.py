@@ -198,3 +198,28 @@ def delete_teacher(
     db.commit()
     log_action(db, admin.email, "DELETE_TEACHER", f"Deleted teacher account: '{teacher_name}' (Employee ID: {employee_id}, ID: {teacher_id}).")
     return {"message": "Teacher account deleted."}
+
+
+@router.post("/{teacher_id}/unassign/{section_id}")
+def unassign_teacher_section(
+    teacher_id: int,
+    section_id: int,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found.")
+
+    section = db.query(Section).filter(
+        Section.id == section_id,
+        Section.teacher_id == teacher.id
+    ).first()
+    if not section:
+        raise HTTPException(status_code=404, detail="Assigned class section not found for this teacher.")
+
+    section.teacher_id = None
+    db.commit()
+
+    log_action(db, admin.email, "UNASSIGN_TEACHER_SECTION", f"Unassigned teacher '{teacher.user.full_name}' (ID: {teacher.id}) from section '{section.section_label}' of course '{section.course.name}'.")
+    return {"message": "Teacher unassigned from class section successfully."}

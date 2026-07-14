@@ -4,7 +4,7 @@ import DataTable from '../components/DataTable';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { BarChart3, Users, BookOpen, AlertCircle, ShieldAlert, Activity, ClipboardList } from 'lucide-react';
 
-const COLORS = ['#6366f1', '#818cf8', '#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+const COLORS = ['#0d9488', '#14b8a6', '#0f766e', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState('academics'); // academics | departments | audit
@@ -165,7 +165,7 @@ export default function ReportsPage() {
                 {studentsPerSec.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={studentsPerSec} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                       <XAxis dataKey="section" stroke="var(--text-muted)" fontSize={12} tickLine={false} />
                       <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} />
                       <Tooltip
@@ -241,11 +241,11 @@ export default function ReportsPage() {
                       </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '16px' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.02)', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
                         <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>Students Enrolled</span>
                         <span style={{ fontSize: '18px', fontWeight: 700 }}>{dept.total_students}</span>
                       </div>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.02)', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
                         <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>Faculty Members</span>
                         <span style={{ fontSize: '18px', fontWeight: 700 }}>{dept.total_teachers}</span>
                       </div>
@@ -263,7 +263,7 @@ export default function ReportsPage() {
                 {deptKpis.length > 0 ? (
                   <ResponsiveContainer width="100%" height={320}>
                     <BarChart data={deptKpis} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                       <XAxis dataKey="code" stroke="var(--text-muted)" fontSize={12} tickLine={false} />
                       <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} domain={[0, 100]} />
                       <Tooltip

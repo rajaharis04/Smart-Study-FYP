@@ -143,7 +143,9 @@ class Course(Base):
     # Relationships
     department = relationship("Department", back_populates="courses")
     semester = relationship("Semester", back_populates="courses")
-    sections = relationship("Section", back_populates="course")
+    sections = relationship("Section", back_populates="course", cascade="all, delete-orphan")
+    topics = relationship("Topic", back_populates="course", cascade="all, delete-orphan")
+    student_qas = relationship("StudentQA", back_populates="course", cascade="all, delete-orphan")
 
 
 class Section(Base):
@@ -167,9 +169,10 @@ class Section(Base):
     semester = relationship("Semester", back_populates="sections")
     academic_section = relationship("AcademicSection")
     target_student = relationship("Student")
-    enrollments = relationship("Enrollment", back_populates="section")
+    enrollments = relationship("Enrollment", back_populates="section", cascade="all, delete-orphan")
     lectures = relationship("Lecture", back_populates="section", cascade="all, delete-orphan")
     announcements = relationship("Announcement", back_populates="section", cascade="all, delete-orphan")
+    attendance_records = relationship("Attendance", back_populates="section", cascade="all, delete-orphan")
 
 
 class Enrollment(Base):
@@ -201,9 +204,10 @@ class Topic(Base):
     created_at      = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    course              = relationship("Course")
+    course              = relationship("Course", back_populates="topics")
     learning_objectives = relationship("LearningObjective", back_populates="topic", cascade="all, delete-orphan")
     materials           = relationship("TopicMaterial", back_populates="topic", cascade="all, delete-orphan")
+    learning_profiles   = relationship("StudentLearningProfile", back_populates="topic", cascade="all, delete-orphan")
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -281,6 +285,7 @@ class Lecture(Base):
                             cascade="all, delete-orphan")
     quizzes  = relationship("Quiz", back_populates="lecture",
                             cascade="all, delete-orphan")
+    attendance_records = relationship("Attendance", back_populates="lecture", cascade="all, delete-orphan")
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -336,8 +341,8 @@ class Attendance(Base):
 
     # Relationships
     student = relationship("Student", back_populates="attendance_records")
-    lecture = relationship("Lecture")
-    section = relationship("Section")
+    lecture = relationship("Lecture", back_populates="attendance_records")
+    section = relationship("Section", back_populates="attendance_records")
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -475,7 +480,7 @@ class StudentLearningProfile(Base):
 
     # Relationships
     student = relationship("Student")
-    topic   = relationship("Topic")
+    topic   = relationship("Topic", back_populates="learning_profiles")
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -495,4 +500,4 @@ class StudentQA(Base):
 
     # Relationships
     student = relationship("Student")
-    course  = relationship("Course")
+    course  = relationship("Course", back_populates="student_qas")

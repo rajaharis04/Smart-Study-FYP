@@ -190,6 +190,7 @@ def _section_to_out(s: Section) -> dict:
         "course_name": s.course.name if s.course else "",
         "course_code": s.course.code if s.course else "",
         "teacher_name": s.teacher.user.full_name if s.teacher and s.teacher.user else None,
+        "teacher_id": s.teacher_id,
         "semester_name": s.semester.name if s.semester else None,
         "schedule": s.schedule,
         "room": s.room,
@@ -252,8 +253,11 @@ def update_section(section_id: int, payload: SectionUpdate, db: Session = Depend
             raise HTTPException(status_code=404, detail=f"Student with registration number '{target_student_reg}' not found.")
         data["target_student_id"] = student.id
         data["academic_section_id"] = student.academic_section_id
-    elif "target_student_reg" in payload.model_dump():  # If target_student_reg was explicitly set to None/empty
+    elif "target_student_reg" in payload.model_fields_set:  # If target_student_reg was explicitly set to None/empty
         data["target_student_id"] = None
+
+    if "teacher_id" in payload.model_fields_set and payload.teacher_id is None:
+        data["teacher_id"] = None
 
     for field, value in data.items():
         setattr(section, field, value)

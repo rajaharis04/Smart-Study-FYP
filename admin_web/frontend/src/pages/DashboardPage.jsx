@@ -204,7 +204,7 @@ export default function DashboardPage() {
             ) : deptKpis.length > 0 ? (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={deptKpis} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                   <XAxis dataKey="code" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                   <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                   <Tooltip
@@ -241,7 +241,7 @@ export default function DashboardPage() {
             ) : deptKpis.length > 0 ? (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={deptKpis} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                   <XAxis dataKey="code" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                   <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} domain={[0, 100]} />
                   <Tooltip
@@ -346,7 +346,7 @@ export default function DashboardPage() {
                     <div
                       key={ann.id}
                       style={{
-                        background: 'rgba(255, 255, 255, 0.02)',
+                        background: 'rgba(0, 0, 0, 0.02)',
                         border: '1px solid var(--border)',
                         borderRadius: 'var(--radius-sm)',
                         padding: '12px',
@@ -442,7 +442,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '10px' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.02)', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
                         <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>Attendance Rate</span>
                         <span style={{
                           fontSize: '16px',
@@ -452,7 +452,7 @@ export default function DashboardPage() {
                           {student.attendance_rate}%
                         </span>
                       </div>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.02)', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
                         <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>Quiz Mastery</span>
                         <span style={{
                           fontSize: '16px',
@@ -521,7 +521,7 @@ export default function DashboardPage() {
           >
             <div
               style={{
-                background: 'rgba(255,255,255,0.02)',
+                background: 'rgba(0,0,0,0.02)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-md)',
                 padding: '16px',
@@ -534,7 +534,7 @@ export default function DashboardPage() {
             </div>
             <div
               style={{
-                background: 'rgba(255,255,255,0.02)',
+                background: 'rgba(0,0,0,0.02)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-md)',
                 padding: '16px',
@@ -547,7 +547,7 @@ export default function DashboardPage() {
             </div>
             <div
               style={{
-                background: 'rgba(255,255,255,0.02)',
+                background: 'rgba(0,0,0,0.02)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-md)',
                 padding: '16px',

@@ -316,150 +316,172 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
                     ),
                   ],
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Course details row
-                      Row(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () {
+                      context.pushNamed(
+                        'course-details',
+                        pathParameters: {
+                          'courseId': course.id.toString(),
+                        },
+                        queryParameters: {
+                          'courseName': course.name,
+                          'courseCode': course.code,
+                          'instructor': course.instructor,
+                          'creditHours': (course.creditHours ?? 3).toString(),
+                          'progress': progressPct.toString(),
+                          'sectionId': (course.sectionId ?? 0).toString(),
+                        },
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: color.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Center(
-                              child: Text(
-                                course.code.length >= 2
-                                    ? course.code.substring(0, 2)
-                                    : course.code,
+                          // Course details row
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: color.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    course.code.length >= 2
+                                        ? course.code.substring(0, 2)
+                                        : course.code,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: color,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      course.name,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${course.code}  |  ${course.instructor}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Credit Hours: ${course.creditHours ?? 3}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          
+                          // Progress Bar Section
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Course Progress / Mastery',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Text(
+                                '${progressPct.toInt()}%',
+                                style: TextStyle(
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w800,
                                   color: color,
                                 ),
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: LinearProgressIndicator(
+                              value: progressPct / 100,
+                              backgroundColor: color.withOpacity(0.12),
+                              valueColor: AlwaysStoppedAnimation<Color>(color),
+                              minHeight: 8,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  course.name,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: theme.colorScheme.onSurface,
+                          const SizedBox(height: 20),
+                          
+                          // Actions row
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    // Navigate to lectures sub-screen using sectionId
+                                    final sectionId = course.sectionId ?? 0;
+                                    context.push(
+                                      '/dashboard/courses/lectures/$sectionId?courseName=${Uri.encodeComponent(course.name)}',
+                                    );
+                                  },
+                                  icon: const Icon(Icons.video_library_rounded, size: 16),
+                                  label: const Text('View Lectures'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: color.withOpacity(0.1),
+                                    foregroundColor: color,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${course.code}  |  ${course.instructor}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Credit Hours: ${course.creditHours ?? 3}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      
-                      // Progress Bar Section
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Course Progress / Mastery',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          Text(
-                            '${progressPct.toInt()}%',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: color,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: LinearProgressIndicator(
-                          value: progressPct / 100,
-                          backgroundColor: color.withOpacity(0.12),
-                          valueColor: AlwaysStoppedAnimation<Color>(color),
-                          minHeight: 8,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      
-                      // Actions row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                // Navigate to lectures sub-screen using sectionId
-                                final sectionId = course.sectionId ?? 0;
-                                context.push(
-                                  '/dashboard/courses/lectures/$sectionId?courseName=${Uri.encodeComponent(course.name)}',
-                                );
-                              },
-                              icon: const Icon(Icons.video_library_rounded, size: 16),
-                              label: const Text('View Lectures'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: color.withOpacity(0.1),
-                                foregroundColor: color,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _handleNotesDownload(course),
-                              icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
-                              label: const Text('Notes PDF'),
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.5)),
-                                foregroundColor: theme.colorScheme.onSurface,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _handleNotesDownload(course),
+                                  icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
+                                  label: const Text('Notes PDF'),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.5)),
+                                    foregroundColor: theme.colorScheme.onSurface,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                  ),
                                 ),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               );

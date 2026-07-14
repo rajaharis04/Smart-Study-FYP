@@ -28,7 +28,7 @@ export default function AccountsPage() {
     setLoading(true);
     try {
       await authApi.changePassword(currentPassword, newPassword);
-      toast.success('Your administrator password has been updated!');
+      toast.success('Your password has been updated successfully!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -44,7 +44,7 @@ export default function AccountsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Account Settings</h1>
-          <p className="page-subtitle">Manage your administrator profile credentials and preferences.</p>
+          <p className="page-subtitle">Manage your profile credentials and preferences.</p>
         </div>
       </div>
 
@@ -53,11 +53,13 @@ export default function AccountsPage() {
         <div className="card">
           <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div className="user-avatar" style={{ width: '40px', height: '40px', fontSize: '16px' }}>
-              {user?.full_name?.charAt(0).toUpperCase() || 'A'}
+              {user?.full_name?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div>
               <h3 className="card-title">{user?.full_name}</h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>System Administrator</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                {user?.role === 'admin' ? 'System Administrator' : 'Faculty Instructor'}
+              </p>
             </div>
           </div>
           <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

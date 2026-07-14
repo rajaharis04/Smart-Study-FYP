@@ -49,6 +49,8 @@ export default function RegistrationWeekPage() {
   // Form states
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [selectedAcademicSectionId, setSelectedAcademicSectionId] = useState('');
+  const [selectedAcademicSectionIds, setSelectedAcademicSectionIds] = useState([]);
+  const [academicSectionSearch, setAcademicSectionSearch] = useState('');
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [customSectionLabel, setCustomSectionLabel] = useState('');
   const [deadlineInput, setDeadlineInput] = useState('');
@@ -211,44 +213,57 @@ export default function RegistrationWeekPage() {
 
   const handleOfferCourse = async (e) => {
     e.preventDefault();
-    if (!selectedCourseId || !customSectionLabel) {
-      toast.error('Please fill in all required fields');
+    if (!selectedCourseId) {
+      toast.error('Course selection is required.');
       return;
     }
-    if (targetType === 'BATCH' && !selectedAcademicSectionId) {
-      toast.error('Please select a target academic section');
+    if (targetType === 'BATCH' && selectedAcademicSectionIds.length === 0) {
+      toast.error('Please select at least one academic section.');
       return;
     }
-    if (targetType === 'STUDENT' && !targetStudentReg) {
-      toast.error('Please enter a target student registration number');
+    if (targetType === 'STUDENT' && (!targetStudentReg || !customSectionLabel)) {
+      toast.error('Student registration number and section label are required.');
       return;
     }
 
     setSubmittingOffer(true);
     try {
-      const payload = {
-        course_id: parseInt(selectedCourseId),
-        academic_section_id: targetType === 'BATCH' ? parseInt(selectedAcademicSectionId) : null,
-        target_student_reg: targetType === 'STUDENT' ? targetStudentReg.trim() : null,
-        teacher_id: selectedTeacherId ? parseInt(selectedTeacherId) : null,
-        section_label: customSectionLabel,
-        semester_id: activeSemester.id,
-        schedule: null,
-        room: null,
-        is_registration_open: false // Default to false/hidden
-      };
-
-      await sectionApi.create(payload);
-      toast.success('Course offered successfully!');
+      if (targetType === 'BATCH') {
+        const promises = selectedAcademicSectionIds.map(async (secId) => {
+          const sec = academicSections.find(as => as.id === secId);
+          const label = sec ? (sec.section_name || 'A') : 'A';
+          const payload = {
+            course_id: parseInt(selectedCourseId),
+            academic_section_id: secId,
+            target_student_reg: null,
+            teacher_id: selectedTeacherId ? parseInt(selectedTeacherId) : null,
+            section_label: label,
+            semester_id: activeSemester.id,
+            schedule: null,
+            room: null,
+            is_registration_open: false
+          };
+          return sectionApi.create(payload);
+        });
+        await Promise.all(promises);
+        toast.success(`Course offered to ${selectedAcademicSectionIds.length} sections successfully!`);
+      } else {
+        const payload = {
+          course_id: parseInt(selectedCourseId),
+          academic_section_id: null,
+          target_student_reg: targetStudentReg.trim(),
+          teacher_id: selectedTeacherId ? parseInt(selectedTeacherId) : null,
+          section_label: customSectionLabel,
+          semester_id: activeSemester.id,
+          schedule: null,
+          room: null,
+          is_registration_open: false
+        };
+        await sectionApi.create(payload);
+        toast.success('Course offered successfully!');
+      }
       
-      // Reset form & close
-      setSelectedCourseId('');
-      setSelectedAcademicSectionId('');
-      setSelectedTeacherId('');
-      setCustomSectionLabel('');
-      setTargetType('BATCH');
-      setTargetStudentReg('');
-      setIsOfferModalOpen(false);
+      closeOfferModal();
 
       // Refresh list
       const sectionsRes = await sectionApi.list();
@@ -259,6 +274,18 @@ export default function RegistrationWeekPage() {
     } finally {
       setSubmittingOffer(false);
     }
+  };
+
+  const closeOfferModal = () => {
+    setSelectedCourseId('');
+    setSelectedAcademicSectionId('');
+    setSelectedAcademicSectionIds([]);
+    setAcademicSectionSearch('');
+    setSelectedTeacherId('');
+    setCustomSectionLabel('');
+    setTargetType('BATCH');
+    setTargetStudentReg('');
+    setIsOfferModalOpen(false);
   };
 
   const handleFinalizeRegistrations = async () => {
@@ -292,7 +319,7 @@ export default function RegistrationWeekPage() {
         <AlertCircle size={24} />
         <div>
           <h4 style={{ margin: 0, fontWeight: 600 }}>Configuration Error</h4>
-          <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>{error}</span>
+          <span style={{ fontSize: '14px', color: 'rgba(239, 68, 68, 0.9)' }}>{error}</span>
         </div>
       </div>
     );
@@ -303,7 +330,7 @@ export default function RegistrationWeekPage() {
       
       {/* ─── Top Control Panel ─── */}
       <div style={{
-        background: 'linear-gradient(135deg, var(--bg-secondary) 0%, rgba(99, 102, 241, 0.07) 100%)',
+        background: 'linear-gradient(135deg, var(--bg-secondary) 0%, rgba(13, 148, 136, 0.07) 100%)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-xl)',
         padding: '24px 32px',
@@ -316,7 +343,7 @@ export default function RegistrationWeekPage() {
       }}>
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           <div style={{
-            background: 'rgba(99, 102, 241, 0.15)',
+            background: 'rgba(13, 148, 136, 0.15)',
             color: 'var(--accent-light)',
             width: '56px',
             height: '56px',
@@ -324,7 +351,7 @@ export default function RegistrationWeekPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 8px 16px rgba(99, 102, 241, 0.1)'
+            boxShadow: '0 8px 16px rgba(13, 148, 136, 0.1)'
           }}>
             <Calendar size={28} />
           </div>
@@ -437,8 +464,8 @@ export default function RegistrationWeekPage() {
             width: '80px',
             height: '80px',
             borderRadius: '50%',
-            background: timeLeft === 'Deadline Passed' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(99, 102, 241, 0.05)',
-            border: timeLeft === 'Deadline Passed' ? '2px dashed rgba(239, 68, 68, 0.3)' : '2px dashed rgba(99, 102, 241, 0.3)',
+            background: timeLeft === 'Deadline Passed' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(13, 148, 136, 0.05)',
+            border: timeLeft === 'Deadline Passed' ? '2px dashed rgba(239, 68, 68, 0.3)' : '2px dashed rgba(13, 148, 136, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -517,7 +544,7 @@ export default function RegistrationWeekPage() {
                       fontSize: '11px',
                       fontWeight: 700,
                       color: 'var(--accent-light)',
-                      background: 'rgba(99,102,241,0.1)',
+                      background: 'rgba(13,148,136,0.1)',
                       padding: '4px 8px',
                       borderRadius: '4px',
                       textTransform: 'uppercase',
@@ -603,7 +630,7 @@ export default function RegistrationWeekPage() {
                       <button
                         onClick={() => handleToggleRegistration(sec)}
                         style={{
-                          background: sec.is_registration_open ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.05)',
+                          background: sec.is_registration_open ? 'rgba(16,185,129,0.1)' : 'rgba(0,0,0,0.05)',
                           color: sec.is_registration_open ? 'var(--success)' : 'var(--text-secondary)',
                           border: `1px solid ${sec.is_registration_open ? 'rgba(16,185,129,0.2)' : 'var(--border)'}`,
                           borderRadius: '8px',
@@ -644,7 +671,7 @@ export default function RegistrationWeekPage() {
           <div className="modal" style={{ width: '100%', maxWidth: '540px' }}>
             <div className="modal-header">
               <h3 className="modal-title">Offer Course for Registration</h3>
-              <button className="modal-close" onClick={() => setIsOfferModalOpen(false)}>
+              <button className="modal-close" onClick={closeOfferModal}>
                 <X size={18} />
               </button>
             </div>
@@ -699,20 +726,110 @@ export default function RegistrationWeekPage() {
                 {/* Target Academic Section (BATCH mode) */}
                 {targetType === 'BATCH' && (
                   <div className="form-group">
-                    <label className="form-label">Target Academic Section *</label>
-                    <select 
-                      className="form-control" 
-                      value={selectedAcademicSectionId}
-                      onChange={(e) => setSelectedAcademicSectionId(e.target.value)}
-                      required={targetType === 'BATCH'}
-                    >
-                      <option value="">-- Choose Academic Section (Batch-Dept-Sec) --</option>
-                      {academicSections.map(as => (
-                        <option key={as.id} value={as.id}>
-                          {as.batch}-{as.department_code}-{as.section_name}
-                        </option>
-                      ))}
-                    </select>
+                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Target Academic Sections *</span>
+                      {selectedAcademicSectionIds.length > 0 && (
+                        <span style={{ fontSize: '11px', color: 'var(--accent-light)', fontWeight: 600 }}>
+                          {selectedAcademicSectionIds.length} Selected
+                        </span>
+                      )}
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Search academic sections (e.g. FA22)..." 
+                        value={academicSectionSearch}
+                        onChange={(e) => setAcademicSectionSearch(e.target.value)}
+                        style={{ fontSize: '13px', padding: '6px 12px' }}
+                      />
+                      <div style={{
+                        maxHeight: '180px',
+                        overflowY: 'auto',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '10px',
+                        background: 'var(--bg-secondary)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px'
+                      }}>
+                        {academicSections
+                          .filter(as => {
+                            const label = `${as.batch}-${as.department_code}-${as.section_name}`.toLowerCase();
+                            return label.includes(academicSectionSearch.toLowerCase());
+                          })
+                          .map(as => {
+                            const isChecked = selectedAcademicSectionIds.includes(as.id);
+                            return (
+                              <label 
+                                key={as.id} 
+                                style={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '8px', 
+                                  cursor: 'pointer', 
+                                  fontSize: '13px',
+                                  padding: '4px 6px',
+                                  borderRadius: '4px',
+                                  background: isChecked ? 'rgba(13, 148, 136, 0.05)' : 'transparent',
+                                  transition: 'background 0.2s'
+                                }}
+                              >
+                                <input 
+                                  type="checkbox" 
+                                  checked={isChecked}
+                                  onChange={() => {
+                                    if (isChecked) {
+                                      setSelectedAcademicSectionIds(prev => prev.filter(id => id !== as.id));
+                                    } else {
+                                      setSelectedAcademicSectionIds(prev => [...prev, as.id]);
+                                    }
+                                  }}
+                                />
+                                <span>{as.batch}-{as.department_code}-{as.section_name}</span>
+                              </label>
+                            );
+                          })}
+                        {academicSections.filter(as => {
+                          const label = `${as.batch}-${as.department_code}-${as.section_name}`.toLowerCase();
+                          return label.includes(academicSectionSearch.toLowerCase());
+                        }).length === 0 && (
+                          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '12px', padding: '12px' }}>
+                            No matching sections found.
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: '12px', fontSize: '11px', fontWeight: 600 }}>
+                        <button
+                          type="button"
+                          className="text-accent"
+                          onClick={() => {
+                            const filtered = academicSections
+                              .filter(as => {
+                                const label = `${as.batch}-${as.department_code}-${as.section_name}`.toLowerCase();
+                                return label.includes(academicSectionSearch.toLowerCase());
+                              })
+                              .map(as => as.id);
+                            setSelectedAcademicSectionIds(prev => [...new Set([...prev, ...filtered])]);
+                          }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}
+                        >
+                          Select Filtered ({academicSections.filter(as => {
+                            const label = `${as.batch}-${as.department_code}-${as.section_name}`.toLowerCase();
+                            return label.includes(academicSectionSearch.toLowerCase());
+                          }).length})
+                        </button>
+                        <span style={{ color: 'var(--border)' }}>|</span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAcademicSectionIds([])}
+                          style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0, fontWeight: 600 }}
+                        >
+                          Clear Selection
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -732,19 +849,21 @@ export default function RegistrationWeekPage() {
                 )}
 
                 {/* Custom Section Label & Teacher */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px' }}>
-                  <div className="form-group">
-                    <label className="form-label">Section Label *</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      placeholder="e.g. A"
-                      value={customSectionLabel}
-                      onChange={(e) => setCustomSectionLabel(e.target.value)}
-                      maxLength={5}
-                      required
-                    />
-                  </div>
+                <div style={{ display: 'grid', gridTemplateColumns: targetType === 'STUDENT' ? '1fr 2fr' : '1fr', gap: '16px' }}>
+                  {targetType === 'STUDENT' && (
+                    <div className="form-group">
+                      <label className="form-label">Section Label *</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="e.g. A"
+                        value={customSectionLabel}
+                        onChange={(e) => setCustomSectionLabel(e.target.value)}
+                        maxLength={5}
+                        required
+                      />
+                    </div>
+                  )}
 
                   <div className="form-group">
                     <label className="form-label">Instructor / Teacher</label>
@@ -767,7 +886,7 @@ export default function RegistrationWeekPage() {
               </div>
 
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setIsOfferModalOpen(false)}>
+                <button type="button" className="btn btn-secondary" onClick={closeOfferModal}>
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={submittingOffer}>

@@ -200,7 +200,7 @@ export default function StudentDetailPage() {
             
             {/* Header Initials / Info */}
             <div style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(99,102,241,0.05) 100%)',
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.03) 0%, rgba(13,148,136,0.05) 100%)',
               border: '1px solid var(--border)',
               borderRadius: 'var(--radius-lg)',
               padding: '24px',
@@ -250,7 +250,7 @@ export default function StudentDetailPage() {
 
             {/* Profile Grid fields */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                 <Mail size={16} color="var(--text-secondary)" />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Email Address</span>
@@ -258,7 +258,7 @@ export default function StudentDetailPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                 <Building2 size={16} color="var(--text-secondary)" />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Department</span>
@@ -266,7 +266,7 @@ export default function StudentDetailPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                 <GraduationCap size={16} color="var(--text-secondary)" />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Academic Section</span>
@@ -274,7 +274,7 @@ export default function StudentDetailPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                 <Calendar size={16} color="var(--text-secondary)" />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Batch Year</span>
@@ -282,7 +282,7 @@ export default function StudentDetailPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                 <Shield size={16} color="var(--text-secondary)" />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Account Created</span>
@@ -324,7 +324,7 @@ export default function StudentDetailPage() {
             {!student.enrollments || student.enrollments.length === 0 ? (
               <div style={{
                 padding: '48px',
-                background: 'rgba(255,255,255,0.01)',
+                background: 'rgba(0,0,0,0.01)',
                 border: '1px dashed var(--border)',
                 borderRadius: 'var(--radius-lg)',
                 textAlign: 'center',
@@ -340,7 +340,7 @@ export default function StudentDetailPage() {
                   <div 
                     key={enroll.id} 
                     style={{
-                      background: 'rgba(255,255,255,0.02)',
+                      background: 'rgba(0,0,0,0.02)',
                       border: '1px solid var(--border)',
                       borderRadius: 'var(--radius-md)',
                       padding: '18px',

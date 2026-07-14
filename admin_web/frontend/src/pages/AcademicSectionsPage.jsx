@@ -165,8 +165,8 @@ export default function AcademicSectionsPage() {
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   cursor: 'pointer', marginBottom: '20px', padding: '14px 20px',
-                  background: 'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.04))',
-                  border: '1px solid rgba(99,102,241,0.25)', borderRadius: '14px',
+                  background: 'linear-gradient(135deg,rgba(13,148,136,0.15),rgba(13,148,136,0.04))',
+                  border: '1px solid rgba(13,148,136,0.25)', borderRadius: '14px',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -175,7 +175,7 @@ export default function AcademicSectionsPage() {
                     background: 'linear-gradient(135deg,var(--accent),var(--accent-dark))',
                     borderRadius: '12px', display: 'flex', alignItems: 'center',
                     justifyContent: 'center', fontSize: '22px',
-                    boxShadow: '0 0 16px rgba(99,102,241,0.4)',
+                    boxShadow: '0 0 16px rgba(13,148,136,0.4)',
                   }}>🎓</div>
                   <div>
                     <div style={{ fontSize: '22px', fontWeight: '800', color: 'var(--accent-light)', letterSpacing: '-0.5px' }}>
@@ -210,7 +210,7 @@ export default function AcademicSectionsPage() {
                         </span>
                         <span style={{
                           fontSize: '11px', color: 'var(--text-muted)',
-                          background: 'rgba(255,255,255,0.05)',
+                          background: 'rgba(0,0,0,0.05)',
                           border: '1px solid var(--border)', borderRadius: '6px', padding: '2px 8px',
                         }}>
                           {dept.department_code}
@@ -290,7 +290,7 @@ export default function AcademicSectionsPage() {
           </div>
           {batch && deptId && secName && (
             <div style={{
-              background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)',
+              background: 'rgba(13,148,136,0.1)', border: '1px solid rgba(13,148,136,0.3)',
               borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: 'var(--accent-light)',
             }}>
               Preview: <strong>
@@ -471,8 +471,8 @@ function SectionDetailPage({ section, departments, onBack }) {
       <div style={{
         display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px',
         padding: '16px 20px',
-        background: 'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.04))',
-        border: '1px solid rgba(99,102,241,0.25)', borderRadius: '16px',
+        background: 'linear-gradient(135deg,rgba(13,148,136,0.15),rgba(13,148,136,0.04))',
+        border: '1px solid rgba(13,148,136,0.25)', borderRadius: '16px',
       }}>
         <button className="btn btn-secondary btn-sm btn-icon" onClick={onBack} title="Back">
           <ArrowLeft size={18} />
@@ -481,7 +481,7 @@ function SectionDetailPage({ section, departments, onBack }) {
           width: '52px', height: '52px',
           background: 'linear-gradient(135deg,var(--accent),var(--accent-dark))',
           borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '24px', boxShadow: '0 0 20px rgba(99,102,241,0.4)', flexShrink: 0,
+          fontSize: '24px', boxShadow: '0 0 20px rgba(13,148,136,0.4)', flexShrink: 0,
         }}>🏫</div>
         <div>
           <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--accent-light)', letterSpacing: '-0.5px' }}>
@@ -495,7 +495,7 @@ function SectionDetailPage({ section, departments, onBack }) {
 
       {/* ── Tabs ── */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '24px',
-        background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)',
+        background: 'rgba(0,0,0,0.03)', border: '1px solid var(--border)',
         borderRadius: '12px', padding: '4px', width: 'fit-content' }}>
         {[
           { id: 'list', label: 'Students List', icon: Users },
@@ -515,7 +515,7 @@ function SectionDetailPage({ section, departments, onBack }) {
                   ? 'linear-gradient(135deg,var(--accent),var(--accent-dark))'
                   : 'transparent',
                 color: activeTab === tab.id ? '#fff' : 'var(--text-secondary)',
-                boxShadow: activeTab === tab.id ? '0 2px 8px rgba(99,102,241,0.4)' : 'none',
+                boxShadow: activeTab === tab.id ? '0 2px 8px rgba(13,148,136,0.4)' : 'none',
               }}
             >
               <Icon size={15} />
@@ -674,7 +674,7 @@ function SectionDetailPage({ section, departments, onBack }) {
 
               {/* ── CSV Format + Download Template ── */}
               <div style={{
-                background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)',
+                background: 'rgba(13,148,136,0.08)', border: '1px solid rgba(13,148,136,0.2)',
                 borderRadius: '10px', padding: '14px 16px', fontSize: '13px',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
@@ -799,13 +799,13 @@ function StudentTableRow({ student: s, even, onEdit, onResetPw, onToggle, onRemo
       display: 'grid',
       gridTemplateColumns: '2fr 2fr 1.5fr 1fr 1fr auto',
       padding: '14px 20px', gap: '12px', alignItems: 'center',
-      background: even ? 'rgba(255,255,255,0.015)' : 'var(--bg-secondary)',
+      background: even ? 'rgba(0,0,0,0.015)' : 'var(--bg-secondary)',
       transition: 'background 0.15s',
       cursor: 'pointer',
     }}
       onClick={() => onRowClick && onRowClick(s)}
-      onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,0.06)'}
-      onMouseLeave={e => e.currentTarget.style.background = even ? 'rgba(255,255,255,0.015)' : 'var(--bg-secondary)'}
+      onMouseEnter={e => e.currentTarget.style.background = 'rgba(13,148,136,0.06)'}
+      onMouseLeave={e => e.currentTarget.style.background = even ? 'rgba(0,0,0,0.015)' : 'var(--bg-secondary)'}
     >
       {/* Name + avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -879,12 +879,12 @@ function SectionBox({ sec, onClick, onDelete }) {
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        background: hov ? 'rgba(99,102,241,0.13)' : 'rgba(255,255,255,0.04)',
-        border: `1px solid ${hov ? 'rgba(99,102,241,0.45)' : 'rgba(255,255,255,0.08)'}`,
+        background: hov ? 'rgba(13,148,136,0.13)' : 'rgba(0,0,0,0.04)',
+        border: `1px solid ${hov ? 'rgba(13,148,136,0.45)' : 'rgba(0,0,0,0.08)'}`,
         borderRadius: '16px', padding: '22px 16px', cursor: 'pointer',
         transition: 'all 0.2s ease',
         transform: hov ? 'translateY(-4px)' : 'none',
-        boxShadow: hov ? '0 10px 28px rgba(99,102,241,0.22)' : 'none',
+        boxShadow: hov ? '0 10px 28px rgba(13,148,136,0.22)' : 'none',
         position: 'relative', userSelect: 'none',
       }}
       onClick={onClick}
@@ -908,7 +908,7 @@ function SectionBox({ sec, onClick, onDelete }) {
           width: '58px', height: '58px',
           background: 'linear-gradient(135deg,var(--accent),var(--accent-dark))',
           borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '26px', boxShadow: '0 4px 14px rgba(99,102,241,0.35)',
+          fontSize: '26px', boxShadow: '0 4px 14px rgba(13,148,136,0.35)',
         }}>🏫</div>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
@@ -959,13 +959,13 @@ function QuickAddBox({ batch, deptId, deptCode, onCreated }) {
 
   if (!open) return (
     <div onClick={() => setOpen(true)} style={{
-      border: '2px dashed rgba(99,102,241,0.25)', borderRadius: '16px',
+      border: '2px dashed rgba(13,148,136,0.25)', borderRadius: '16px',
       padding: '22px 16px', cursor: 'pointer', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center', gap: '8px',
       color: 'var(--text-muted)', transition: 'all 0.2s ease', minHeight: '120px',
     }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.5)'; e.currentTarget.style.color = 'var(--accent-light)'; e.currentTarget.style.background = 'rgba(99,102,241,0.06)'; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.25)'; e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(13,148,136,0.5)'; e.currentTarget.style.color = 'var(--accent-light)'; e.currentTarget.style.background = 'rgba(13,148,136,0.06)'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(13,148,136,0.25)'; e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
     >
       <Plus size={24} />
       <span style={{ fontSize: '12px', fontWeight: '600' }}>{batch}-{deptCode}-?</span>
@@ -975,8 +975,8 @@ function QuickAddBox({ batch, deptId, deptCode, onCreated }) {
 
   return (
     <div style={{
-      border: '1px solid rgba(99,102,241,0.4)', borderRadius: '16px',
-      padding: '16px', background: 'rgba(99,102,241,0.08)',
+      border: '1px solid rgba(13,148,136,0.4)', borderRadius: '16px',
+      padding: '16px', background: 'rgba(13,148,136,0.08)',
     }}>
       <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
         {batch}-{deptCode}-

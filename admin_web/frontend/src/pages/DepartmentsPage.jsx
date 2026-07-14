@@ -247,7 +247,7 @@ export default function DepartmentsPage() {
               <div className="drawer-body">
                 {/* Department Header Card */}
                 <div style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(99,102,241,0.05) 100%)',
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.03) 0%, rgba(13,148,136,0.05) 100%)',
                   border: '1px solid var(--border)',
                   borderRadius: 'var(--radius-lg)',
                   padding: '20px',
@@ -279,7 +279,7 @@ export default function DepartmentsPage() {
 
                 {/* Statistics Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border)', textAlign: 'center' }}>
+                  <div style={{ background: 'rgba(0,0,0,0.02)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border)', textAlign: 'center' }}>
                     <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-light)' }}>
                       {detailLoading ? (
                         <span className="loading" style={{ fontSize: '16px' }}>...</span>
@@ -289,7 +289,7 @@ export default function DepartmentsPage() {
                     </span>
                     <span style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)', marginTop: '4px' }}>Faculty Members</span>
                   </div>
-                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border)', textAlign: 'center' }}>
+                  <div style={{ background: 'rgba(0,0,0,0.02)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border)', textAlign: 'center' }}>
                     <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--success)' }}>
                       {detailLoading ? (
                         <span className="loading" style={{ fontSize: '16px' }}>...</span>
@@ -313,7 +313,7 @@ export default function DepartmentsPage() {
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
                       {selectedDept.teachers.map(t => (
-                        <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '6px' }}>
+                        <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.01)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '6px' }}>
                           <div>
                             <div style={{ fontSize: '13px', fontWeight: 600 }}>{t.full_name}</div>
                             <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{t.email}</div>
@@ -337,7 +337,7 @@ export default function DepartmentsPage() {
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
                       {selectedDept.courses.map(c => (
-                        <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '6px' }}>
+                        <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.01)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '6px' }}>
                           <div>
                             <div style={{ fontSize: '13px', fontWeight: 600 }}>{c.name}</div>
                             <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{c.code}</div>

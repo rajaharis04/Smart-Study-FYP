@@ -200,7 +200,7 @@ export default function TeacherDashboardPage() {
                       display: 'flex', 
                       justifyContent: 'space-between', 
                       alignItems: 'center', 
-                      background: 'rgba(255,255,255,0.02)',
+                      background: 'rgba(0,0,0,0.02)',
                       borderColor: 'var(--border)'
                     }}
                   >
@@ -244,7 +244,7 @@ export default function TeacherDashboardPage() {
             </div>
 
             {/* Post New Announcement Form */}
-            <form onSubmit={handlePostAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '14px' }}>
+            <form onSubmit={handlePostAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(0,0,0,0.01)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '14px' }}>
               <h4 style={{ fontSize: '13px', fontWeight: '700', margin: 0 }}>Create Announcement</h4>
               <input
                 type="text"
@@ -276,7 +276,7 @@ export default function TeacherDashboardPage() {
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', padding: '10px' }}>No announcements posted for this section yet.</div>
               ) : (
                 announcements.map(ann => (
-                  <div key={ann.id} style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div key={ann.id} style={{ background: 'rgba(0,0,0,0.01)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{ann.title}</span>
                       <button
@@ -373,7 +373,7 @@ export default function TeacherDashboardPage() {
                   className="card" 
                   style={{ 
                     padding: '12px', 
-                    background: n.is_read ? 'rgba(255,255,255,0.01)' : 'rgba(99,102,241,0.04)',
+                    background: n.is_read ? 'rgba(0,0,0,0.01)' : 'rgba(13,148,136,0.04)',
                     borderLeft: n.is_read ? '1px solid var(--border)' : '3px solid var(--accent)',
                     display: 'flex',
                     flexDirection: 'column',

@@ -13,7 +13,7 @@ from app.schemas.schemas import (
 )
 from app.services.auth_service import verify_password, create_access_token, hash_password
 from app.services.email_service import send_otp_email
-from app.core.deps import get_current_admin
+from app.core.deps import get_current_admin, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -192,7 +192,7 @@ def setup_password(request: SetupPasswordRequest, db: Session = Depends(get_db))
 @router.post("/change-password")
 def change_password(
     request: ChangePasswordRequest,
-    current_user: User = Depends(get_current_admin),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     if not verify_password(request.current_password, current_user.hashed_password):
@@ -204,7 +204,7 @@ def change_password(
 
 
 @router.get("/me")
-def get_me(current_user: User = Depends(get_current_admin)):
+def get_me(current_user: User = Depends(get_current_user)):
     return {
         "id": current_user.id,
         "full_name": current_user.full_name,

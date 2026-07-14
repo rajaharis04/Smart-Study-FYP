@@ -159,6 +159,22 @@ export default function TeachersPage() {
     }
   };
 
+  const handleUnassignSection = async (sectionId, courseName, sectionLabel) => {
+    if (!window.confirm(`Are you sure you want to unassign ${courseName} (Section ${sectionLabel}) from this teacher?`)) return;
+    try {
+      await teacherApi.unassignSection(selectedTeacher.id, sectionId);
+      toast.success('Teacher unassigned from class successfully.');
+      const res = await teacherApi.detail(selectedTeacher.id);
+      setSelectedTeacher((prev) => ({
+        ...prev,
+        ...res.data,
+      }));
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to unassign class.');
+    }
+  };
+
   const headers = [
     { key: 'employee_id', label: 'Employee ID' },
     { key: 'full_name', label: 'Full Name' },
@@ -397,7 +413,7 @@ export default function TeachersPage() {
               <div className="drawer-body">
                 {/* Teacher Header Card */}
                 <div style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(99,102,241,0.05) 100%)',
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.03) 0%, rgba(13,148,136,0.05) 100%)',
                   border: '1px solid var(--border)',
                   borderRadius: 'var(--radius-lg)',
                   padding: '20px',
@@ -433,15 +449,15 @@ export default function TeachersPage() {
                 <div>
                   <h4 className="drawer-section-title">Teacher Profile</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                       <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Email Address</span>
                       <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '4px', wordBreak: 'break-all' }}>{selectedTeacher.email}</div>
                     </div>
-                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                       <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Department</span>
                       <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '4px' }}>{selectedTeacher.department_name || 'Unassigned'}</div>
                     </div>
-                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)', gridColumn: 'span 2' }}>
+                    <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border)', gridColumn: 'span 2' }}>
                       <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Joined Date</span>
                       <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '4px' }}>{selectedTeacher.created_at ? new Date(selectedTeacher.created_at).toLocaleDateString() : '-'}</div>
                     </div>
@@ -458,7 +474,7 @@ export default function TeachersPage() {
                   ) : !selectedTeacher.sections || selectedTeacher.sections.length === 0 ? (
                     <div style={{
                       padding: '24px',
-                      background: 'rgba(255,255,255,0.01)',
+                      background: 'rgba(0,0,0,0.01)',
                       border: '1px dashed var(--border)',
                       borderRadius: 'var(--radius-md)',
                       textAlign: 'center',
@@ -473,7 +489,7 @@ export default function TeachersPage() {
                         <div 
                           key={sec.section_id} 
                           style={{
-                            background: 'rgba(255,255,255,0.02)',
+                            background: 'rgba(0,0,0,0.02)',
                             border: '1px solid var(--border)',
                             borderRadius: 'var(--radius-md)',
                             padding: '16px',
@@ -495,15 +511,25 @@ export default function TeachersPage() {
                             <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0 }}>Target: {sec.academic_section_label}</p>
                             {sec.semester_name && <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>Semester: {sec.semester_name}</p>}
                           </div>
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--success)' }}>
-                              {sec.enrolled_count} <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 500 }}>Active</span>
-                            </div>
-                            {sec.pending_count > 0 && (
-                              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--warning)', marginTop: '2px' }}>
-                                {sec.pending_count} Pending
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--success)' }}>
+                                {sec.enrolled_count} <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 500 }}>Active</span>
                               </div>
-                            )}
+                              {sec.pending_count > 0 && (
+                                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--warning)', marginTop: '2px' }}>
+                                  {sec.pending_count} Pending
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              className="btn btn-danger btn-sm btn-icon"
+                              onClick={() => handleUnassignSection(sec.section_id, sec.course_name, sec.section_label)}
+                              title="Unassign Class"
+                              style={{ padding: '6px', height: 'auto' }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
                           </div>
                         </div>
                       ))}

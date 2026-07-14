@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartStudy - AI-Driven Classrooms & Roster Orchestration</title>
+  
+  <!-- Premium Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Link Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ─── HEADER & NAVIGATION ─── -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="#" class="nav-logo">
+        <span class="logo-icon">🎓</span>
+        <span class="logo-text">SmartStudy<span class="logo-accent">.ai</span></span>
+      </a>
+      
+      <nav class="nav-menu">
+        <a href="#about" class="nav-link">Overview</a>
+        <a href="#generator" class="nav-link">AI Video Gen</a>
+        <a href="#modules" class="nav-link">Modules</a>
+        <a href="#features" class="nav-link">Why Us</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+      </nav>
+      
+      <div class="nav-actions">
+        <a href="http://localhost:5173/login" target="_blank" class="btn btn-nav">Login to Portal</a>
+      </div>
+      
+      <button class="mobile-menu-toggle" aria-label="Toggle menu">
+        <svg size="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ─── HERO BANNER ─── -->
+  <section class="hero-section" id="about">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <span class="badge hero-badge">🚀 Next-Gen Final Year Project</span>
+        <h1 class="hero-title">
+          Transform Documents Into Interactive <span class="gradient-text">AI Lecture Videos</span>
+        </h1>
+        <p class="hero-subtitle">
+          The ultimate study orchestration portal for modern universities. Empower teachers to instantly generate lecture videos with digital avatars, auto-grade quizzes, and track attendance via personalized learning dashboards.
+        </p>
+        <div class="hero-actions">
+          <a href="#generator" class="btn btn-primary btn-lg">Try AI Generator</a>
+          <a href="http://localhost:5173/login" target="_blank" class="btn btn-secondary btn-lg">Login as Admin/Teacher</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card-wrapper">
+          <div class="hero-card main-card">
+            <div class="card-header">
+              <div class="dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+              <div class="title-bar">smartstudy-dashboard.app</div>
+            </div>
+            <div class="card-body-visual">
+              <img id="hero-banner-img" src="assets/avatar_lecture_preview.png" alt="SmartStudy Classroom Analytics" class="hero-img">
+            </div>
+          </div>
+          <!-- Floating UI Badges -->
+          <div class="floating-badge badge-1">
+            <div class="badge-icon">🎥</div>
+            <div class="badge-text">
+              <strong>AI Avatar</strong>
+              <span>Talking virtual teacher</span>
+            </div>
+          </div>
+          <div class="floating-badge badge-2">
+            <div class="badge-icon">📊</div>
+            <div class="badge-text">
+              <strong>94% Accuracy</strong>
+              <span>Learning retention</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── INTERACTIVE GENERATOR WORKFLOW ─── -->
+  <section class="generator-section" id="generator">
+    <div class="container text-center">
+      <span class="badge badge-accent">Try It Out</span>
+      <h2 class="section-title">Ingest Syllabus & Watch the Magic Happen</h2>
+      <p class="section-subtitle">Experience how teachers convert PDFs or slides into engaging, questions-embedded lecture videos in seconds.</p>
+      
+      <!-- Interactive Widget Sandbox -->
+      <div class="generator-sandbox">
+        <div class="sandbox-grid">
+          
+          <!-- Left: Input Control Box -->
+          <div class="sandbox-panel input-panel">
+            <h3 class="panel-title">1. Document Input</h3>
+            <p class="panel-desc">Drag and drop your syllabus, book chapters, or slides below to begin generation.</p>
+            
+            <div class="drop-zone" id="drop-zone">
+              <div class="drop-zone-content" id="drop-zone-default">
+                <div class="upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px; color: var(--accent);"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </div>
+                <h4>Select Document to Upload</h4>
+                <p>PDF, PPTX, or DOCX up to 25MB</p>
+                <button type="button" class="btn btn-upload" id="file-select-btn">Choose File</button>
+              </div>
+              <div class="drop-zone-content hidden" id="drop-zone-file">
+                <div class="file-icon">📄</div>
+                <h4 id="uploaded-filename">Syllabus_Physics_101.pdf</h4>
+                <p id="uploaded-filesize">2.4 MB • Ready to Process</p>
+                <button type="button" class="btn btn-primary" id="process-doc-btn">Generate AI Lecture Now</button>
+                <button type="button" class="btn btn-link text-danger" id="reset-upload-btn">Remove File</button>
+              </div>
+            </div>
+            
+            <!-- Preset Samples for Easy Testing -->
+            <div class="preset-samples">
+              <span>Or try a sample document:</span>
+              <div class="sample-chips">
+                <button type="button" class="sample-chip" data-file="Introduction_to_Physics.pdf" data-size="1.8 MB">Physics 101 Syllabus</button>
+                <button type="button" class="sample-chip" data-file="Data_Structures_Lecture_3.pptx" data-size="4.2 MB">Data Structures Lecture</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right: Output Visualizer Screen -->
+          <div class="sandbox-panel output-panel">
+            <h3 class="panel-title">2. AI Sandbox Output</h3>
+            <p class="panel-desc">Watch AI synthesize the voice, avatar, transcript, and embedded questions.</p>
+            
+            <div class="output-screen-wrapper">
+              <!-- State A: Idle -->
+              <div class="output-state" id="state-idle">
+                <div class="screen-placeholder">
+                  <div class="screen-placeholder-icon">🤖</div>
+                  <h4>Ready for Document Ingestion</h4>
+                  <p>Upload a document on the left to see the AI lecture video generation workflow in real-time.</p>
+                </div>
+              </div>
+              
+              <!-- State B: Processing Loader -->
+              <div class="output-state hidden" id="state-processing">
+                <div class="screen-loader">
+                  <div class="loader-circle"></div>
+                  <h4 id="loader-status">Uploading Document...</h4>
+                  <div class="loader-progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                  </div>
+                  <p id="loader-detail">Reading document hierarchy and extracting headings...</p>
+                </div>
+              </div>
+              
+              <!-- State C: Player Screen with Avatar -->
+              <div class="output-state hidden" id="state-player">
+                <div class="video-player-mockup">
+                  <div class="video-main-display">
+                    <!-- Left: Talking Avatar Frame -->
+                    <div class="avatar-speaker-container">
+                      <div class="avatar-canvas">
+                        <div class="avatar-head">
+                          <div class="avatar-eyebrows"></div>
+                          <div class="avatar-eyes"></div>
+                          <div class="avatar-mouth" id="avatar-mouth"></div>
+                        </div>
+                        <div class="avatar-shoulders"></div>
+                      </div>
+                      <span class="avatar-label">Dr. Sarah (AI Avatar)</span>
+                    </div>
+                    <!-- Right: Slide Display Panel -->
+                    <div class="slide-content-display">
+                      <div class="slide-header">Chapter 1: Thermodynamics</div>
+                      <div class="slide-bullet-list" id="slide-bullet-list">
+                        <div>• Energy cannot be created or destroyed.</div>
+                        <div>• Entropy of an isolated system always increases.</div>
+                        <div>• Absolute zero cannot be reached.</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Video Progress Bar & Controls -->
+                  <div class="video-controls">
+                    <button class="play-btn" id="play-pause-btn">⏸</button>
+                    <div class="timeline-container">
+                      <div class="timeline-played" id="timeline-played"></div>
+                    </div>
+                    <span class="video-timer" id="video-timer">0:14 / 2:40</span>
+                  </div>
+                </div>
+                
+                <!-- Bottom Part of Player: Generated Questions & Guides -->
+                <div class="player-supplemental">
+                  <div class="supplement-tabs">
+                    <button class="tab-btn active" data-target="pre-questions">AI Questions</button>
+                    <button class="tab-btn" data-target="notes">Lecture Notes</button>
+                  </div>
+                  <div class="tab-content" id="pre-questions">
+                    <div class="quiz-question-box">
+                      <span class="quiz-type-tag">Pre-Lecture Objective</span>
+                      <p><strong>Question:</strong> What happens to the entropy of an isolated system over time?</p>
+                      <div class="quiz-choices">
+                        <label class="quiz-choice"><input type="radio" name="q1"> <span>It decreases</span></label>
+                        <label class="quiz-choice"><input type="radio" name="q1" checked> <span>It always increases</span></label>
+                        <label class="quiz-choice"><input type="radio" name="q1"> <span>It remains constant</span></label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-content hidden" id="notes">
+                    <div class="notes-box">
+                      <p><strong>Generated Core Concepts:</strong> This section explains the First and Second Laws of Thermodynamics, exploring how thermal energy transfers and the nature of system entropy.</p>
+                      <a href="#" class="btn btn-secondary btn-sm" onclick="event.preventDefault(); toast.success('Notes downloaded!');">Download PDF Guide</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+      <!-- CTA Button to Real Portal -->
+      <div class="generator-cta">
+        <a href="http://localhost:5173/login" target="_blank" class="btn btn-primary btn-xl pulse-btn">Generate Now in Portal</a>
+        <p>Clicking "Generate Now" opens the active SmartStudy login screen.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── MODULE BREAKDOWN ─── -->
+  <section class="modules-section" id="modules">
+    <div class="container">
+      <div class="text-center">
+        <span class="badge badge-accent">Architecture</span>
+        <h2 class="section-title">The Three Pillars of SmartStudy</h2>
+        <p class="section-subtitle">A fully unified system catering to administrators, educators, and students.</p>
+      </div>
+      
+      <div class="modules-grid">
+        
+        <!-- Module 1: Admin Command Center -->
+        <div class="module-card">
+          <div class="module-icon admin-icon">⚙️</div>
+          <h3>Admin Control Center</h3>
+          <p class="module-desc">Complete administrative power to manage academic offerings, user profiles, and operational parameters.</p>
+          <ul class="module-list">
+            <li><strong>Timeline Management:</strong> Track active semesters, course catalogues, and operational schedules.</li>
+            <li><strong>Roster Orchestration:</strong> Create batches, departments, and class sections seamlessly.</li>
+            <li><strong>Registration Control:</strong> Open self-registration, define deadlines, and auto-finalize enrollments.</li>
+            <li><strong>Analytics & Logs:</strong> Generate departmental KPIs, identify at-risk students, and track administrative logs.</li>
+          </ul>
+        </div>
+        
+        <!-- Module 2: Teacher Studio -->
+        <div class="module-card">
+          <div class="module-icon teacher-icon">🔮</div>
+          <h3>Teacher Studio (AI Co-Pilot)</h3>
+          <p class="module-desc">Transform teaching methods by delegating heavy curation and content creation tasks to advanced AI models.</p>
+          <ul class="module-list">
+            <li><strong>Document-to-Avatar Video:</strong> Auto-synthesize full interactive lectures from reference documents.</li>
+            <li><strong>Syllabus Alignment:</strong> Map topic hierarchies, learning paces, and difficulty objectives.</li>
+            <li><strong>Pre, In, & Post Questions:</strong> Auto-generate questions embedded directly inside the lecture timeline.</li>
+            <li><strong>AI Quiz & Assignments:</strong> Let AI build relevant, course-compliant quizzes and exams on the fly.</li>
+          </ul>
+        </div>
+        
+        <!-- Module 3: Student Learning Hub -->
+        <div class="module-card">
+          <div class="module-icon student-icon">⚡</div>
+          <h3>Student Learning Hub</h3>
+          <p class="module-desc">An interactive, personalized workspace optimized for maximum knowledge absorption and mastery.</p>
+          <ul class="module-list">
+            <li><strong>Engaging Video Lectures:</strong> Watch courses with active pop-up questions to validate attention.</li>
+            <li><strong>Attendance Automation:</strong> Attendance is automatically verified by measuring lecture watch completeness.</li>
+            <li><strong>Personalized Progress Gauge:</strong> Track topic-wise mastery levels, confidence indicators, and hint dependency.</li>
+            <li><strong>Self-Registration:</strong> Easily select and register for offered courses during registration week.</li>
+          </ul>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── WHY CHOOSE SMARTSTUDY (FEATURES) ─── -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="features-container-grid">
+        <div class="features-content-left">
+          <span class="badge">Innovation</span>
+          <h2 class="section-title text-left">Next-Gen Features for Higher Education</h2>
+          <p class="section-subtitle text-left" style="margin-left: 0;">Designed from the ground up to solve student retention, instructor burnout, and administrative overhead.</p>
+          
+          <div class="features-list">
+            <div class="feature-item">
+              <div class="f-icon">🤖</div>
+              <div class="f-text">
+                <h4>Avatar Voice Synthesis</h4>
+                <p>Natural text-to-speech engine coupled with facial lip-sync animation makes virtual instructors feel lifelike.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="f-icon">⏱️</div>
+              <div class="f-text">
+                <h4>Interactive Pop-Up Quizzes</h4>
+                <p>Keeps students engaged by prompting questions at key timestamps, checking comprehension in real-time.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="f-icon">🎯</div>
+              <div class="f-text">
+                <h4>Personalized Mastery Pathways</h4>
+                <p>Visual gauges track how much support a student needs (e.g. hint reliance) to adjust study guides dynamically.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="features-visual-right">
+          <img src="assets/avatar_creation_concept.png" alt="SmartStudy Classroom Ecosystem" class="features-showcase-img">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FAQ ACCORDION ─── -->
+  <section class="faq-section" id="faq">
+    <div class="container" style="max-width: 800px;">
+      <div class="text-center">
+        <span class="badge badge-accent">Q&A</span>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-subtitle">Everything you need to know about the SmartStudy architecture.</p>
+      </div>
+      
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How does the document-to-video AI generation work?</span>
+            <span class="faq-toggle-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Instructors upload syllabus materials (PDF/DOCX/PPTX). SmartStudy's AI agent parses the document hierarchy, generates a comprehensive video script based on the academic concepts, structures slides, and generates an MP4 lecture video featuring a customizable digital instructor avatar speaking the script.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How are attendance and evaluations tracked?</span>
+            <span class="faq-toggle-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Students must watch lectures inside their portal. System background services track lecture progression. Full completion of a lecture dynamically marks the student's attendance for that session. Pop-up quizzes and final assignments evaluate their score metrics and shape their overall topic-wise mastery profile.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>What backend technologies run SmartStudy?</span>
+            <span class="faq-toggle-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>The system is built with a backend written in FastAPI (Python) using SQLAlchemy for robust database relational mapping. The administrator console is built using React (Vite/TypeScript), and the mobile/desktop student client application is built using Flutter.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Is registration week automated?</span>
+            <span class="faq-toggle-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Yes. The administrator sets a registration deadline date/time. Offered courses go live for students to self-enroll. Once the countdown timer hits absolute zero, the system automatically shuts down student self-enrollments, processes pending requests, and finalizes class rosters.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="footer">
+    <div class="container text-center">
+      <div class="footer-logo">
+        <span class="logo-icon">🎓</span>
+        <span class="logo-text">SmartStudy<span class="logo-accent">.ai</span></span>
+      </div>
+      <p class="footer-desc">An Intelligent Learning & Roster Orchestration Framework designed for the future of higher education.</p>
+      <div class="footer-links">
+        <a href="#about">Overview</a>
+        <a href="#generator">AI Video Generator</a>
+        <a href="#modules">System Modules</a>
+        <a href="http://localhost:5173/login" target="_blank">Portal Access</a>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 SmartStudy.ai. Designed as a Final Year Project. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Link Javascript -->
+  <script src="script.js"></script>
+</body>
+</html>

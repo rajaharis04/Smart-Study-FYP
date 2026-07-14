@@ -249,6 +249,7 @@ class SectionOut(BaseModel):
     course_name: str
     course_code: str
     teacher_name: Optional[str]
+    teacher_id: Optional[int] = None
     semester_name: Optional[str]
     schedule: Optional[str]
     room: Optional[str]

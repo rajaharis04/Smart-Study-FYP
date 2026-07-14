@@ -57,6 +57,7 @@ export const teacherApi = {
   update: (id, data) => api.put(`/teachers/${id}`, data),
   resetPassword: (id) => api.post(`/teachers/${id}/reset-password`),
   deactivate: (id) => api.delete(`/teachers/${id}`),
+  unassignSection: (teacherId, sectionId) => api.post(`/teachers/${teacherId}/unassign/${sectionId}`),
 };
 
 // ─── STUDENTS ─────────────────────────────────────────────────────────────────
@@ -144,8 +145,19 @@ export const teacherPortalApi = {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   listLectures: (sectionId) => api.get(`/teacher/sections/${sectionId}/lectures`),
-  updateLecture: (lectureId, formData) => api.put(`/teacher/lectures/${lectureId}`, formData),
+  updateLecture: (lectureId, formData) => api.put(`/teacher/lectures/${lectureId}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
   deleteLecture: (lectureId) => api.delete(`/teacher/lectures/${lectureId}`),
+  generateDraftBlueprint: (formData) => axios.post('http://localhost:8000/api/blueprint/generate-draft', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  clearDraft: () => axios.post('http://localhost:8000/api/blueprint/clear-draft'),
+  assembleVideoBlueprint: (formData) => axios.post('http://localhost:8000/api/blueprint/assemble', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  getVideoRenderStatus: (jobId) => axios.get(`http://localhost:8000/api/blueprint/status/${jobId}`),
+  registerGeneratedLecture: (sectionId, data) => api.post(`/teacher/sections/${sectionId}/lectures/register-generated`, data),
   listQuizzes: () => api.get('/teacher/quizzes'),
   getQuiz: (quizId) => api.get(`/teacher/quizzes/${quizId}`),
   updateQuiz: (quizId, data) => api.put(`/teacher/quizzes/${quizId}`, data),

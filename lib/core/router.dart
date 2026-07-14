@@ -20,6 +20,7 @@ import '../screens/dashboard/dashboard_home_screen.dart';
 import '../screens/courses/courses_screen.dart';
 import '../screens/courses/course_lectures_screen.dart';
 import '../screens/courses/course_registration_screen.dart';
+import '../screens/courses/course_details_screen.dart';
 import '../screens/attendance/attendance_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/notification_center_screen.dart';
@@ -249,6 +250,28 @@ final GoRouter appRouter = GoRouter(
               path: 'registration',
               name: 'course-registration',
               builder: (context, state) => const CourseRegistrationScreen(),
+            ),
+            GoRoute(
+              path: 'details/:courseId',
+              name: 'course-details',
+              builder: (context, state) {
+                final courseId = int.tryParse(state.pathParameters['courseId'] ?? '0') ?? 0;
+                final courseName = state.uri.queryParameters['courseName'] ?? '';
+                final courseCode = state.uri.queryParameters['courseCode'] ?? '';
+                final instructor = state.uri.queryParameters['instructor'] ?? '';
+                final creditHours = int.tryParse(state.uri.queryParameters['creditHours'] ?? '3') ?? 3;
+                final progress = double.tryParse(state.uri.queryParameters['progress'] ?? '0.0') ?? 0.0;
+                final sectionId = int.tryParse(state.uri.queryParameters['sectionId'] ?? '0') ?? 0;
+                return CourseDetailsScreen(
+                  courseId: courseId,
+                  courseName: courseName,
+                  courseCode: courseCode,
+                  instructor: instructor,
+                  creditHours: creditHours,
+                  progress: progress,
+                  sectionId: sectionId,
+                );
+              },
             ),
           ],
         ),

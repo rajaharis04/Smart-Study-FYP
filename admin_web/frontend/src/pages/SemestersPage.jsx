@@ -588,7 +588,7 @@ export default function SemestersPage() {
                 </div>
               </div>
               
-              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
+              <div style={{ background: 'rgba(0,0,0,0.02)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
                 <h5 style={{ fontWeight: 600, marginBottom: '10px', fontSize: '13px' }}>System Changes Imposed:</h5>
                 <ul style={{ fontSize: '13px', color: 'var(--text-secondary)', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <li>Deactivates the current active semester calendar (marks <code>is_active = false</code>).</li>
@@ -628,8 +628,8 @@ export default function SemestersPage() {
           {rolloverStep === 3 && (
             <form onSubmit={handleCreateNextSemester} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{
-                background: 'rgba(99, 102, 241, 0.08)',
-                border: '1px solid rgba(99, 102, 241, 0.25)',
+                background: 'rgba(13, 148, 136, 0.08)',
+                border: '1px solid rgba(13, 148, 136, 0.25)',
                 borderRadius: 'var(--radius-md)',
                 padding: '14px',
                 fontSize: '13px',
@@ -743,7 +743,7 @@ export default function SemestersPage() {
               </p>
 
               <div style={{
-                background: 'rgba(255,255,255,0.02)',
+                background: 'rgba(0,0,0,0.02)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-md)',
                 padding: '16px',

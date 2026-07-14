@@ -173,7 +173,7 @@ export default function TeacherQuizzesPage() {
                   padding: '12px 16px', 
                   cursor: 'pointer',
                   borderColor: selectedQuizId === q.id ? 'var(--accent)' : 'var(--border)',
-                  background: selectedQuizId === q.id ? 'var(--accent-glow)' : 'rgba(255,255,255,0.01)',
+                  background: selectedQuizId === q.id ? 'var(--accent-glow)' : 'rgba(0,0,0,0.01)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '4px'
@@ -340,7 +340,7 @@ export default function TeacherQuizzesPage() {
                           className="card" 
                           style={{ 
                             padding: '16px', 
-                            background: 'rgba(255,255,255,0.01)', 
+                            background: 'rgba(0,0,0,0.01)', 
                             borderLeft: '3px solid var(--accent)',
                             display: 'flex',
                             flexDirection: 'column',
@@ -546,7 +546,7 @@ export default function TeacherQuizzesPage() {
                         <div 
                           key={qPerf.question_id}
                           style={{
-                            background: 'rgba(255,255,255,0.01)',
+                            background: 'rgba(0,0,0,0.01)',
                             border: '1px solid var(--border)',
                             borderRadius: 'var(--radius-sm)',
                             padding: '12px 16px',
