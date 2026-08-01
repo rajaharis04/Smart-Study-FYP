@@ -127,7 +127,7 @@ export default function TeacherLecturesPage() {
 
       await teacherPortalApi.uploadLectureVideo(selectedSection.id, formData);
       
-      toast.success('Lecture video uploaded! Auto-generated MCQ quiz created.', { id: toastId });
+      toast.success('Lecture video uploaded successfully!', { id: toastId });
       setShowUploadModal(false);
       
       // Reset state
@@ -475,7 +475,7 @@ export default function TeacherLecturesPage() {
           <div className="empty-state">
             <FileVideo size={36} className="text-muted" style={{ margin: '0 auto 12px' }} />
             <h3>No lecture videos uploaded yet</h3>
-            <p>Upload a video lecture and the system will automatically parse and generate quizzes for students.</p>
+            <p>Upload a video lecture or generate one using AI Video Generator for students.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>

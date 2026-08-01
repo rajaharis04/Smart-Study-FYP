@@ -573,13 +573,10 @@ def upload_lecture_video(
     db.add(lecture)
     db.flush()
     
-    # Automatically generate 10 MCQs
-    auto_generate_quiz_for_lecture(lecture.id, db, teacher.user_id)
-    
     db.commit()
     db.refresh(lecture)
     return {
-        "message": "Lecture uploaded and published successfully. MCQ quiz auto-generated.",
+        "message": "Lecture uploaded and published successfully.",
         "lecture_id": lecture.id,
         "video_url": lecture.video_url
     }
@@ -614,7 +611,7 @@ def register_generated_lecture(
         
     # Build absolute path to generated video inside the 'video lecture' module
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-    src_path = os.path.join(project_root, "video lecture", "backend", "static", "videos", req.video_filename)
+    src_path = os.path.join(project_root, "video-lecture", "backend", "static", "videos", req.video_filename)
     
     if not os.path.exists(src_path):
         raise HTTPException(
@@ -647,14 +644,11 @@ def register_generated_lecture(
     db.add(lecture)
     db.flush()
     
-    # Automatically generate 10 MCQs
-    auto_generate_quiz_for_lecture(lecture.id, db, teacher.user_id)
-    
     db.commit()
     db.refresh(lecture)
     
     return {
-        "message": "Generated lecture registered successfully. MCQ quiz auto-generated.",
+        "message": "Generated lecture registered successfully.",
         "lecture_id": lecture.id,
         "video_url": lecture.video_url
     }
