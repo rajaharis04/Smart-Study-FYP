@@ -474,7 +474,7 @@ export default function TeachersPage() {
                   ) : !selectedTeacher.sections || selectedTeacher.sections.length === 0 ? (
                     <div style={{
                       padding: '24px',
-                      background: 'rgba(0,0,0,0.01)',
+                      background: 'var(--bg-input)',
                       border: '1px dashed var(--border)',
                       borderRadius: 'var(--radius-md)',
                       textAlign: 'center',

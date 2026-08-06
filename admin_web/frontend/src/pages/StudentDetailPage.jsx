@@ -324,7 +324,7 @@ export default function StudentDetailPage() {
             {!student.enrollments || student.enrollments.length === 0 ? (
               <div style={{
                 padding: '48px',
-                background: 'rgba(0,0,0,0.01)',
+                background: 'var(--bg-input)',
                 border: '1px dashed var(--border)',
                 borderRadius: 'var(--radius-lg)',
                 textAlign: 'center',

@@ -418,3 +418,204 @@ def attempt_question_again(
         "correct": is_now_correct,
         "correct_answer": question.correct_answer
     }
+
+
+# ─── STUDENT ASSIGNMENTS ROUTER ───────────────────────────────────────────────
+student_assignment_router = APIRouter(prefix="/student/assignments", tags=["Assignments (Student)"])
+
+@student_assignment_router.get("")
+def get_student_assignments(
+    student: Student = Depends(_get_current_student),
+    db: Session = Depends(get_db)
+):
+    from app.models.models import Assignment, AssignmentQuestion, AssignmentSubmission
+    enrollments = db.query(Enrollment).filter(
+        Enrollment.student_id == student.id,
+        Enrollment.is_active == True
+    ).all()
+    section_ids = [e.section_id for e in enrollments]
+    if not section_ids:
+        return []
+
+    assignments = db.query(Assignment).filter(
+        Assignment.section_id.in_(section_ids),
+        Assignment.is_published == True
+    ).order_by(Assignment.created_at.desc()).all()
+
+    submissions = {
+        s.assignment_id: s for s in db.query(AssignmentSubmission).filter(
+            AssignmentSubmission.student_id == student.id
+        ).all()
+    }
+
+    result = []
+    for a in assignments:
+        sub = submissions.get(a.id)
+        sec = a.section
+        course = sec.course if sec else None
+
+        questions_list = []
+        for q in a.questions:
+            questions_list.append({
+                "id": q.id,
+                "question_text": q.question_text,
+                "question_type": q.question_type,
+                "marks": q.marks or 5
+            })
+
+        result.append({
+            "id": a.id,
+            "title": a.title,
+            "course_name": course.name if course else "Course",
+            "course_code": course.code if course else "CS",
+            "description": a.description or "",
+            "total_marks": a.total_marks or 100,
+            "due_date": a.due_date.isoformat() if a.due_date else None,
+            "type": a.assignment_type or "manual",
+            "is_submitted": sub is not None,
+            "score": sub.total_score if sub else None,
+            "status": sub.status.capitalize() if sub and sub.status else "Pending",
+            "questions": questions_list
+        })
+
+    return result
+
+
+class SubmitAssignmentItem(BaseModel):
+    question_id: int
+    answer_text: Optional[str] = ""
+
+class SubmitAssignmentPayload(BaseModel):
+    answers: List[SubmitAssignmentItem]
+
+@student_assignment_router.post("/{assignment_id}/submit")
+def submit_student_assignment(
+    assignment_id: int,
+    payload: SubmitAssignmentPayload,
+    student: Student = Depends(_get_current_student),
+    db: Session = Depends(get_db)
+):
+    from app.models.models import Assignment, AssignmentSubmission, AssignmentAnswer
+    assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found.")
+
+    sub = db.query(AssignmentSubmission).filter(
+        AssignmentSubmission.assignment_id == assignment_id,
+        AssignmentSubmission.student_id == student.id
+    ).first()
+
+    if not sub:
+        sub = AssignmentSubmission(
+            assignment_id=assignment_id,
+            student_id=student.id,
+            submitted_at=datetime.utcnow(),
+            status="submitted",
+            max_score=assignment.total_marks or 100
+        )
+        db.add(sub)
+        db.flush()
+    else:
+        sub.submitted_at = datetime.utcnow()
+        sub.status = "submitted"
+        db.query(AssignmentAnswer).filter(AssignmentAnswer.submission_id == sub.id).delete()
+
+    for item in payload.answers:
+        answer_rec = AssignmentAnswer(
+            submission_id=sub.id,
+            question_id=item.question_id,
+            answer_text=item.answer_text or "",
+            answered_at=datetime.utcnow()
+        )
+        db.add(answer_rec)
+
+    db.commit()
+    return {"ok": True, "message": "Assignment submitted successfully.", "submission_id": sub.id}
+student_portal_router = APIRouter(prefix="/student", tags=["Student Portal"])
+
+
+@student_portal_router.get("/marks")
+def get_student_marks(
+    student: Student = Depends(_get_current_student),
+    db: Session = Depends(get_db)
+):
+    from app.models.models import QuizResponse, Quiz, AssignmentSubmission, Assignment
+
+    quiz_attempts = db.query(QuizResponse.student_id, QuizResponse.quiz_id).filter(
+        QuizResponse.student_id == student.id
+    ).distinct().all()
+
+    quizzes_marks = []
+    total_quiz_score = 0
+    total_quiz_max = 0
+
+    for item in quiz_attempts:
+        q_id = item[1]
+        quiz = db.query(Quiz).filter(Quiz.id == q_id).first()
+        if not quiz:
+            continue
+        responses = db.query(QuizResponse).filter(
+            QuizResponse.quiz_id == q_id,
+            QuizResponse.student_id == student.id
+        ).all()
+
+        correct_count = sum(1 for r in responses if r.is_correct)
+        max_q = len(quiz.questions) if quiz.questions else len(responses)
+        pct = (correct_count / max_q * 100.0) if max_q > 0 else 0.0
+
+        total_quiz_score += correct_count
+        total_quiz_max += max_q
+
+        quizzes_marks.append({
+            "quiz_id": quiz.id,
+            "title": quiz.title or (quiz.lecture.title if quiz.lecture else f"Quiz #{quiz.id}"),
+            "course_name": quiz.lecture.section.course.name if (quiz.lecture and quiz.lecture.section and quiz.lecture.section.course) else "Course",
+            "score": correct_count,
+            "total_marks": max_q,
+            "percentage": round(pct, 1),
+            "date": max(r.answered_at for r in responses).isoformat() if responses else datetime.utcnow().isoformat()
+        })
+
+    assignments_marks = []
+    total_assign_score = 0
+    total_assign_max = 0
+
+    subs = db.query(AssignmentSubmission).filter(
+        AssignmentSubmission.student_id == student.id
+    ).all()
+
+    for s in subs:
+        assign = s.assignment
+        if not assign:
+            continue
+        score = s.total_score if s.total_score is not None else 0
+        max_marks = s.max_score or assign.total_marks or 100
+        pct = (score / max_marks * 100.0) if max_marks > 0 else 0.0
+
+        if s.status == "graded":
+            total_assign_score += score
+            total_assign_max += max_marks
+
+        assignments_marks.append({
+            "assignment_id": assign.id,
+            "title": assign.title,
+            "course_name": assign.section.course.name if (assign.section and assign.section.course) else "Course",
+            "score": score,
+            "total_marks": max_marks,
+            "status": s.status.capitalize() if s.status else "Submitted",
+            "percentage": round(pct, 1),
+            "date": s.submitted_at.isoformat() if s.submitted_at else datetime.utcnow().isoformat()
+        })
+
+    overall_total = total_quiz_max + total_assign_max
+    overall_scored = total_quiz_score + total_assign_score
+    overall_pct = round((overall_scored / overall_total * 100.0), 1) if overall_total > 0 else 0.0
+
+    return {
+        "overall_percentage": overall_pct,
+        "total_quizzes_attempted": len(quizzes_marks),
+        "total_assignments_submitted": len(assignments_marks),
+        "quizzes": quizzes_marks,
+        "assignments": assignments_marks
+    }
+

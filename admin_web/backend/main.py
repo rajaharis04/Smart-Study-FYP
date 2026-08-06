@@ -16,7 +16,13 @@ from app.api.dashboard import router as dashboard_router
 from app.api.student_courses import router as student_courses_router
 from app.api.lectures import router as lectures_router
 from app.api.qa import router as qa_router
-from app.api.student_portal import attendance_router, profile_router, questionbank_router
+from app.api.student_portal import (
+    attendance_router,
+    profile_router,
+    questionbank_router,
+    student_assignment_router,
+    student_portal_router
+)
 from app.api.teachers_portal import router as teachers_portal_router
 from app.api.resources import (
     semesters_router,
@@ -28,8 +34,26 @@ from app.api.resources import (
 )
 from app.api.academic_sections import router as academic_sections_router
 
+from sqlalchemy import text
+
 # ── Create all tables ───────────────────────────────────────────────────────
 Base.metadata.create_all(bind=engine)
+
+def _run_db_migrations():
+    """Auto-add missing columns to existing DB tables if created prior to schema updates."""
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE quizzes ADD COLUMN IF NOT EXISTS creation_type VARCHAR(20) DEFAULT 'manual';"))
+            conn.execute(text("ALTER TABLE quizzes ADD COLUMN IF NOT EXISTS source_material_ids TEXT;"))
+            conn.execute(text("ALTER TABLE quizzes ADD COLUMN IF NOT EXISTS due_date TIMESTAMP;"))
+            conn.execute(text("ALTER TABLE assignments ADD COLUMN IF NOT EXISTS assignment_type VARCHAR(20) DEFAULT 'manual';"))
+            conn.execute(text("ALTER TABLE assignments ADD COLUMN IF NOT EXISTS source_material_ids TEXT;"))
+            conn.commit()
+            print("✅ DB columns verified/migrated for quizzes and assignments.")
+    except Exception as e:
+        print(f"⚠️ Migration warning: {e}")
+
+_run_db_migrations()
 
 # ── FastAPI app ─────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -70,6 +94,8 @@ app.include_router(dashboard_router,      prefix=API_PREFIX)
 app.include_router(student_courses_router,prefix=API_PREFIX)
 app.include_router(lectures_router,       prefix=API_PREFIX)  # Student lectures
 app.include_router(teachers_portal_router,prefix=API_PREFIX)  # Teacher portal
+app.include_router(student_assignment_router, prefix=API_PREFIX) # Student assignments
+app.include_router(student_portal_router,     prefix=API_PREFIX) # Student portal (marks etc)
 app.include_router(semesters_router,      prefix=API_PREFIX)
 app.include_router(courses_router,        prefix=API_PREFIX)
 app.include_router(sections_router,       prefix=API_PREFIX)

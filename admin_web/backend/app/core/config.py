@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     ADMIN_EMAIL: str = "admin@smartstudy.edu"
     ADMIN_PASSWORD: str = "Admin@123"
 
+    # Groq AI Settings (for Quiz & Assignment generation)
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+
     # SMTP Settings
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587

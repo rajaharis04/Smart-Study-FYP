@@ -28,6 +28,8 @@ import '../screens/profile/notification_center_screen.dart';
 // ── Other screens ─────────────────────────────────────────────────────────
 import '../screens/lecture/pre_assessment_screen.dart';
 import '../screens/lecture/lecture_player_screen.dart';
+import '../screens/quizzes/quizzes_screen.dart';
+import '../screens/assignments/assignments_screen.dart';
 
 // ════════════════════════════════════════════════════════════════════
 //  Auth Notifier — GoRouter ko batata hai jab auth state change ho
@@ -182,7 +184,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const ChangePasswordScreen(),
     ),
 
-    // ── Pre-Assessment (before lecture) ───────────────────────────────
+    // ── Pre-Assessment (optional/standalone) ─────────────────────────
     GoRoute(
       path: '${AppConstants.routePreAssessment}/:lectureId',
       name: 'pre-assessment',
@@ -202,13 +204,13 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
-    // ── Lecture (old route → redirect to pre-assessment) ─────────────
+    // ── Lecture (Direct playback — bypass pre-quiz) ───────────────────
     GoRoute(
       path: '${AppConstants.routeLecture}/:lectureId',
       name: 'lecture',
       redirect: (context, state) {
         final id = state.pathParameters['lectureId'] ?? '0';
-        return '${AppConstants.routePreAssessment}/$id';
+        return '${AppConstants.routeLecturePlayer}/$id';
       },
     ),
 
@@ -224,6 +226,20 @@ final GoRouter appRouter = GoRouter(
           path: AppConstants.routeDashboardHome,
           name: 'dashboard-home',
           builder: (context, state) => const DashboardHomeScreen(),
+        ),
+
+        // Dedicated Quizzes Section
+        GoRoute(
+          path: AppConstants.routeDashboardQuizzes,
+          name: 'dashboard-quizzes',
+          builder: (context, state) => const QuizzesScreen(),
+        ),
+
+        // Dedicated Assignments Section
+        GoRoute(
+          path: AppConstants.routeDashboardAssignments,
+          name: 'dashboard-assignments',
+          builder: (context, state) => const AssignmentsScreen(),
         ),
 
         // Tab 2: Courses

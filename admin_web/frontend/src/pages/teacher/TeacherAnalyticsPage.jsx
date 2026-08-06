@@ -140,7 +140,7 @@ export default function TeacherAnalyticsPage() {
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {analytics.topic_difficulty.map((t, idx) => (
-                  <div key={idx} className="flex justify-between items-center" style={{ background: 'rgba(0,0,0,0.01)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                  <div key={idx} className="flex justify-between items-center" style={{ background: 'var(--bg-input)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
                     <div>
                       <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{t.topic_title}</h4>
                       <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Class Average Mastery: {t.average_score}%</span>
@@ -240,7 +240,7 @@ export default function TeacherAnalyticsPage() {
 
                           {/* Student Details Expanded Pane */}
                           {isExpanded && (
-                            <tr style={{ background: 'rgba(0,0,0,0.01)' }}>
+                            <tr style={{ background: 'var(--bg-input)' }}>
                               <td colSpan={8} style={{ padding: '20px 32px' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                   

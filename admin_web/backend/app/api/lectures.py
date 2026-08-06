@@ -404,10 +404,10 @@ def submit_quiz(
         if not question:
             continue
 
-        # Compute correctness only for post quizzes (correct_answer is set)
-        is_correct = None
-        if quiz.quiz_type == "post" and question.correct_answer and item.answer:
-            is_correct = item.answer.upper() == question.correct_answer.upper()
+        # Compute correctness whenever correct_answer is available
+        is_correct = False
+        if question.correct_answer and item.answer:
+            is_correct = (item.answer.strip().upper() == question.correct_answer.strip().upper())
 
         response = QuizResponse(
             quiz_id     = quiz_id,

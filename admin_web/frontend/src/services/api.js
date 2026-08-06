@@ -161,6 +161,8 @@ export const teacherPortalApi = {
   listQuizzes: () => api.get('/teacher/quizzes'),
   getQuiz: (quizId) => api.get(`/teacher/quizzes/${quizId}`),
   updateQuiz: (quizId, data) => api.put(`/teacher/quizzes/${quizId}`, data),
+  deleteQuiz: (quizId) => api.delete(`/teacher/quizzes/${quizId}`),
+  deleteAssignment: (assignmentId) => api.delete(`/teacher/assignments/${assignmentId}`),
   getQuizSubmissions: (quizId) => api.get(`/teacher/quizzes/${quizId}/submissions`),
   getQuizAnalytics: (quizId) => api.get(`/teacher/quizzes/${quizId}/analytics`),
   getSectionAnalytics: (sectionId) => api.get(`/teacher/analytics/sections/${sectionId}`),
@@ -173,6 +175,28 @@ export const teacherPortalApi = {
   listAnnouncements: (sectionId) => api.get(`/teacher/sections/${sectionId}/announcements`),
   createAnnouncement: (sectionId, data) => api.post(`/teacher/sections/${sectionId}/announcements`, data),
   deleteAnnouncement: (announcementId) => api.delete(`/teacher/announcements/${announcementId}`),
+
+  // ── AI Quiz & Assignment Generation ─────────────────────────────────────
+  getAvailableMaterials: () => api.get('/teacher/ai/available-materials'),
+  generateAIQuiz: (data) => api.post('/teacher/ai/generate-quiz', data),
+  saveAIQuiz: (data) => api.post('/teacher/ai/save-quiz', data),
+  generateAIAssignment: (data) => api.post('/teacher/ai/generate-assignment', data),
+  saveAIAssignment: (data) => api.post('/teacher/ai/save-assignment', data),
+
+  // ── Manual Quiz Creation ────────────────────────────────────────────────
+  createManualQuiz: (lectureId, data) => api.post(`/teacher/lectures/${lectureId}/quizzes/create`, data),
+
+  // ── Assignment CRUD & Submissions ──────────────────────────────────────
+  createAssignment: (sectionId, data) => api.post(`/teacher/sections/${sectionId}/assignments`, data),
+  listAssignments: (sectionId) => api.get(`/teacher/sections/${sectionId}/assignments`),
+  getAssignment: (id) => api.get(`/teacher/assignments/${id}`),
+  updateAssignment: (id, data) => api.put(`/teacher/assignments/${id}`, data),
+  deleteAssignment: (id) => api.delete(`/teacher/assignments/${id}`),
+  getAssignmentSubmissions: (id) => api.get(`/teacher/assignments/${id}/submissions`),
+  getAssignmentSubmissionDetails: (subId) => api.get(`/teacher/assignments/submissions/${subId}`),
+  getAssignmentAnalytics: (id) => api.get(`/teacher/assignments/${id}/analytics`),
+  evaluateAssignmentWithAI: (subId) => api.post(`/teacher/assignments/submissions/${subId}/evaluate-ai`),
+  gradeAssignmentSubmission: (subId, data) => api.put(`/teacher/assignments/submissions/${subId}/grade`, data),
 };
 
 

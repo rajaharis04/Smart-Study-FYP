@@ -13,6 +13,8 @@ import '../../providers/dashboard_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../models/models.dart';
 
+import '../marks/marks_screen.dart';
+
 // ════════════════════════════════════════════════════════════════════
 //  DashboardHomeScreen
 // ════════════════════════════════════════════════════════════════════
@@ -188,19 +190,26 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.25),
-              ),
+          InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const MarksScreen()),
             ),
-            child: const Icon(
-              Icons.school_rounded,
-              color: Colors.white,
-              size: 28,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.25),
+                ),
+              ),
+              child: const Icon(
+                Icons.analytics_rounded,
+                color: Colors.white,
+                size: 28,
+              ),
             ),
           ),
         ],
@@ -304,37 +313,55 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
     );
   }
 
-  // ── 2x2 summary tiles grid ───────────────────────────────────────
-
   Widget _buildSummaryGrid(ThemeData theme, Dashboard? data) {
+    final settings = ref.watch(settingsProvider);
+    final isUrdu = settings.language == 'Urdu';
+
     final tiles = [
       _SummaryTile(
         icon: Icons.menu_book_rounded,
-        label: 'Courses',
+        label: isUrdu ? 'کورسز' : 'Courses',
         value: '${data?.totalCourses ?? 0}',
         color: const Color(0xFF6C63FF),
         onTap: () => GoRouter.of(context).go(AppConstants.routeDashboardCourses),
       ),
       _SummaryTile(
         icon: Icons.fact_check_rounded,
-        label: 'Attendance',
+        label: isUrdu ? 'حاضری' : 'Attendance',
         value: '${(data?.attendancePercentage ?? 0).toInt()}%',
         color: const Color(0xFF00BFA5),
         onTap: () => GoRouter.of(context).go(AppConstants.routeDashboardAttendance),
       ),
       _SummaryTile(
         icon: Icons.quiz_rounded,
-        label: 'Quizzes',
+        label: isUrdu ? 'کوئزز' : 'Quizzes',
         value: '${data?.activeQuizzesCount ?? 0}',
         color: const Color(0xFFFF6B6B),
-        onTap: null,
+        onTap: () => GoRouter.of(context).push(AppConstants.routeDashboardQuizzes),
       ),
       _SummaryTile(
         icon: Icons.assignment_rounded,
-        label: 'Assignments',
-        value: '1',
+        label: isUrdu ? 'اسائنمنٹس' : 'Assignments',
+        value: '3',
         color: const Color(0xFFFFB74D),
-        onTap: null,
+        onTap: () => GoRouter.of(context).push(AppConstants.routeDashboardAssignments),
+      ),
+      _SummaryTile(
+        icon: Icons.stars_rounded,
+        label: isUrdu ? 'نمبر اور گریڈز' : 'Marks & Results',
+        value: isUrdu ? 'نتائج' : 'Grades',
+        color: const Color(0xFF9C27B0),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const MarksScreen()),
+        ),
+      ),
+      _SummaryTile(
+        icon: Icons.notifications_rounded,
+        label: isUrdu ? 'اعلانات' : 'Announcements',
+        value: isUrdu ? 'پیغامات' : 'Updates',
+        color: const Color(0xFF00BCD4),
+        onTap: () => GoRouter.of(context).push('/dashboard/profile/notifications'),
       ),
     ];
 
@@ -765,9 +792,7 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          if (quiz.lectureId != null) {
-            context.push('${AppConstants.routeLecture}/${quiz.lectureId}');
-          }
+          context.push(AppConstants.routeDashboardQuizzes);
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(

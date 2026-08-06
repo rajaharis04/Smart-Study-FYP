@@ -459,6 +459,7 @@ class ApiService {
       final rawQ = (data['questions'] as List<dynamic>?) ?? [];
       return {
         'quiz_id': data['quiz_id'] as int?,
+        'time_limit_minutes': data['time_limit_minutes'] as int?,
         'questions': rawQ
             .map((q) => QuizQuestion.fromJson(q as Map<String, dynamic>))
             .toList(),
@@ -468,16 +469,24 @@ class ApiService {
     }
   }
 
-  Future<void> submitQuiz({
+  Future<bool> submitQuiz({
     required int quizId,
     required Map<int, String?> answers,
   }) async {
     try {
       final items = answers.entries
-          .map((e) => {'question_id': e.key, 'answer': e.value})
+          .map((e) => {
+                'question_id': e.key,
+                'answer': e.value,
+                'time_taken_seconds': 30.0,
+                'hint_used': false,
+              })
           .toList();
-      await _dio.post('/lectures/quiz/$quizId/submit', data: {'answers': items});
-    } on DioException catch (_) {}
+      final res = await _dio.post('/lectures/quiz/$quizId/submit', data: {'answers': items});
+      return res.statusCode == 200 || res.statusCode == 201;
+    } on DioException catch (_) {
+      return false;
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════
@@ -640,6 +649,48 @@ class ApiService {
       return data['profile_picture'] as String;
     } on DioException catch (e) {
       throw Exception(_extractError(e));
+    }
+  }
+
+  /// Get student assignments from student assignments endpoint
+  Future<List<Map<String, dynamic>>> getStudentAssignmentsRaw() async {
+    try {
+      final response = await _dio.get('/student/assignments');
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    } on DioException catch (_) {
+      return [];
+    }
+  }
+
+  /// Submit assignment answers to student assignments endpoint
+  Future<bool> submitStudentAssignment({
+    required int assignmentId,
+    required List<Map<String, dynamic>> answers,
+  }) async {
+    try {
+      final response = await _dio.post('/student/assignments/$assignmentId/submit', data: {
+        'answers': answers,
+      });
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
+  /// Get student marks & grades summary
+  Future<Map<String, dynamic>> getStudentMarks() async {
+    try {
+      final response = await _dio.get('/student/marks');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (_) {
+      return {
+        'overall_percentage': 0.0,
+        'total_quizzes_attempted': 0,
+        'total_assignments_submitted': 0,
+        'quizzes': [],
+        'assignments': [],
+      };
     }
   }
 }

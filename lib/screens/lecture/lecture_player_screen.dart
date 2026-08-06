@@ -107,9 +107,13 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
     final current = _controller!.value.position.inMilliseconds;
     final watchPct = total > 0 ? (current / total) * 100.0 : 0.0;
 
-    ref.read(lectureProvider.notifier).updateWatchState(
-          watchPercentage: watchPct,
-        );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(lectureProvider.notifier).updateWatchState(
+              watchPercentage: watchPct,
+            );
+      }
+    });
 
     // Save current playback position
     final currentSeconds = _controller!.value.position.inSeconds;
@@ -244,7 +248,9 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
     // Pause video when mid-check appears
     if (lectureState.showMidCheck && (_controller?.value.isPlaying ?? false)) {
       _wasPlayingBeforeMidCheck = true;
-      _controller?.pause();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _controller?.pause();
+      });
     }
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -267,8 +273,8 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
               ],
             ),
 
-            // ── Mid-check overlay ──────────────────────────────────
-            if (lectureState.showMidCheck)
+            // ── Mid-check overlay (Disabled per user requirement — quiz in separate section) ──
+            if (false /* lectureState.showMidCheck */)
               Positioned.fill(
                 child: MidCheckOverlay(
                   questions: lectureState.midQuestions,

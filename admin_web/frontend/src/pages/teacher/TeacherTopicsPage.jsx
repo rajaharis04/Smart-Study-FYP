@@ -255,7 +255,7 @@ export default function TeacherTopicsPage() {
                   className="card" 
                   style={{ 
                     border: '1px solid var(--border)',
-                    background: 'rgba(0,0,0,0.01)'
+                    background: 'var(--bg-card)'
                   }}
                 >
                   {/* Topic Title Bar */}
@@ -266,7 +266,7 @@ export default function TeacherTopicsPage() {
                       alignItems: 'center', 
                       justifyContent: 'space-between', 
                       cursor: 'pointer',
-                      background: 'rgba(0,0,0,0.02)',
+                      background: 'var(--bg-input)',
                       borderBottom: isExpanded ? '1px solid var(--border)' : 'none'
                     }}
                     onClick={() => toggleExpand(t.id)}
@@ -316,7 +316,7 @@ export default function TeacherTopicsPage() {
                                 gap: '8px', 
                                 fontSize: '14px', 
                                 color: 'var(--text-primary)',
-                                background: 'rgba(0,0,0,0.02)',
+                                background: 'var(--bg-input)',
                                 padding: '8px 12px',
                                 borderRadius: 'var(--radius-sm)'
                               }}

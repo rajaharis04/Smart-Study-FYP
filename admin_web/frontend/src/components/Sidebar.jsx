@@ -14,7 +14,8 @@ import {
   Video,
   ClipboardList,
   FileSpreadsheet,
-  School
+  School,
+  FileText
 } from 'lucide-react';
 
 
@@ -39,6 +40,7 @@ export default function Sidebar() {
     { to: '/teacher/topics', label: 'Topics & Objectives', icon: BookOpen },
     { to: '/teacher/lectures', label: 'Lectures & Videos', icon: Video },
     { to: '/teacher/quizzes', label: 'Quiz Manager', icon: ClipboardList },
+    { to: '/teacher/assignments', label: 'Assignments', icon: FileText },
     { to: '/teacher/analytics', label: 'Class Analytics', icon: BarChart3 },
     { to: '/teacher/grades', label: 'Grade Book', icon: FileSpreadsheet },
     { to: '/accounts', label: 'Accounts', icon: Settings },

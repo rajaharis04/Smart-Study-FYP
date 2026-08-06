@@ -313,7 +313,7 @@ export default function DepartmentsPage() {
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
                       {selectedDept.teachers.map(t => (
-                        <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.01)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '6px' }}>
+                        <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-input)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '6px' }}>
                           <div>
                             <div style={{ fontSize: '13px', fontWeight: 600 }}>{t.full_name}</div>
                             <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{t.email}</div>
@@ -337,7 +337,7 @@ export default function DepartmentsPage() {
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
                       {selectedDept.courses.map(c => (
-                        <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.01)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '6px' }}>
+                        <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-input)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '6px' }}>
                           <div>
                             <div style={{ fontSize: '13px', fontWeight: 600 }}>{c.name}</div>
                             <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{c.code}</div>

@@ -189,6 +189,7 @@ class QuizQuestion {
   final String optionC;      // Option C
   final String optionD;      // Option D
   final String difficulty;   // "easy" | "medium" | "hard"
+  final String? correctAnswer; // "A" | "B" | "C" | "D"
 
   const QuizQuestion({
     required this.id,
@@ -197,19 +198,21 @@ class QuizQuestion {
     required this.optionB,
     required this.optionC,
     required this.optionD,
-    required this.difficulty,
+    this.difficulty = 'medium',
+    this.correctAnswer,
   });
 
   // ── fromJson() ──────────────────────────────────────────────────
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
     return QuizQuestion(
-      id:           json['id']            as int,
-      questionText: json['question_text'] as String,
-      optionA:      json['option_a']      as String,
-      optionB:      json['option_b']      as String,
-      optionC:      json['option_c']      as String,
-      optionD:      json['option_d']      as String,
-      difficulty:   json['difficulty']    as String,
+      id:           json['id'] as int? ?? 0,
+      questionText: json['question_text'] as String? ?? '',
+      optionA:      json['option_a'] as String? ?? '',
+      optionB:      json['option_b'] as String? ?? '',
+      optionC:      json['option_c'] as String? ?? '',
+      optionD:      json['option_d'] as String? ?? '',
+      difficulty:   json['difficulty'] as String? ?? 'medium',
+      correctAnswer: json['correct_answer'] as String?,
     );
   }
 
@@ -230,6 +233,7 @@ class QuizQuestion {
     'option_c':      optionC,
     'option_d':      optionD,
     'difficulty':    difficulty,
+    'correct_answer': correctAnswer,
   };
 
   @override
@@ -498,6 +502,7 @@ class ActiveQuiz {
   final DateTime? dueDate;  // Deadline (null ho sakti hai)
   final bool isAttempted;   // Attempt kiya ja chuka hai?
   final int? lectureId;     // Lecture ID link
+  final int timeLimitMinutes; // Attempt time limit in minutes
 
   const ActiveQuiz({
     required this.quizId,
@@ -506,6 +511,7 @@ class ActiveQuiz {
     this.dueDate,            // Optional — nullable
     required this.isAttempted,
     this.lectureId,
+    this.timeLimitMinutes = 10,
   });
 
   factory ActiveQuiz.fromJson(Map<String, dynamic> json) {
@@ -519,16 +525,16 @@ class ActiveQuiz {
           : null,
       isAttempted: json['is_attempted'] as bool,
       lectureId:    json['lecture_id']   as int?,
+      timeLimitMinutes: json['time_limit_minutes'] as int? ?? 10,
     );
   }
 
   /// Quiz type human-readable format mein
-  String get quizTypeLabel =>
-      quizType == 'pre' ? 'Pre-Assessment' : 'Post Quiz';
+  String get quizTypeLabel => 'Quiz';
 
   @override
   String toString() =>
-      'ActiveQuiz(id: $quizId, type: $quizType, attempted: $isAttempted)';
+      'ActiveQuiz(id: $quizId, type: $quizType, attempted: $isAttempted, timeLimit: ${timeLimitMinutes}m)';
 }
 
 // ──────────────────────────────────────────────────────────────────

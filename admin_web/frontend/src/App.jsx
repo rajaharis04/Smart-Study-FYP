@@ -26,6 +26,7 @@ import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage';
 import TeacherTopicsPage from './pages/teacher/TeacherTopicsPage';
 import TeacherLecturesPage from './pages/teacher/TeacherLecturesPage';
 import TeacherQuizzesPage from './pages/teacher/TeacherQuizzesPage';
+import TeacherAssignmentsPage from './pages/teacher/TeacherAssignmentsPage';
 import TeacherAnalyticsPage from './pages/teacher/TeacherAnalyticsPage';
 import TeacherGradesPage from './pages/teacher/TeacherGradesPage';
 
@@ -52,6 +53,7 @@ function AppLayout() {
       case '/teacher/topics': return 'Topics & Objectives';
       case '/teacher/lectures': return 'Lectures & Videos';
       case '/teacher/quizzes': return 'Quiz Management';
+      case '/teacher/assignments': return 'Assignment Management';
       case '/teacher/analytics': return 'Class Analytics';
       case '/teacher/grades': return 'Class Grade Book';
       default: return 'SmartStudy Portal';
@@ -81,6 +83,7 @@ function AppLayout() {
                 <Route path="/teacher/topics" element={<TeacherTopicsPage />} />
                 <Route path="/teacher/lectures" element={<TeacherLecturesPage />} />
                 <Route path="/teacher/quizzes" element={<TeacherQuizzesPage />} />
+                <Route path="/teacher/assignments" element={<TeacherAssignmentsPage />} />
                 <Route path="/teacher/analytics" element={<TeacherAnalyticsPage />} />
                 <Route path="/teacher/grades" element={<TeacherGradesPage />} />
                 <Route path="/accounts" element={<AccountsPage />} />

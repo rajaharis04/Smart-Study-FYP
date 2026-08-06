@@ -80,6 +80,7 @@ class Student(Base):
     lecture_sessions = relationship("LectureSession", back_populates="student")
     attendance_records = relationship("Attendance", back_populates="student")
     quiz_responses = relationship("QuizResponse", back_populates="student")
+    assignment_submissions = relationship("AssignmentSubmission", back_populates="student")
 
 
 
@@ -173,6 +174,7 @@ class Section(Base):
     lectures = relationship("Lecture", back_populates="section", cascade="all, delete-orphan")
     announcements = relationship("Announcement", back_populates="section", cascade="all, delete-orphan")
     attendance_records = relationship("Attendance", back_populates="section", cascade="all, delete-orphan")
+    assignments = relationship("Assignment", back_populates="section", cascade="all, delete-orphan")
 
 
 class Enrollment(Base):
@@ -359,6 +361,9 @@ class Quiz(Base):
     publish_date    = Column(DateTime, nullable=True)
     time_limit_mins = Column(Integer, default=10, nullable=True)
     show_hints      = Column(Boolean, default=False)
+    creation_type   = Column(String(20), default="manual")   # manual | ai_generated
+    source_material_ids = Column(Text, nullable=True)        # JSON array of TopicMaterial IDs used by AI
+    due_date        = Column(DateTime, nullable=True)
     created_at      = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -501,3 +506,95 @@ class StudentQA(Base):
     # Relationships
     student = relationship("Student")
     course  = relationship("Course", back_populates="student_qas")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  Assignment — Teacher-created or AI-generated assignment
+# ════════════════════════════════════════════════════════════════════
+class Assignment(Base):
+    __tablename__ = "assignments"
+
+    id                  = Column(Integer, primary_key=True, index=True)
+    section_id          = Column(Integer, ForeignKey("sections.id", ondelete="CASCADE"), nullable=False)
+    title               = Column(String(300), nullable=False)
+    description         = Column(Text, nullable=True)
+    assignment_type     = Column(String(20), default="manual")  # manual | ai_generated
+    source_material_ids = Column(Text, nullable=True)           # JSON array of TopicMaterial IDs
+    due_date            = Column(DateTime, nullable=True)
+    total_marks         = Column(Integer, default=100)
+    is_published        = Column(Boolean, default=False)
+    publish_date        = Column(DateTime, nullable=True)
+    created_at          = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    section   = relationship("Section", back_populates="assignments")
+    questions = relationship("AssignmentQuestion", back_populates="assignment",
+                             cascade="all, delete-orphan", order_by="AssignmentQuestion.order_index")
+    submissions = relationship("AssignmentSubmission", back_populates="assignment",
+                               cascade="all, delete-orphan")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  AssignmentQuestion — MCQ / Short Answer / True-False
+# ════════════════════════════════════════════════════════════════════
+class AssignmentQuestion(Base):
+    __tablename__ = "assignment_questions"
+
+    id             = Column(Integer, primary_key=True, index=True)
+    assignment_id  = Column(Integer, ForeignKey("assignments.id", ondelete="CASCADE"), nullable=False)
+    question_text  = Column(Text, nullable=False)
+    question_type  = Column(String(20), nullable=False, default="mcq")  # mcq | short_answer | true_false
+    option_a       = Column(String(500), nullable=True)
+    option_b       = Column(String(500), nullable=True)
+    option_c       = Column(String(500), nullable=True)
+    option_d       = Column(String(500), nullable=True)
+    correct_answer = Column(Text, nullable=True)           # A/B/C/D for MCQ, text for short_answer, True/False
+    marks          = Column(Integer, default=5)
+    difficulty     = Column(String(10), default="medium")   # easy | medium | hard
+    order_index    = Column(Integer, default=0)
+    created_at     = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    assignment = relationship("Assignment", back_populates="questions")
+    answers    = relationship("AssignmentAnswer", back_populates="question",
+                              cascade="all, delete-orphan")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  AssignmentSubmission — Student's submission for an assignment
+# ════════════════════════════════════════════════════════════════════
+class AssignmentSubmission(Base):
+    __tablename__ = "assignment_submissions"
+
+    id             = Column(Integer, primary_key=True, index=True)
+    assignment_id  = Column(Integer, ForeignKey("assignments.id", ondelete="CASCADE"), nullable=False)
+    student_id     = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    submitted_at   = Column(DateTime, default=datetime.utcnow)
+    total_score    = Column(Integer, nullable=True)
+    max_score      = Column(Integer, nullable=True)
+    status         = Column(String(20), default="pending")  # pending | submitted | graded
+
+    # Relationships
+    assignment = relationship("Assignment", back_populates="submissions")
+    student    = relationship("Student",    back_populates="assignment_submissions")
+    answers    = relationship("AssignmentAnswer", back_populates="submission",
+                              cascade="all, delete-orphan")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  AssignmentAnswer — Student's answer to one assignment question
+# ════════════════════════════════════════════════════════════════════
+class AssignmentAnswer(Base):
+    __tablename__ = "assignment_answers"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    submission_id   = Column(Integer, ForeignKey("assignment_submissions.id", ondelete="CASCADE"), nullable=False)
+    question_id     = Column(Integer, ForeignKey("assignment_questions.id", ondelete="CASCADE"), nullable=False)
+    answer_text     = Column(Text, nullable=True)
+    is_correct      = Column(Boolean, nullable=True)
+    marks_awarded   = Column(Integer, default=0)
+    answered_at     = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    submission = relationship("AssignmentSubmission", back_populates="answers")
+    question   = relationship("AssignmentQuestion",   back_populates="answers")
