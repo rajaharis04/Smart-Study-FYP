@@ -1,6 +1,6 @@
 {
-    "name": "smartstudy",
-    "short_name": "smartstudy",
+    "name": "SmartStudy",
+    "short_name": "SmartStudy",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

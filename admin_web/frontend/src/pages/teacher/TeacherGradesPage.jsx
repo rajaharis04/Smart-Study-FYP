@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { teacherPortalApi } from '../../services/api';
-import { FileSpreadsheet, Check, X, ShieldAlert, Archive, Award, HelpCircle } from 'lucide-react';
+import { FileSpreadsheet, Check, X, ShieldAlert, Archive, Award, HelpCircle, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function TeacherGradesPage() {
@@ -181,11 +181,11 @@ export default function TeacherGradesPage() {
       <div className="card" style={{ padding: '24px' }}>
         <div className="card-header" style={{ padding: '0 0 16px', borderBottom: '1px solid var(--border)', marginBottom: '20px' }}>
           <h3 className="card-title flex items-center gap-2">
-            <FileSpreadsheet size={18} className="text-success" />
-            Class Gradebook Grid
+            <UserCheck size={18} className="text-success" />
+            Class Attendance Register
           </h3>
           <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            💡 Quicktip: Click Attendance badges to toggle. Click Quiz marks to override.
+            💡 Quicktip: Click Attendance badges (✓ / ✗) to toggle student attendance for any lecture.
           </span>
         </div>
 
@@ -207,12 +207,12 @@ export default function TeacherGradesPage() {
                   <th style={{ width: '160px', position: 'sticky', left: 0, background: 'var(--bg-secondary)', zIndex: 10 }}>Student Name</th>
                   <th style={{ width: '110px' }}>Reg Number</th>
                   {gradebook.lectures.map((lec) => (
-                    <th key={lec.id} style={{ textAlign: 'center', minWidth: '130px' }}>
+                    <th key={lec.id} style={{ textAlign: 'center', minWidth: '110px' }}>
                       <div style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '600' }}>
                         {lec.title.length > 25 ? lec.title.substring(0, 25) + '...' : lec.title}
                       </div>
-                      <div style={{ fontSize: '9px', textTransform: 'lowercase', marginTop: '2px', color: 'var(--text-muted)' }}>
-                        att | quiz
+                      <div style={{ fontSize: '9px', textTransform: 'uppercase', marginTop: '2px', color: 'var(--text-muted)' }}>
+                        Attendance
                       </div>
                     </th>
                   ))}
@@ -226,90 +226,33 @@ export default function TeacherGradesPage() {
                     </td>
                     <td>{row.reg_number}</td>
                     
-                    {row.lectures.map((lec) => {
-                      const isOverriding = activeOverrideCell?.studentId === row.student_id && activeOverrideCell?.quizId === lec.quiz_id;
-                      
-                      return (
-                        <td key={lec.lecture_id} style={{ textAlign: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                            
-                            {/* Attendance toggler */}
-                            <button
-                              type="button"
-                              onClick={() => handleToggleAttendance(row.student_id, lec.lecture_id, lec.is_present)}
-                              style={{ 
-                                background: 'transparent', 
-                                border: 'none', 
-                                padding: '2px', 
-                                cursor: 'pointer',
-                                display: 'flex', 
-                                alignItems: 'center' 
-                              }}
-                            >
-                              {lec.is_present ? (
-                                <span className="badge badge-success" style={{ fontSize: '9px', padding: '2px 6px' }}>Present</span>
-                              ) : (
-                                <span className="badge badge-danger" style={{ fontSize: '9px', padding: '2px 6px' }}>Absent</span>
-                              )}
-                            </button>
-
-                            <span style={{ color: 'var(--border)' }}>|</span>
-
-                            {/* Quiz score override */}
-                            {lec.quiz_id ? (
-                              isOverriding ? (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                  <input 
-                                    type="text" 
-                                    className="form-control"
-                                    style={{ width: '40px', padding: '2px 4px', fontSize: '11px', textAlign: 'center', height: '24px' }}
-                                    value={overrideScoreVal}
-                                    placeholder={lec.quiz_score !== null ? lec.quiz_score.toString() : '0'}
-                                    onChange={(e) => setOverrideScoreVal(e.target.value)}
-                                  />
-                                  <button 
-                                    type="button"
-                                    onClick={() => handleSaveGradeOverride(row.student_id, lec.quiz_id)}
-                                    style={{ border: 'none', background: 'transparent', color: 'var(--success)', cursor: 'pointer', display: 'flex' }}
-                                  >
-                                    <Check size={14} />
-                                  </button>
-                                  <button 
-                                    type="button"
-                                    onClick={() => { setActiveOverrideCell(null); setOverrideScoreVal(''); }}
-                                    style={{ border: 'none', background: 'transparent', color: 'var(--danger)', cursor: 'pointer', display: 'flex' }}
-                                  >
-                                    <X size={14} />
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveOverrideCell({ studentId: row.student_id, quizId: lec.quiz_id });
-                                    setOverrideScoreVal(lec.quiz_score !== null ? lec.quiz_score.toString() : '0');
-                                  }}
-                                  style={{ 
-                                    background: 'transparent', 
-                                    border: 'none', 
-                                    color: lec.quiz_score !== null ? 'var(--text-primary)' : 'var(--text-muted)',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                    fontWeight: lec.quiz_score !== null ? 'bold' : 'normal'
-                                  }}
-                                  title="Click to override score"
-                                >
-                                  {lec.quiz_score !== null ? `${lec.quiz_score}/${lec.quiz_total}` : 'N/A'}
-                                </button>
-                              )
+                    {row.lectures.map((lec) => (
+                      <td key={lec.lecture_id} style={{ textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          
+                          {/* Attendance toggler */}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleAttendance(row.student_id, lec.lecture_id, lec.is_present)}
+                            style={{ 
+                              background: 'transparent', 
+                              border: 'none', 
+                              padding: '2px', 
+                              cursor: 'pointer',
+                              display: 'flex', 
+                              alignItems: 'center' 
+                            }}
+                          >
+                            {lec.is_present ? (
+                              <span className="badge badge-success" style={{ fontSize: '10px', padding: '3px 8px' }}>Present</span>
                             ) : (
-                              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>-</span>
+                              <span className="badge badge-danger" style={{ fontSize: '10px', padding: '3px 8px' }}>Absent</span>
                             )}
+                          </button>
 
-                          </div>
-                        </td>
-                      );
-                    })}
+                        </div>
+                      </td>
+                    ))}
 
                   </tr>
                 ))}

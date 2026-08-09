@@ -606,6 +606,7 @@ class _CourseDetailsScreenState extends ConsumerState<CourseDetailsScreen> {
       if (mounted) {
         showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: const Text('Download Complete'),

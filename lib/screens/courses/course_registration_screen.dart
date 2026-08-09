@@ -160,6 +160,7 @@ class _CourseRegistrationScreenState
 
     final confirm = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: Text(
           isUrdu ? 'کورس سے دستبرداری کی تصدیق' : 'Confirm Course Withdrawal',

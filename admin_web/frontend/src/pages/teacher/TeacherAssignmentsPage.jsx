@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { teacherPortalApi } from '../../services/api';
-import { FileText, Plus, Edit, Trash2, Eye, Save, X, ChevronRight, Loader2, Sparkles, Brain, BookOpen, Check, AlertCircle, Calendar, Wand2, CheckCircle2, Clock, ClipboardList, Users, BarChart3, AlertTriangle, RotateCcw } from 'lucide-react';
+import { FileText, Plus, Edit, Trash2, Eye, Save, X, ChevronRight, Loader2, Sparkles, Brain, BookOpen, Check, AlertCircle, Calendar, Wand2, CheckCircle2, Clock, ClipboardList, Users, BarChart3, AlertTriangle, RotateCcw, HelpCircle, Video, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function TeacherAssignmentsPage() {
@@ -11,6 +11,7 @@ export default function TeacherAssignmentsPage() {
 
   // Tab control: 'questions' | 'submissions' | 'analytics'
   const [activeTab, setActiveTab] = useState('questions');
+  const [assignmentFilterTab, setAssignmentFilterTab] = useState('active'); // 'active' | 'completed'
   const [submissions, setSubmissions] = useState([]);
   const [analytics, setAnalytics] = useState(null);
 
@@ -36,6 +37,38 @@ export default function TeacherAssignmentsPage() {
   const [aiEvaluationResult, setAiEvaluationResult] = useState(null);
   const [marksAwardedMap, setMarksAwardedMap] = useState({});
   const [savingGrade, setSavingGrade] = useState(false);
+
+  // Regrade Requests states
+  const [regradeRequests, setRegradeRequests] = useState([]);
+  const [showRegradeModal, setShowRegradeModal] = useState(false);
+  const [loadingRegrades, setLoadingRegrades] = useState(false);
+
+  const fetchRegradeRequests = async () => {
+    setLoadingRegrades(true);
+    try {
+      const res = await teacherPortalApi.getRegradeRequests();
+      setRegradeRequests(res.data.requests || []);
+      setShowRegradeModal(true);
+    } catch (err) {
+      toast.error('Failed to load regrade requests.');
+    } finally {
+      setLoadingRegrades(false);
+    }
+  };
+
+  const handleRespondRegrade = async (reqId, status, adjustedMarks, feedback) => {
+    try {
+      await teacherPortalApi.respondRegradeRequest(reqId, {
+        status,
+        adjusted_marks: adjustedMarks,
+        teacher_feedback: feedback
+      });
+      toast.success(`Regrade request ${status}!`);
+      fetchRegradeRequests();
+    } catch (err) {
+      toast.error('Failed to respond to regrade request.');
+    }
+  };
 
   // Create wizard
   const [showCreateWizard, setShowCreateWizard] = useState(false);
@@ -88,17 +121,26 @@ export default function TeacherAssignmentsPage() {
     }
   }, [selectedSectionId]);
 
+  useEffect(() => {
+    if (selectedAssignmentId) {
+      fetchAssignmentDetails(selectedAssignmentId);
+    } else {
+      setAssignmentDetails(null);
+    }
+  }, [selectedAssignmentId]);
+
   const fetchAssignments = async (sectionId) => {
     setLoading(true);
     try {
       const res = await teacherPortalApi.listAssignments(sectionId);
       const list = res.data || [];
       setAssignments(list);
-      if (list.length > 0) {
-        setSelectedAssignmentId(list[0].id);
-      } else {
+
+      const activeList = list.filter(a => a.is_published && !a.is_deleted && (!a.due_date || new Date(a.due_date) >= new Date()));
+      if (activeList.length > 0 && !selectedAssignmentId) {
+        setSelectedAssignmentId(activeList[0].id);
+      } else if (activeList.length === 0) {
         setSelectedAssignmentId(null);
-        setAssignmentDetails(null);
       }
     } catch (err) {
       toast.error('Failed to load assignments.');
@@ -253,6 +295,11 @@ export default function TeacherAssignmentsPage() {
       });
       toast.success('Assignment updated!');
       setIsEditing(false);
+      if (editIsPublished) {
+        setAssignmentFilterTab('active');
+      } else {
+        setAssignmentFilterTab('draft');
+      }
       fetchAssignments(selectedSectionId);
       fetchAssignmentDetails(selectedAssignmentId);
     } catch (err) { toast.error('Failed to update assignment.'); }
@@ -296,6 +343,11 @@ export default function TeacherAssignmentsPage() {
       });
       toast.success('Assignment created!');
       setShowCreateWizard(false);
+      if (newIsPublished) {
+        setAssignmentFilterTab('active');
+      } else {
+        setAssignmentFilterTab('draft');
+      }
       fetchAssignments(selectedSectionId);
     } catch (err) { toast.error(err.response?.data?.detail || 'Failed to create.'); }
   };
@@ -350,6 +402,11 @@ export default function TeacherAssignmentsPage() {
       });
       toast.success('AI assignment saved!');
       setShowCreateWizard(false);
+      if (aiSaveIsPublished) {
+        setAssignmentFilterTab('active');
+      } else {
+        setAssignmentFilterTab('draft');
+      }
       fetchAssignments(selectedSectionId);
     } catch (err) { toast.error(err.response?.data?.detail || 'Save failed.'); }
     finally { setSavingAI(false); }
@@ -441,11 +498,20 @@ export default function TeacherAssignmentsPage() {
     </div>
   );
 
+  // ── Overlay Dismiss Protection: shake + toast instead of close ──
+  const [modalShaking, setModalShaking] = useState(false);
+  const handleModalOverlayClick = useCallback((e) => {
+    if (e.target !== e.currentTarget) return;
+    setModalShaking(true);
+    setTimeout(() => setModalShaking(false), 500);
+    toast('Please close this dialog first using the ✕ button', { icon: '⚠️', duration: 2500 });
+  }, []);
+
   const renderCreateWizard = () => {
     if (!showCreateWizard) return null;
     return (
-      <div className="modal-overlay" onClick={() => setShowCreateWizard(false)}>
-        <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <div className="modal-overlay" onClick={handleModalOverlayClick}>
+        <div className={`modal-content${modalShaking ? ' modal-content-shake' : ''}`} onClick={e => e.stopPropagation()}>
           <div className="wizard-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <FileText size={20} style={{ color: 'var(--accent)' }} />
@@ -527,17 +593,31 @@ export default function TeacherAssignmentsPage() {
 
                 {wizardStep === 1 && (
                   <div>
-                    <h4 style={{ fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Select Lecture Topics to Generate Questions From:</h4>
+                    <h4 style={{ fontSize: '0.85rem', marginBottom: '0.75rem', color: 'var(--text-secondary)' }}>Select Lecture Topics, Videos, or Assignments to Generate Questions From:</h4>
                     {availableMaterials.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>No lecture topics uploaded yet for this section.</div>
+                      <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>No materials or topics uploaded yet for this section.</div>
                     ) : (
-                      <div className="modal-scroll-area" style={{ maxHeight: '220px', overflowY: 'auto' }}>
-                        {availableMaterials.map(mat => (
-                          <label key={mat.id} className={`material-checkbox ${selectedMaterialIds.includes(mat.id) ? 'selected' : ''}`}>
-                            <input type="checkbox" checked={selectedMaterialIds.includes(mat.id)} onChange={() => setSelectedMaterialIds(prev => prev.includes(mat.id) ? prev.filter(x => x !== mat.id) : [...prev, mat.id])} />
-                            <FileText size={14} style={{ color: 'var(--accent)' }} />
-                            <span style={{ fontSize: '0.825rem', fontWeight: 500 }}>{mat.title}</span>
-                          </label>
+                      <div className="modal-scroll-area" style={{ maxHeight: '250px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                        {availableMaterials.map(course => (
+                          <div key={course.course_id} style={{ marginBottom: '1rem' }}>
+                            <h5 style={{ fontSize: '0.85rem', color: 'var(--accent)', margin: '0 0 0.4rem 0', fontWeight: 700 }}>
+                              {course.course_code} — {course.course_name}
+                            </h5>
+                            {course.topics.map(topic => (
+                              <div key={topic.topic_id} style={{ marginLeft: '0.5rem', marginBottom: '0.65rem' }}>
+                                <span style={{ fontSize: '0.775rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>{topic.topic_title}</span>
+                                {topic.materials.map(m => (
+                                  <label key={m.id} className={`material-checkbox ${selectedMaterialIds.includes(m.id) ? 'selected' : ''}`} style={{ marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <input type="checkbox" checked={selectedMaterialIds.includes(m.id)} onChange={() => setSelectedMaterialIds(prev => prev.includes(m.id) ? prev.filter(x => x !== m.id) : [...prev, m.id])} />
+                                    {m.file_type === 'video' || m.file_name?.startsWith('🎥') ? <Video size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} /> :
+                                     m.file_type === 'assignment' || m.file_name?.startsWith('📝') ? <FileText size={14} style={{ color: '#f59e0b', flexShrink: 0 }} /> :
+                                     <BookOpen size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />}
+                                    <span style={{ fontSize: '0.825rem', fontWeight: 500 }}>{m.file_name || m.title || 'Untitled Material'}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
                         ))}
                       </div>
                     )}
@@ -565,19 +645,62 @@ export default function TeacherAssignmentsPage() {
                         </select>
                       </div>
                     </div>
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label className="form-label">Question Types to Include</label>
-                      <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.35rem' }}>
+                    <div style={{ marginBottom: '1.25rem' }}>
+                      <label className="form-label" style={{ fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>Question Types to Include</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginTop: '0.4rem' }}>
                         {[
-                          { key: 'short_answer', label: 'Short Answer' },
-                          { key: 'long_answer', label: 'Long Answer' }
-                        ].map(t => (
-                          <div key={t.key} className={`type-chip ${aiQuestionTypes.includes(t.key) ? 'active' : ''}`} onClick={() => {
-                            setAiQuestionTypes(prev => prev.includes(t.key) ? prev.filter(x => x !== t.key) : [...prev, t.key]);
-                          }}>
-                            {aiQuestionTypes.includes(t.key) && <Check size={13} />} {t.label}
-                          </div>
-                        ))}
+                          { key: 'short_answer', label: 'Short Answer', desc: 'Conceptual 2-4 sentence questions' },
+                          { key: 'long_answer', label: 'Long Answer', desc: 'Detailed analytical & problem solving' }
+                        ].map(t => {
+                          const isChecked = aiQuestionTypes.includes(t.key);
+                          return (
+                            <div
+                              key={t.key}
+                              onClick={() => {
+                                setAiQuestionTypes(prev => prev.includes(t.key) ? (prev.length > 1 ? prev.filter(x => x !== t.key) : prev) : [...prev, t.key]);
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                padding: '0.85rem 1rem',
+                                borderRadius: '0.75rem',
+                                border: isChecked ? '2px solid var(--accent, #6366f1)' : '1.5px solid var(--border)',
+                                background: isChecked ? 'rgba(99, 102, 241, 0.08)' : 'var(--bg-input, rgba(255, 255, 255, 0.03))',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                userSelect: 'none',
+                                boxShadow: isChecked ? '0 2px 8px rgba(99, 102, 241, 0.15)' : 'none'
+                              }}
+                            >
+                              {/* Custom Styled Checkbox Square */}
+                              <div style={{
+                                width: '20px',
+                                height: '20px',
+                                borderRadius: '6px',
+                                border: isChecked ? 'none' : '2px solid var(--text-muted, #94a3b8)',
+                                background: isChecked ? 'var(--accent, #6366f1)' : 'transparent',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                transition: 'all 0.2s ease'
+                              }}>
+                                {isChecked && <Check size={14} style={{ color: '#fff', strokeWidth: 3 }} />}
+                              </div>
+
+                              {/* Label and Description */}
+                              <div>
+                                <div style={{ fontSize: '0.875rem', fontWeight: 600, color: isChecked ? 'var(--accent, #6366f1)' : 'var(--text-primary)' }}>
+                                  {t.label}
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                  {t.desc}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.85rem', borderTop: '1px solid var(--border)' }}>
@@ -641,19 +764,24 @@ export default function TeacherAssignmentsPage() {
 
   const handleDeleteAssignment = async (assignmentId, e) => {
     e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this assignment?')) {
+    if (window.confirm('Are you sure you want to end and delete this active assignment? It will move to Completed tab.')) {
       try {
         await teacherPortalApi.deleteAssignment(assignmentId);
-        toast.success('Assignment deleted successfully.');
-        if (selectedAssignmentId === assignmentId) {
-          setSelectedAssignmentId(null);
-        }
+        toast.success('Active assignment ended & moved to Completed!');
+        setAssignmentFilterTab('completed');
+        setSelectedAssignmentId(assignmentId);
+        setActiveTab('submissions');
         fetchAssignments(selectedSectionId);
       } catch (err) {
         toast.error('Failed to delete assignment.');
       }
     }
   };
+
+  const activeAssignments = assignments.filter(a => a.is_published && !a.is_deleted);
+  const completedAssignments = assignments.filter(a => a.is_published && a.is_deleted);
+  const draftAssignments = assignments.filter(a => !a.is_published && !a.is_deleted);
+  const displayedAssignments = assignmentFilterTab === 'active' ? activeAssignments : assignmentFilterTab === 'draft' ? draftAssignments : completedAssignments;
 
   const renderAssignmentList = () => (
     <div className="assignment-sidebar">
@@ -666,43 +794,144 @@ export default function TeacherAssignmentsPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
         <h3 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-secondary)' }}>Assignments</h3>
-        <button className="btn btn-primary" onClick={openCreateWizard} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', padding: '0.35rem 0.7rem' }}>
-          <Plus size={13} /> Create
+        <div style={{ display: 'flex', gap: '0.4rem' }}>
+          <button className="btn btn-ghost" onClick={fetchRegradeRequests} title="View Student Regrade Appeals" style={{ fontSize: '0.7rem', padding: '0.35rem 0.6rem', color: 'var(--accent)' }}>
+            📩 Appeals
+          </button>
+          <button className="btn btn-primary" onClick={openCreateWizard} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', padding: '0.35rem 0.7rem' }}>
+            <Plus size={13} /> Create
+          </button>
+        </div>
+      </div>
+
+      {/* Active vs Completed vs Draft Tabs */}
+      <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.85rem', background: 'var(--bg-tertiary)', padding: '4px', borderRadius: '8px' }}>
+        <button
+          onClick={() => {
+            setAssignmentFilterTab('active');
+            if (activeAssignments.length === 0) {
+              setSelectedAssignmentId(null);
+            } else if (!activeAssignments.some(a => a.id === selectedAssignmentId)) {
+              setSelectedAssignmentId(activeAssignments[0].id);
+            }
+          }}
+          style={{
+            flex: 1,
+            padding: '0.35rem 0.35rem',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '0.7rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            background: assignmentFilterTab === 'active' ? 'var(--bg-card)' : 'transparent',
+            color: assignmentFilterTab === 'active' ? 'var(--accent)' : 'var(--text-muted)',
+            boxShadow: assignmentFilterTab === 'active' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+          }}
+        >
+          Active ({activeAssignments.length})
+        </button>
+        <button
+          onClick={() => {
+            setAssignmentFilterTab('completed');
+            if (completedAssignments.length === 0) {
+              setSelectedAssignmentId(null);
+            } else if (!completedAssignments.some(a => a.id === selectedAssignmentId)) {
+              setSelectedAssignmentId(completedAssignments[0].id);
+              setActiveTab('submissions');
+            }
+          }}
+          style={{
+            flex: 1,
+            padding: '0.35rem 0.35rem',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '0.7rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            background: assignmentFilterTab === 'completed' ? 'var(--bg-card)' : 'transparent',
+            color: assignmentFilterTab === 'completed' ? 'var(--accent)' : 'var(--text-muted)',
+            boxShadow: assignmentFilterTab === 'completed' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+          }}
+        >
+          Completed ({completedAssignments.length})
+        </button>
+        <button
+          onClick={() => {
+            setAssignmentFilterTab('draft');
+            if (draftAssignments.length === 0) {
+              setSelectedAssignmentId(null);
+            } else if (!draftAssignments.some(a => a.id === selectedAssignmentId)) {
+              setSelectedAssignmentId(draftAssignments[0].id);
+            }
+          }}
+          style={{
+            flex: 1,
+            padding: '0.35rem 0.35rem',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '0.7rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            background: assignmentFilterTab === 'draft' ? 'var(--bg-card)' : 'transparent',
+            color: assignmentFilterTab === 'draft' ? 'var(--accent)' : 'var(--text-muted)',
+            boxShadow: assignmentFilterTab === 'draft' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+          }}
+        >
+          Drafts ({draftAssignments.length})
         </button>
       </div>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}><Loader2 size={20} className="spin" /></div>
-      ) : assignments.length === 0 ? (
+      ) : displayedAssignments.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
           <FileText size={36} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
-          <p style={{ fontSize: '0.85rem' }}>No assignments yet</p>
+          <p style={{ fontSize: '0.85rem' }}>{assignmentFilterTab === 'completed' ? 'No completed assignments' : assignmentFilterTab === 'draft' ? 'No draft assignments' : 'No active assignments'}</p>
         </div>
       ) : (
-        assignments.map(a => (
-          <div key={a.id} className={`assignment-card ${selectedAssignmentId === a.id ? 'selected' : ''}`} onClick={() => setSelectedAssignmentId(a.id)}>
+        displayedAssignments.map((a, idx) => (
+          <div
+            key={a.id}
+            className={`assignment-card ${selectedAssignmentId === a.id ? 'selected' : ''}`}
+            onClick={() => {
+              setSelectedAssignmentId(a.id);
+              if (assignmentFilterTab === 'completed' || a.is_deleted) {
+                setActiveTab('submissions');
+              }
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <h4 style={{ margin: '0 0 0.2rem', fontSize: '0.85rem' }}>{a.title}</h4>
+              <h4 style={{ margin: '0 0 0.2rem', fontSize: '0.85rem' }}>
+                {a.title || `Assignment ${idx + 1}`}
+              </h4>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <span className={`badge ${a.assignment_type === 'ai_generated' ? 'badge-ai' : 'badge-muted'}`} style={{ fontSize: '0.6rem' }}>
-                  {a.assignment_type === 'ai_generated' ? '✨ AI' : 'Manual'}
-                </span>
-                <button
-                  onClick={(e) => handleDeleteAssignment(a.id, e)}
-                  title="Delete Assignment"
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#ef4444',
-                    cursor: 'pointer',
-                    padding: '2px',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  <Trash2 size={13} />
-                </button>
+                {assignmentFilterTab === 'completed' || a.is_deleted ? (
+                  <span className="badge badge-danger" style={{ fontSize: '0.6rem' }}>END</span>
+                ) : assignmentFilterTab === 'draft' || !a.is_published ? (
+                  <span className="badge badge-warning" style={{ fontSize: '0.6rem' }}>DRAFT</span>
+                ) : (
+                  <span className={`badge ${a.assignment_type === 'ai_generated' ? 'badge-ai' : 'badge-muted'}`} style={{ fontSize: '0.6rem' }}>
+                    {a.assignment_type === 'ai_generated' ? '✨ AI' : 'Manual'}
+                  </span>
+                )}
+                {assignmentFilterTab === 'active' && !a.is_deleted && (
+                  <button
+                    onClick={(e) => handleDeleteAssignment(a.id, e)}
+                    title="Delete & End Assignment"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      padding: '2px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
               </div>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem', flexWrap: 'wrap' }}>
@@ -779,14 +1008,16 @@ export default function TeacherAssignmentsPage() {
     );
   };
 
-  const renderAssignmentDetails = () => (
-    <div className="assignment-details">
-      {!selectedAssignmentId ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', flexDirection: 'column', gap: '0.5rem' }}>
-          <FileText size={40} style={{ opacity: 0.3 }} />
-          <span>Select an assignment to view details</span>
-        </div>
-      ) : loadingDetails ? (
+  const renderAssignmentDetails = () => {
+    const isSelectedInDisplayed = displayedAssignments.some(a => a.id === selectedAssignmentId);
+    return (
+      <div className="assignment-details">
+        {!selectedAssignmentId || !isSelectedInDisplayed ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', flexDirection: 'column', gap: '0.5rem' }}>
+            <FileText size={40} style={{ opacity: 0.3 }} />
+            <span>Select an assignment from the list to view details</span>
+          </div>
+        ) : loadingDetails ? (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem', color: 'var(--text-muted)' }}><Loader2 size={24} className="spin" /></div>
       ) : assignmentDetails ? (
         <div>
@@ -885,12 +1116,13 @@ export default function TeacherAssignmentsPage() {
       )}
     </div>
   );
+};
 
   const renderEvaluationModal = () => {
     if (!selectedSubmissionId) return null;
     return (
-      <div className="modal-overlay" onClick={() => setSelectedSubmissionId(null)}>
-        <div className="modal-content" onClick={e => e.stopPropagation()} style={{ width: '840px' }}>
+      <div className="modal-overlay" onClick={handleModalOverlayClick}>
+        <div className={`modal-content${modalShaking ? ' modal-content-shake' : ''}`} onClick={e => e.stopPropagation()} style={{ width: '840px' }}>
           <div className="wizard-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Sparkles size={20} style={{ color: 'var(--accent)' }} />
@@ -919,6 +1151,34 @@ export default function TeacherAssignmentsPage() {
                     </button>
                   </div>
                 </div>
+
+                {/* Attached Document (PDF / DOCX) */}
+                {submissionDetails.attached_file_url && (
+                  <div style={{ marginBottom: '1.25rem', padding: '0.75rem 1rem', background: 'var(--bg-tertiary)', borderRadius: '0.6rem', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <FileText size={18} style={{ color: 'var(--accent)' }} />
+                      <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                          Attached Document: {submissionDetails.attached_file_name || 'Student Document'}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          PDF / DOCX file submitted by student
+                        </div>
+                      </div>
+                    </div>
+                    <a
+                      href={submissionDetails.attached_file_url.startsWith('http') 
+                        ? submissionDetails.attached_file_url 
+                        : `${window.location.protocol}//${window.location.hostname}:8001${submissionDetails.attached_file_url}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary"
+                      style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem', textDecoration: 'none' }}
+                    >
+                      <FileText size={14} /> View File <ExternalLink size={13} />
+                    </a>
+                  </div>
+                )}
 
                 {/* AI Summary Banner if generated */}
                 {aiEvaluationResult && (
@@ -1012,6 +1272,102 @@ export default function TeacherAssignmentsPage() {
     );
   };
 
+  const renderRegradeModal = () => {
+    if (!showRegradeModal) return null;
+
+    const list = Array.isArray(regradeRequests) ? regradeRequests : [];
+
+    return (
+      <div className="modal-overlay" onClick={handleModalOverlayClick}>
+        <div className={`modal-content${modalShaking ? ' modal-content-shake' : ''}`} onClick={e => e.stopPropagation()} style={{ width: '750px' }}>
+          <div className="wizard-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <HelpCircle size={20} style={{ color: 'var(--accent)' }} />
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1rem' }}>Student Assignment Regrade Appeals</h3>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Review student regrade reasons, adjust scores, and respond</span>
+              </div>
+            </div>
+            <button className="btn btn-ghost" onClick={() => setShowRegradeModal(false)} style={{ padding: '0.25rem' }}><X size={18} /></button>
+          </div>
+
+          <div style={{ padding: '1.25rem' }}>
+            {loadingRegrades ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}><Loader2 size={24} className="spin" /> Loading regrade appeals...</div>
+            ) : list.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No student regrade requests pending.</div>
+            ) : (
+              <table className="data-table" style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>Student Name</th>
+                    <th>Assignment</th>
+                    <th>Reason / Appeal</th>
+                    <th>Current Score</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {list.map(r => {
+                    const st = r?.status || 'pending';
+                    return (
+                      <tr key={r.id}>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{r.student_name || 'Student'}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{r.reg_number || ''}</div>
+                        </td>
+                        <td>{r.assignment_title || 'N/A'}</td>
+                        <td style={{ fontSize: '0.8rem', maxWidth: '220px' }}>"{r.reason || ''}"</td>
+                        <td><strong>{r.current_score ?? 0} / {r.total_marks ?? 100}</strong></td>
+                        <td>
+                          <span className={`badge ${st === 'approved' ? 'badge-success' : st === 'rejected' ? 'badge-danger' : 'badge-warning'}`}>
+                            {st.toUpperCase()}
+                          </span>
+                        </td>
+                        <td>
+                          {st === 'pending' ? (
+                            <div style={{ display: 'flex', gap: '0.35rem' }}>
+                              <button
+                                className="btn btn-primary"
+                                onClick={() => {
+                                  const newMarks = prompt(`Enter updated total score (out of ${r.total_marks || 100}):`, r.current_score || 0);
+                                  if (newMarks !== null) {
+                                    const feedback = prompt('Enter teacher feedback for student:');
+                                    handleRespondRegrade(r.id, 'approved', parseInt(newMarks) || (r.current_score || 0), feedback);
+                                  }
+                                }}
+                                style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem' }}
+                              >
+                                Approve
+                              </button>
+                              <button
+                                className="btn btn-danger"
+                                onClick={() => {
+                                  const feedback = prompt('Enter rejection reason:');
+                                  handleRespondRegrade(r.id, 'rejected', null, feedback);
+                                }}
+                                style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem' }}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Responded</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="assignments-page">
       <style>{`
@@ -1076,12 +1432,25 @@ export default function TeacherAssignmentsPage() {
         .type-chip.active { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
         .spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Shake animation for inline modal-content elements */
+        @keyframes inlineModalShake {
+          0%, 100% { transform: translateX(0); }
+          10%, 50%, 90% { transform: translateX(-6px); }
+          30%, 70% { transform: translateX(6px); }
+        }
+        .modal-content-shake {
+          animation: inlineModalShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both !important;
+          border-color: #f59e0b !important;
+          box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25), 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+        }
       `}</style>
 
       {renderAssignmentList()}
       {renderAssignmentDetails()}
       {renderCreateWizard()}
       {renderEvaluationModal()}
+      {renderRegradeModal()}
     </div>
   );
 }

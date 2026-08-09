@@ -69,6 +69,7 @@ class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScr
   Future<void> _clearAll() async {
     final bool? confirm = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('Clear All'),
         content: const Text('Are you sure you want to clear your notification history?'),

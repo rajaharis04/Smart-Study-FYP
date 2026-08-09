@@ -15,7 +15,9 @@ import {
   ClipboardList,
   FileSpreadsheet,
   School,
-  FileText
+  FileText,
+  Sliders,
+  Award
 } from 'lucide-react';
 
 
@@ -30,7 +32,7 @@ export default function Sidebar() {
     { to: '/courses', label: 'Courses', icon: BookOpen },
     { to: '/enrollments', label: 'Enrolled', icon: UserCheck },
     { to: '/semesters', label: 'Semesters', icon: Calendar },
-    { to: '/registration-week', label: 'Registration Week', icon: ClipboardList },
+    { to: '/grading-policy', label: 'Grading Policy & Results', icon: Sliders },
     { to: '/reports', label: 'Reports', icon: BarChart3 },
     { to: '/accounts', label: 'Accounts', icon: Settings },
   ];
@@ -42,7 +44,9 @@ export default function Sidebar() {
     { to: '/teacher/quizzes', label: 'Quiz Manager', icon: ClipboardList },
     { to: '/teacher/assignments', label: 'Assignments', icon: FileText },
     { to: '/teacher/analytics', label: 'Class Analytics', icon: BarChart3 },
-    { to: '/teacher/grades', label: 'Grade Book', icon: FileSpreadsheet },
+    { to: '/teacher/grades', label: 'Attendance', icon: UserCheck },
+    { to: '/teacher/exam-grades', label: 'Exam Grades', icon: FileSpreadsheet },
+    { to: '/teacher/final-results', label: 'Final 100-Mark Results', icon: Award },
     { to: '/accounts', label: 'Accounts', icon: Settings },
   ];
 

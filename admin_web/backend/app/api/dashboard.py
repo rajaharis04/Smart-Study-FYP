@@ -12,7 +12,8 @@ from fastapi.security import OAuth2PasswordBearer
 from app.db.database import get_db
 from app.models.models import (
     User, Student, Enrollment, Section, Lecture,
-    LectureSession, Attendance, Quiz, QuizResponse
+    LectureSession, Attendance, Quiz, QuizResponse,
+    Assignment, AssignmentSubmission
 )
 from app.services.auth_service import decode_token
 
@@ -106,11 +107,29 @@ def get_dashboard_stats(
     else:
         active_quizzes_count = 0
 
+    # 5. Active assignments count — published assignments in enrolled sections not submitted yet
+    if section_ids:
+        submitted_assignment_ids = {
+            s.assignment_id for s in db.query(AssignmentSubmission).filter(
+                AssignmentSubmission.student_id == student.id,
+            ).all()
+        }
+        assignment_query = db.query(Assignment).filter(
+            Assignment.section_id.in_(section_ids),
+            Assignment.is_published == True,
+        )
+        if submitted_assignment_ids:
+            assignment_query = assignment_query.filter(Assignment.id.notin_(submitted_assignment_ids))
+        active_assignments_count = assignment_query.count()
+    else:
+        active_assignments_count = 0
+
     return {
-        "overall_progress":      round(overall_progress, 1),
-        "total_courses":         courses_count,
-        "attendance_percentage": round(attendance_pct, 1),
-        "active_quizzes_count":  active_quizzes_count,
+        "overall_progress":        round(overall_progress, 1),
+        "total_courses":           courses_count,
+        "attendance_percentage":   round(attendance_pct, 1),
+        "active_quizzes_count":    active_quizzes_count,
+        "active_assignments_count": active_assignments_count,
     }
 
 
@@ -188,28 +207,40 @@ def get_active_quizzes(
     if not lecture_ids:
         return []
 
-    # Quiz IDs already attempted by this student
-    attempted_quiz_ids = {
+    # Quiz IDs already attempted by this student (from responses or attempt session)
+    attempted_from_resp = {
         r.quiz_id for r in db.query(QuizResponse).filter(
             QuizResponse.student_id == student.id,
         ).all()
     }
+    from app.models.models import QuizAttemptSession
+    attempted_from_sess = {
+        s.quiz_id for s in db.query(QuizAttemptSession).filter(
+            QuizAttemptSession.student_id == student.id,
+            (QuizAttemptSession.is_completed == True) | (QuizAttemptSession.is_cancelled == True),
+        ).all()
+    }
+    attempted_quiz_ids = attempted_from_resp.union(attempted_from_sess)
 
     quizzes = db.query(Quiz).filter(
         Quiz.lecture_id.in_(lecture_ids),
         Quiz.quiz_type.in_(["post", "mid"]),
-        Quiz.id.notin_(attempted_quiz_ids),
+        Quiz.is_published == True,
+        (Quiz.is_deleted == False) | (Quiz.is_deleted == None),
     ).all()
 
     result = []
     for q in quizzes:
+        is_att = (q.id in attempted_quiz_ids)
         result.append({
-            "quiz_id":       q.id,
-            "quiz_type":     q.quiz_type,
-            "lecture_title": q.lecture.title,
-            "lecture_id":    q.lecture_id,
-            "due_date":      None,         # Can add deadline field to Quiz model later
-            "is_attempted":  False,
+            "quiz_id":                    q.id,
+            "quiz_type":                  q.quiz_type,
+            "lecture_title":              q.lecture.title,
+            "lecture_id":                 q.lecture_id,
+            "time_limit_mins":            q.time_limit_mins or 10,
+            "per_question_timer_seconds": q.per_question_timer_seconds or 30,
+            "due_date":                   q.due_date.isoformat() if q.due_date else None,
+            "is_attempted":               is_att,
         })
 
     return result

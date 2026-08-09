@@ -197,6 +197,21 @@ export const teacherPortalApi = {
   getAssignmentAnalytics: (id) => api.get(`/teacher/assignments/${id}/analytics`),
   evaluateAssignmentWithAI: (subId) => api.post(`/teacher/assignments/submissions/${subId}/evaluate-ai`),
   gradeAssignmentSubmission: (subId, data) => api.put(`/teacher/assignments/submissions/${subId}/grade`, data),
+
+  // ── Quiz Re-Grading ─────────────────────────────────────────────────────
+  regradeQuiz: (quizId) => api.post(`/teacher/quizzes/${quizId}/regrade`),
+
+  // ── Regrade Requests (Student Appeals) ─────────────────────────────────
+  getRegradeRequests: () => api.get('/teacher/assignments/regrade-requests'),
+  respondRegradeRequest: (requestId, data) => api.post(`/teacher/assignments/regrade-requests/${requestId}/respond`, data),
+
+  // ── Exam Grades (Midterm, Final, Others) ────────────────────────────────
+  getSectionExamGrades: (sectionId) => api.get(`/teacher/sections/${sectionId}/exam-grades`),
+  saveSectionExamGrades: (sectionId, data) => api.post(`/teacher/sections/${sectionId}/exam-grades/save`, data),
+
+  // ── End of Semester Compiled Results ─────────────────────────────────────
+  getCompiledResults: (sectionId) => api.get(`/teacher/sections/${sectionId}/compiled-results`),
+  submitFinalResults: (sectionId) => api.post(`/teacher/sections/${sectionId}/submit-final-results`),
 };
 
 
@@ -223,6 +238,12 @@ export const academicSectionApi = {
     api.post(`/academic-sections/${sectionId}/bulk-upload`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
+
+  // ── Admin Grading Policy & Results Announcement ─────────────────────────
+  getGradingPolicy: () => api.get('/academic-sections/grading-policy'),
+  updateGradingPolicy: (data) => api.post('/academic-sections/grading-policy', data),
+  getSemesterResults: () => api.get('/academic-sections/semester-results'),
+  announceSemesterResults: (sectionId) => api.post(`/academic-sections/sections/${sectionId}/announce-results`),
 };
 
 

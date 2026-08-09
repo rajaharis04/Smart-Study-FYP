@@ -342,7 +342,7 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
       _SummaryTile(
         icon: Icons.assignment_rounded,
         label: isUrdu ? 'اسائنمنٹس' : 'Assignments',
-        value: '3',
+        value: '${data?.activeAssignmentsCount ?? 0}',
         color: const Color(0xFFFFB74D),
         onTap: () => GoRouter.of(context).push(AppConstants.routeDashboardAssignments),
       ),

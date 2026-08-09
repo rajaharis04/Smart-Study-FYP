@@ -44,6 +44,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     });
   }
 
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (_tabController.length != 3) {
+      _tabController.dispose();
+      _tabController = TabController(length: 3, vsync: this);
+    }
+  }
+
   void _loadData() {
     ref.invalidate(studentProfileProvider);
     ref.read(progressProvider.notifier).getProgress();
@@ -847,6 +856,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -1243,6 +1254,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
@@ -1324,6 +1336,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(settings.translate('logout')),

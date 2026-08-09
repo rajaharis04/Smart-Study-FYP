@@ -327,25 +327,7 @@ def get_quiz(
             StudentLearningProfile.topic_id == topic_id
         ).first()
 
-    raw_questions = list(quiz.questions)
-    if profile:
-        # Reorder quiz questions dynamically based on student learning score
-        if profile.learning_score >= 70.0:
-            # High learning score -> prioritize hard/medium analytical MCQs
-            def diff_key(q):
-                d = q.difficulty.lower() if q.difficulty else "medium"
-                if d == "hard": return 0
-                if d == "medium": return 1
-                return 2
-            raw_questions.sort(key=diff_key)
-        elif profile.learning_score < 40.0:
-            # Low learning score -> prioritize easy/medium recall MCQs
-            def diff_key(q):
-                d = q.difficulty.lower() if q.difficulty else "medium"
-                if d == "easy": return 0
-                if d == "medium": return 1
-                return 2
-            raw_questions.sort(key=diff_key)
+    raw_questions = sorted(list(quiz.questions), key=lambda x: x.id)
 
     questions = [
         {
@@ -360,7 +342,194 @@ def get_quiz(
         for q in raw_questions
     ]
 
-    return {"quiz_id": quiz.id, "questions": questions}
+    # Server-Side Attempt Session Tracking
+    from app.models.models import QuizAttemptSession
+    session = db.query(QuizAttemptSession).filter(
+        QuizAttemptSession.quiz_id == quiz.id,
+        QuizAttemptSession.student_id == student.id,
+        QuizAttemptSession.is_completed == False,
+    ).first()
+
+    total_qs = len(questions)
+    per_q_timer = quiz.per_question_timer_seconds or 30
+    allowed_seconds = (total_qs * per_q_timer) + 60.0
+
+    if session:
+        elapsed_seconds = (datetime.utcnow() - session.started_at).total_seconds()
+        if elapsed_seconds > allowed_seconds:
+            session.is_completed = True
+            session.is_cancelled = True
+            db.commit()
+            session = None
+
+    if not session:
+        session = QuizAttemptSession(
+            quiz_id=quiz.id,
+            student_id=student.id,
+            started_at=datetime.utcnow(),
+            is_completed=False,
+        )
+        db.add(session)
+        db.commit()
+        db.refresh(session)
+
+    return {
+        "quiz_id": quiz.id,
+        "attempt_id": session.id,
+        "started_at": session.started_at.isoformat(),
+        "server_time": datetime.utcnow().isoformat(),
+        "per_question_timer_seconds": quiz.per_question_timer_seconds or 30,
+        "time_limit_minutes": quiz.time_limit_mins or 10,
+        "questions": questions
+    }
+
+
+@router.get("/quiz/{quiz_id}")
+def get_quiz_by_id(
+    quiz_id: int,
+    student: Student = Depends(_get_current_student),
+    db: Session = Depends(get_db),
+):
+    """
+    Get exact quiz questions by quiz_id in exact order created by teacher.
+    NO pooling, NO sub-sampling, NO dynamic reordering.
+    """
+    quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
+    if not quiz or not quiz.questions:
+        raise HTTPException(status_code=404, detail="Quiz or quiz questions not found.")
+
+    raw_questions = sorted(list(quiz.questions), key=lambda x: x.id)
+
+    questions = [
+        {
+            "id":            q.id,
+            "question_text": q.question_text,
+            "option_a":      q.option_a,
+            "option_b":      q.option_b,
+            "option_c":      q.option_c,
+            "option_d":      q.option_d,
+            "difficulty":    q.difficulty,
+        }
+        for q in raw_questions
+    ]
+
+    from app.models.models import QuizAttemptSession
+    session = db.query(QuizAttemptSession).filter(
+        QuizAttemptSession.quiz_id == quiz.id,
+        QuizAttemptSession.student_id == student.id,
+        QuizAttemptSession.is_completed == False,
+    ).first()
+
+    total_qs = len(questions)
+    per_q_timer = quiz.per_question_timer_seconds or 30
+    allowed_seconds = (total_qs * per_q_timer) + 60.0
+
+    if session:
+        elapsed_seconds = (datetime.utcnow() - session.started_at).total_seconds()
+        if elapsed_seconds > allowed_seconds:
+            session.is_completed = True
+            session.is_cancelled = True
+            db.commit()
+            session = None
+
+    if not session:
+        session = QuizAttemptSession(
+            quiz_id=quiz.id,
+            student_id=student.id,
+            started_at=datetime.utcnow(),
+            is_completed=False,
+        )
+        db.add(session)
+        db.commit()
+        db.refresh(session)
+
+    return {
+        "quiz_id": quiz.id,
+        "attempt_id": session.id,
+        "started_at": session.started_at.isoformat(),
+        "server_time": datetime.utcnow().isoformat(),
+        "per_question_timer_seconds": quiz.per_question_timer_seconds or 30,
+        "time_limit_minutes": quiz.time_limit_mins or 10,
+        "questions": questions
+    }
+
+
+class SaveQuestionAnswerPayload(BaseModel):
+    question_id: int
+    answer: Optional[str] = None
+    time_taken_seconds: Optional[float] = 30.0
+    hint_used: Optional[bool] = False
+
+
+@router.post("/quiz/{quiz_id}/save-question-answer")
+def save_question_answer(
+    quiz_id: int,
+    payload: SaveQuestionAnswerPayload,
+    student: Student = Depends(_get_current_student),
+    db: Session = Depends(get_db),
+):
+    """
+    Real-time per-question answer persistence.
+    Saves student answer immediately so network drop / crash causes 0 data loss.
+    """
+    question = db.query(QuizQuestion).filter(
+        QuizQuestion.id == payload.question_id,
+    ).first()
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found.")
+
+    effective_quiz_id = question.quiz_id
+    quiz = db.query(Quiz).filter(Quiz.id == effective_quiz_id).first()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found.")
+
+    from app.models.models import QuizAttemptSession
+    session = db.query(QuizAttemptSession).filter(
+        QuizAttemptSession.quiz_id == effective_quiz_id,
+        QuizAttemptSession.student_id == student.id,
+        QuizAttemptSession.is_completed == False,
+    ).first()
+
+    if session:
+        total_qs = len(quiz.questions)
+        per_q_timer = quiz.per_question_timer_seconds or 30
+        allowed_seconds = (total_qs * per_q_timer) + 60.0
+        elapsed_seconds = (datetime.utcnow() - session.started_at).total_seconds()
+        if elapsed_seconds > allowed_seconds:
+            session.is_completed = True
+            db.commit()
+
+    is_correct = False
+    if question.correct_answer and payload.answer and payload.answer.strip():
+        is_correct = (payload.answer.strip().upper() == question.correct_answer.strip().upper())
+
+    existing = db.query(QuizResponse).filter(
+        QuizResponse.quiz_id == effective_quiz_id,
+        QuizResponse.question_id == payload.question_id,
+        QuizResponse.student_id == student.id,
+    ).first()
+
+    if existing:
+        existing.answer = payload.answer
+        existing.is_correct = is_correct
+        existing.time_taken_seconds = payload.time_taken_seconds or 30.0
+        existing.hint_used = payload.hint_used or False
+        existing.answered_at = datetime.utcnow()
+    else:
+        resp = QuizResponse(
+            quiz_id=quiz_id,
+            question_id=payload.question_id,
+            student_id=student.id,
+            answer=payload.answer,
+            is_correct=is_correct,
+            time_taken_seconds=payload.time_taken_seconds or 30.0,
+            hint_used=payload.hint_used or False,
+            answered_at=datetime.utcnow(),
+        )
+        db.add(resp)
+
+    db.commit()
+    return {"ok": True, "question_id": payload.question_id, "saved": True}
 
 
 class SubmitAnswerItem(BaseModel):
@@ -383,19 +552,25 @@ def submit_quiz(
     db: Session = Depends(get_db),
 ):
     """
-    Save student's quiz answers to quiz_responses table.
-    Pre/mid quizzes are diagnostic — is_correct is not computed.
+    Finalize student's quiz attempt.
+    Marks QuizAttemptSession as completed and recalculates learning profile.
     """
     quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz not found.")
 
-    # Delete existing responses from this student for idempotency
-    db.query(QuizResponse).filter(
-        QuizResponse.quiz_id   == quiz_id,
-        QuizResponse.student_id == student.id,
-    ).delete()
+    from app.models.models import QuizAttemptSession
+    session = db.query(QuizAttemptSession).filter(
+        QuizAttemptSession.quiz_id == quiz_id,
+        QuizAttemptSession.student_id == student.id,
+        QuizAttemptSession.is_completed == False,
+    ).first()
 
+    if session:
+        session.is_completed = True
+        session.submitted_at = datetime.utcnow()
+
+    # Save any final remaining answers
     for item in payload.answers:
         question = db.query(QuizQuestion).filter(
             QuizQuestion.id      == item.question_id,
@@ -404,24 +579,56 @@ def submit_quiz(
         if not question:
             continue
 
-        # Compute correctness whenever correct_answer is available
         is_correct = False
-        if question.correct_answer and item.answer:
+        if question.correct_answer and item.answer and item.answer.strip():
             is_correct = (item.answer.strip().upper() == question.correct_answer.strip().upper())
 
-        response = QuizResponse(
-            quiz_id     = quiz_id,
-            question_id = item.question_id,
-            student_id  = student.id,
-            answer      = item.answer,
-            is_correct  = is_correct,
-            time_taken_seconds = item.time_taken_seconds if item.time_taken_seconds is not None else 30.0,
-            hint_used   = item.hint_used if item.hint_used is not None else False,
-            answered_at = datetime.utcnow(),
-        )
-        db.add(response)
+        existing = db.query(QuizResponse).filter(
+            QuizResponse.quiz_id == quiz_id,
+            QuizResponse.question_id == item.question_id,
+            QuizResponse.student_id == student.id,
+        ).first()
 
+        if existing:
+            existing.answer = item.answer
+            existing.is_correct = is_correct
+            existing.time_taken_seconds = item.time_taken_seconds if item.time_taken_seconds is not None else 30.0
+            existing.hint_used = item.hint_used if item.hint_used is not None else False
+            existing.answered_at = datetime.utcnow()
+        else:
+            response = QuizResponse(
+                quiz_id     = quiz_id,
+                question_id = item.question_id,
+                student_id  = student.id,
+                answer      = item.answer,
+                is_correct  = is_correct,
+                time_taken_seconds = item.time_taken_seconds if item.time_taken_seconds is not None else 30.0,
+                hint_used   = item.hint_used if item.hint_used is not None else False,
+                answered_at = datetime.utcnow(),
+            )
     db.commit()
+
+    # If no responses exist at all for this quiz by this student (e.g. security violation auto-submit / 0 marks),
+    # generate 0-mark incorrect QuizResponse records for all questions in the quiz
+    existing_responses_count = db.query(QuizResponse).filter(
+        QuizResponse.quiz_id == quiz_id,
+        QuizResponse.student_id == student.id,
+    ).count()
+
+    if existing_responses_count == 0:
+        for q in quiz.questions:
+            resp = QuizResponse(
+                quiz_id=quiz_id,
+                question_id=q.id,
+                student_id=student.id,
+                answer="",
+                is_correct=False,
+                time_taken_seconds=0.0,
+                hint_used=False,
+                answered_at=datetime.utcnow(),
+            )
+            db.add(resp)
+        db.commit()
 
     # Asynchronously trigger student learning profile recalculation
     lecture = quiz.lecture if quiz else None
@@ -434,3 +641,54 @@ def submit_quiz(
         )
 
     return {"ok": True, "submitted": len(payload.answers)}
+
+
+class ProctoringViolationPayload(BaseModel):
+    violation_type: str
+    details: Optional[str] = None
+    warning_count: int = 1
+
+
+@router.post("/quiz/{quiz_id}/log-proctoring-violation")
+def log_proctoring_violation(
+    quiz_id: int,
+    payload: ProctoringViolationPayload,
+    student: Student = Depends(_get_current_student),
+    db: Session = Depends(get_db),
+):
+    """
+    Log real-time AI Proctoring warning/violation to backend database for audit inspection.
+    """
+    from app.models.models import QuizAttemptSession
+    session = db.query(QuizAttemptSession).filter(
+        QuizAttemptSession.quiz_id == quiz_id,
+        QuizAttemptSession.student_id == student.id,
+        QuizAttemptSession.is_completed == False,
+    ).first()
+
+    if session:
+        import json
+        session.proctoring_warnings_count = payload.warning_count
+        log_entry = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "violation_type": payload.violation_type,
+            "details": payload.details or "",
+            "warning_count": payload.warning_count
+        }
+        existing_logs = []
+        if session.proctoring_logs:
+            try:
+                existing_logs = json.loads(session.proctoring_logs)
+            except Exception:
+                existing_logs = []
+        existing_logs.append(log_entry)
+        session.proctoring_logs = json.dumps(existing_logs)
+
+        if payload.warning_count >= 3 or payload.violation_type in ["SECURITY_VIOLATION", "TAB_SWITCH", "SCREENSHOT", "AI_TERMINATED"]:
+            session.is_cancelled = True
+            session.is_completed = True
+            session.submitted_at = datetime.utcnow()
+
+        db.commit()
+
+    return {"ok": True, "warning_count": payload.warning_count}

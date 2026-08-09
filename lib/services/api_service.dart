@@ -469,6 +469,23 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getQuizById(int quizId) async {
+    try {
+      final response = await _dio.get('/lectures/quiz/$quizId');
+      final data = response.data as Map<String, dynamic>;
+      final rawQ = (data['questions'] as List<dynamic>?) ?? [];
+      return {
+        'quiz_id': data['quiz_id'] as int?,
+        'time_limit_minutes': data['time_limit_minutes'] as int?,
+        'questions': rawQ
+            .map((q) => QuizQuestion.fromJson(q as Map<String, dynamic>))
+            .toList(),
+      };
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
   Future<bool> submitQuiz({
     required int quizId,
     required Map<int, String?> answers,
@@ -663,14 +680,46 @@ class ApiService {
     }
   }
 
+  /// Upload attached PDF or DOCX document for assignment submission
+  Future<Map<String, String>> uploadAssignmentAttachment(dynamic file) async {
+    try {
+      final String filePath = file.path;
+      final String fileName = filePath.split('/').last;
+
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          filePath,
+          filename: fileName,
+        ),
+      });
+
+      final response = await _dio.post(
+        '/student/assignments/upload-attachment',
+        data: formData,
+      );
+
+      final data = response.data as Map<String, dynamic>;
+      return {
+        'file_url': data['file_url'] as String? ?? '',
+        'file_name': data['file_name'] as String? ?? fileName,
+      };
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
   /// Submit assignment answers to student assignments endpoint
   Future<bool> submitStudentAssignment({
     required int assignmentId,
     required List<Map<String, dynamic>> answers,
+    String? attachedFileUrl,
+    String? attachedFileName,
   }) async {
     try {
       final response = await _dio.post('/student/assignments/$assignmentId/submit', data: {
         'answers': answers,
+        'attached_file_url': attachedFileUrl,
+        'attached_file_name': attachedFileName,
       });
       return response.statusCode == 200 || response.statusCode == 201;
     } on DioException catch (e) {
@@ -691,6 +740,70 @@ class ApiService {
         'quizzes': [],
         'assignments': [],
       };
+    }
+  }
+
+  /// Save student single question answer in real-time
+  Future<void> saveQuestionAnswer({
+    required int quizId,
+    required int questionId,
+    String? answer,
+    double timeTakenSeconds = 30.0,
+  }) async {
+    try {
+      await _dio.post(
+        '/lectures/quiz/$quizId/save-question-answer',
+        data: {
+          'question_id': questionId,
+          'answer': answer,
+          'time_taken_seconds': timeTakenSeconds,
+        },
+      );
+    } on DioException catch (_) {}
+  }
+
+  /// Log real-time AI Proctoring warning/violation to backend database
+  Future<void> logProctoringViolation({
+    required int quizId,
+    required String violationType,
+    required String details,
+    required int warningCount,
+  }) async {
+    try {
+      await _dio.post(
+        '/lectures/quiz/$quizId/log-proctoring-violation',
+        data: {
+          'violation_type': violationType,
+          'details': details,
+          'warning_count': warningCount,
+        },
+      );
+    } on DioException catch (_) {}
+  }
+
+  /// Request assignment regrade appeal from student app
+  Future<bool> requestAssignmentRegrade({
+    required int submissionId,
+    required String reason,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/student/assignments/$submissionId/regrade-request',
+        data: {'reason': reason},
+      );
+      return response.statusCode == 200;
+    } on DioException catch (_) {
+      return false;
+    }
+  }
+
+  /// Get AI Remedial Practice Quiz for a completed quiz
+  Future<Map<String, dynamic>?> getRemedialQuiz(int quizId) async {
+    try {
+      final response = await _dio.get('/student/quizzes/$quizId/remedial');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (_) {
+      return null;
     }
   }
 }

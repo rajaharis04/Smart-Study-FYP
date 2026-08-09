@@ -20,6 +20,7 @@ import RegistrationWeekPage from './pages/RegistrationWeekPage';
 import ReportsPage from './pages/ReportsPage';
 import AccountsPage from './pages/AccountsPage';
 import AcademicSectionsPage from './pages/AcademicSectionsPage';
+import AdminGradingPolicyPage from './pages/AdminGradingPolicyPage';
 
 // Teacher Pages
 import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage';
@@ -29,6 +30,8 @@ import TeacherQuizzesPage from './pages/teacher/TeacherQuizzesPage';
 import TeacherAssignmentsPage from './pages/teacher/TeacherAssignmentsPage';
 import TeacherAnalyticsPage from './pages/teacher/TeacherAnalyticsPage';
 import TeacherGradesPage from './pages/teacher/TeacherGradesPage';
+import TeacherExamGradesPage from './pages/teacher/TeacherExamGradesPage';
+import TeacherFinalResultsPage from './pages/teacher/TeacherFinalResultsPage';
 
 function AppLayout() {
   const location = useLocation();
@@ -48,6 +51,7 @@ function AppLayout() {
       case '/enrollments': return 'Enrolled Students';
       case '/semesters': return 'Semesters Schedule';
       case '/registration-week': return 'Registration Week Settings';
+      case '/grading-policy': return 'Grading Policy & Results';
       case '/reports': return 'Reports & Analytics';
       case '/accounts': return 'Account Settings';
       case '/teacher/topics': return 'Topics & Objectives';
@@ -55,7 +59,9 @@ function AppLayout() {
       case '/teacher/quizzes': return 'Quiz Management';
       case '/teacher/assignments': return 'Assignment Management';
       case '/teacher/analytics': return 'Class Analytics';
-      case '/teacher/grades': return 'Class Grade Book';
+      case '/teacher/grades': return 'Attendance';
+      case '/teacher/exam-grades': return 'Exam Grades';
+      case '/teacher/final-results': return 'Final 100-Mark Results';
       default: return 'SmartStudy Portal';
     }
   };
@@ -86,6 +92,8 @@ function AppLayout() {
                 <Route path="/teacher/assignments" element={<TeacherAssignmentsPage />} />
                 <Route path="/teacher/analytics" element={<TeacherAnalyticsPage />} />
                 <Route path="/teacher/grades" element={<TeacherGradesPage />} />
+                <Route path="/teacher/exam-grades" element={<TeacherExamGradesPage />} />
+                <Route path="/teacher/final-results" element={<TeacherFinalResultsPage />} />
                 <Route path="/accounts" element={<AccountsPage />} />
               </Routes>
             ) : (
@@ -101,6 +109,7 @@ function AppLayout() {
                 <Route path="/enrollments" element={<EnrollmentsPage />} />
                 <Route path="/semesters" element={<SemestersPage />} />
                 <Route path="/registration-week" element={<RegistrationWeekPage />} />
+                <Route path="/grading-policy" element={<AdminGradingPolicyPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
                 <Route path="/accounts" element={<AccountsPage />} />
               </Routes>

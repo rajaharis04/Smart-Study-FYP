@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { teacherPortalApi } from '../../services/api';
-import { ClipboardList, Users, BarChart3, Edit, Eye, Save, Settings, Calendar, HelpCircle, Check, AlertCircle, Plus, Sparkles, X, ChevronRight, Loader2, Trash2, BookOpen, Brain, Wand2 } from 'lucide-react';
+import { ClipboardList, Users, BarChart3, Edit, Eye, Save, Settings, Calendar, HelpCircle, Check, AlertCircle, Plus, Sparkles, X, ChevronRight, Loader2, Trash2, BookOpen, Brain, Wand2, RefreshCw, Video, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function TeacherQuizzesPage() {
@@ -9,7 +9,14 @@ export default function TeacherQuizzesPage() {
   
   // Tab control: 'quizzes' | 'submissions' | 'analytics'
   const [activeTab, setActiveTab] = useState('quizzes');
+  const [quizFilterTab, setQuizFilterTab] = useState('active'); // 'active' | 'completed'
   const [selectedQuizId, setSelectedQuizId] = useState(null);
+  
+  // Student Marks Modal states
+  const [showStudentMarksModal, setShowStudentMarksModal] = useState(false);
+  const [studentMarksQuiz, setStudentMarksQuiz] = useState(null);
+  const [studentMarksList, setStudentMarksList] = useState([]);
+  const [loadingStudentMarks, setLoadingStudentMarks] = useState(false);
   
   // Details data states
   const [quizDetails, setQuizDetails] = useState(null);
@@ -21,6 +28,8 @@ export default function TeacherQuizzesPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editTimeLimit, setEditTimeLimit] = useState(10);
+  const [editPerQuestionTimer, setEditPerQuestionTimer] = useState(30);
+  const [editMaxQuestionsPerStudent, setEditMaxQuestionsPerStudent] = useState('');
   const [editShowHints, setEditShowHints] = useState(false);
   const [editIsPublished, setEditIsPublished] = useState(false);
   const [editQuestions, setEditQuestions] = useState([]);
@@ -36,6 +45,8 @@ export default function TeacherQuizzesPage() {
   const [manualTitle, setManualTitle] = useState('');
   const [manualQuizType, setManualQuizType] = useState('post');
   const [manualTimeLimit, setManualTimeLimit] = useState(10);
+  const [manualPerQuestionTimer, setManualPerQuestionTimer] = useState(30);
+  const [manualMaxQuestionsPerStudent, setManualMaxQuestionsPerStudent] = useState('');
   const [manualDueDate, setManualDueDate] = useState('');
   const [manualLectureId, setManualLectureId] = useState(null);
   const [manualIsPublished, setManualIsPublished] = useState(false);
@@ -49,11 +60,14 @@ export default function TeacherQuizzesPage() {
   const [selectedMaterialIds, setSelectedMaterialIds] = useState([]);
   const [aiNumQuestions, setAiNumQuestions] = useState(10);
   const [aiDifficulty, setAiDifficulty] = useState('medium');
+  const [aiQuizQuestionTypes, setAiQuizQuestionTypes] = useState(['mcq', 'true_false']);
   const [aiGeneratedQuestions, setAiGeneratedQuestions] = useState([]);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiSaveTitle, setAiSaveTitle] = useState('');
   const [aiSaveQuizType, setAiSaveQuizType] = useState('post');
   const [aiSaveTimeLimit, setAiSaveTimeLimit] = useState(10);
+  const [aiSavePerQuestionTimer, setAiSavePerQuestionTimer] = useState(30);
+  const [aiSaveMaxQuestionsPerStudent, setAiSaveMaxQuestionsPerStudent] = useState('');
   const [aiSaveDueDate, setAiSaveDueDate] = useState('');
   const [aiSaveLectureId, setAiSaveLectureId] = useState(null);
   const [aiSaveIsPublished, setAiSaveIsPublished] = useState(false);
@@ -67,9 +81,14 @@ export default function TeacherQuizzesPage() {
   const fetchQuizzesList = async () => {
     try {
       const res = await teacherPortalApi.listQuizzes();
-      setQuizzes(res.data);
-      if (res.data.length > 0 && !selectedQuizId) {
-        setSelectedQuizId(res.data[0].id);
+      const list = res.data || [];
+      setQuizzes(list);
+      
+      const activeList = list.filter(q => q.is_published && !q.is_deleted && q.attempts_count === 0);
+      if (activeList.length > 0 && !selectedQuizId) {
+        setSelectedQuizId(activeList[0].id);
+      } else if (activeList.length === 0) {
+        setSelectedQuizId(null);
       }
     } catch (err) {
       toast.error('Failed to load quizzes.');
@@ -109,6 +128,8 @@ export default function TeacherQuizzesPage() {
         setQuizDetails(res.data);
         setEditTitle(res.data.title);
         setEditTimeLimit(res.data.time_limit_mins || 10);
+        setEditPerQuestionTimer(res.data.per_question_timer_seconds || 30);
+        setEditMaxQuestionsPerStudent(res.data.max_questions_per_student ? String(res.data.max_questions_per_student) : '');
         setEditShowHints(res.data.show_hints);
         setEditIsPublished(res.data.is_published);
         setEditQuestions(res.data.questions || []);
@@ -168,11 +189,18 @@ export default function TeacherQuizzesPage() {
         title: editTitle,
         is_published: editIsPublished,
         time_limit_mins: editTimeLimit,
+        per_question_timer_seconds: editPerQuestionTimer,
+        max_questions_per_student: editMaxQuestionsPerStudent ? parseInt(editMaxQuestionsPerStudent) : null,
         show_hints: editShowHints,
         questions: editQuestions
       });
       toast.success('Quiz updated successfully!');
       setIsEditing(false);
+      if (editIsPublished) {
+        setQuizFilterTab('active');
+      } else {
+        setQuizFilterTab('draft');
+      }
       loadTabDetails(selectedQuizId, 'quizzes');
       fetchQuizzesList();
     } catch (err) {
@@ -190,6 +218,8 @@ export default function TeacherQuizzesPage() {
     setManualTitle('');
     setManualQuizType('post');
     setManualTimeLimit(10);
+    setManualPerQuestionTimer(30);
+    setManualMaxQuestionsPerStudent('');
     setManualLectureId(null);
     setManualIsPublished(false);
     setManualQuestions([{
@@ -226,7 +256,8 @@ export default function TeacherQuizzesPage() {
       const res = await teacherPortalApi.generateAIQuiz({
         material_ids: selectedMaterialIds,
         num_questions: aiNumQuestions,
-        difficulty: aiDifficulty
+        difficulty: aiDifficulty,
+        question_types: aiQuizQuestionTypes
       });
       setAiGeneratedQuestions(res.data.questions || []);
       setWizardStep(3);
@@ -261,27 +292,44 @@ export default function TeacherQuizzesPage() {
     }
     setSavingAIQuiz(true);
     try {
-      await teacherPortalApi.saveAIQuiz({
+      const res = await teacherPortalApi.saveAIQuiz({
         lecture_id: aiSaveLectureId,
         title: aiSaveTitle,
         quiz_type: aiSaveQuizType,
         time_limit_mins: aiSaveTimeLimit,
+        per_question_timer_seconds: aiSavePerQuestionTimer,
+        max_questions_per_student: aiSaveMaxQuestionsPerStudent ? parseInt(aiSaveMaxQuestionsPerStudent) : null,
         due_date: aiSaveDueDate || null,
         is_published: aiSaveIsPublished,
         source_material_ids: selectedMaterialIds,
         questions: aiGeneratedQuestions.map(q => ({
-          question_text: q.question_text,
-          option_a: q.option_a,
-          option_b: q.option_b,
-          option_c: q.option_c,
-          option_d: q.option_d,
-          correct_answer: q.correct_answer,
-          difficulty: q.difficulty
+          question_text: q.question_text || 'Untitled Question',
+          option_a: q.option_a != null ? String(q.option_a) : '',
+          option_b: q.option_b != null ? String(q.option_b) : '',
+          option_c: q.option_c != null ? String(q.option_c) : '',
+          option_d: q.option_d != null ? String(q.option_d) : '',
+          correct_answer: q.correct_answer || 'A',
+          difficulty: q.difficulty || 'medium',
+          question_type: q.question_type || 'mcq'
         }))
       });
+      const savedQuizId = res.data?.quiz_id;
       toast.success('AI quiz saved successfully!');
       setShowCreateWizard(false);
-      fetchQuizzesList();
+      
+      const targetTab = aiSaveIsPublished ? 'active' : 'draft';
+      setQuizFilterTab(targetTab);
+      
+      // Fetch latest quizzes list and select the newly created quiz
+      const listRes = await teacherPortalApi.listQuizzes();
+      const updatedList = listRes.data || [];
+      setQuizzes(updatedList);
+
+      if (savedQuizId) {
+        setSelectedQuizId(savedQuizId);
+      } else if (updatedList.length > 0) {
+        setSelectedQuizId(updatedList[0].id);
+      }
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to save quiz.');
     } finally {
@@ -311,12 +359,19 @@ export default function TeacherQuizzesPage() {
         title: manualTitle,
         quiz_type: manualQuizType,
         time_limit_mins: manualTimeLimit,
+        per_question_timer_seconds: manualPerQuestionTimer,
+        max_questions_per_student: manualMaxQuestionsPerStudent ? parseInt(manualMaxQuestionsPerStudent) : null,
         due_date: manualDueDate || null,
         is_published: manualIsPublished,
         questions: manualQuestions
       });
       toast.success('Quiz created successfully!');
       setShowCreateWizard(false);
+      if (manualIsPublished) {
+        setQuizFilterTab('active');
+      } else {
+        setQuizFilterTab('draft');
+      }
       fetchQuizzesList();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to create quiz.');
@@ -325,13 +380,13 @@ export default function TeacherQuizzesPage() {
 
   const handleDeleteQuiz = async (quizId, e) => {
     e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this quiz?')) {
+    if (window.confirm('Are you sure you want to end and delete this active quiz? It will move to Completed tab.')) {
       try {
         await teacherPortalApi.deleteQuiz(quizId);
-        toast.success('Quiz deleted successfully.');
-        if (selectedQuizId === quizId) {
-          setSelectedQuizId(null);
-        }
+        toast.success('Active quiz ended & moved to Completed!');
+        setQuizFilterTab('completed');
+        setSelectedQuizId(quizId);
+        setActiveTab('submissions');
         fetchQuizzesList();
       } catch (err) {
         toast.error('Failed to delete quiz.');
@@ -339,68 +394,198 @@ export default function TeacherQuizzesPage() {
     }
   };
 
+  const handleBulkRegrade = async () => {
+    if (!selectedQuizId) return;
+    if (!window.confirm('Re-grade all student responses against current answer keys?')) return;
+    try {
+      const res = await teacherPortalApi.regradeQuiz(selectedQuizId);
+      toast.success(res.data.message || 'Quiz re-graded successfully!');
+      fetchQuizDetails(selectedQuizId);
+    } catch (err) {
+      toast.error('Failed to re-grade quiz.');
+    }
+  };
+
+  const handleOpenStudentMarksModal = async (quiz, e) => {
+    if (e) e.stopPropagation();
+    setStudentMarksQuiz(quiz);
+    setShowStudentMarksModal(true);
+    setLoadingStudentMarks(true);
+    try {
+      const res = await teacherPortalApi.getQuizSubmissions(quiz.id);
+      setStudentMarksList(res.data || []);
+    } catch (err) {
+      toast.error('Failed to load student marks.');
+    } finally {
+      setLoadingStudentMarks(false);
+    }
+  };
+
+  // Filter quizzes into Active vs Completed/Ended vs Drafts
+  const activeQuizzes = quizzes.filter(q => q.is_published && !q.is_deleted && q.attempts_count === 0);
+  const completedQuizzes = quizzes.filter(q => q.is_published && (q.attempts_count > 0 || q.is_deleted));
+  const draftQuizzes = quizzes.filter(q => !q.is_published && !q.is_deleted);
+  const displayedQuizzes = quizFilterTab === 'active' ? activeQuizzes : quizFilterTab === 'draft' ? draftQuizzes : completedQuizzes;
+
   // ═══════════════════════════════════════════════════════════
   //  RENDER: Quiz List Sidebar
   // ═══════════════════════════════════════════════════════════
   const renderQuizList = () => (
     <div className="quiz-sidebar">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-secondary)' }}>All Quizzes</h3>
+        <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-secondary)' }}>Quizzes</h3>
         <button className="btn btn-primary" onClick={openCreateWizard} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>
           <Plus size={14} /> Create Quiz
         </button>
       </div>
 
-      {quizzes.length === 0 ? (
+      {/* Active vs Completed vs Draft Tabs */}
+      <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '1rem', background: 'var(--bg-tertiary)', padding: '4px', borderRadius: '8px' }}>
+        <button
+          onClick={() => {
+            setQuizFilterTab('active');
+            if (activeQuizzes.length === 0) {
+              setSelectedQuizId(null);
+            } else if (!activeQuizzes.some(q => q.id === selectedQuizId)) {
+              setSelectedQuizId(activeQuizzes[0].id);
+            }
+          }}
+          style={{
+            flex: 1,
+            padding: '0.4rem 0.4rem',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '0.725rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            background: quizFilterTab === 'active' ? 'var(--bg-card)' : 'transparent',
+            color: quizFilterTab === 'active' ? 'var(--accent)' : 'var(--text-muted)',
+            boxShadow: quizFilterTab === 'active' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+          }}
+        >
+          Active ({activeQuizzes.length})
+        </button>
+        <button
+          onClick={() => {
+            setQuizFilterTab('completed');
+            if (completedQuizzes.length === 0) {
+              setSelectedQuizId(null);
+            } else if (!completedQuizzes.some(q => q.id === selectedQuizId)) {
+              setSelectedQuizId(completedQuizzes[0].id);
+              setActiveTab('submissions');
+            }
+          }}
+          style={{
+            flex: 1,
+            padding: '0.4rem 0.4rem',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '0.725rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            background: quizFilterTab === 'completed' ? 'var(--bg-card)' : 'transparent',
+            color: quizFilterTab === 'completed' ? 'var(--accent)' : 'var(--text-muted)',
+            boxShadow: quizFilterTab === 'completed' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+          }}
+        >
+          Completed ({completedQuizzes.length})
+        </button>
+        <button
+          onClick={() => {
+            setQuizFilterTab('draft');
+            if (draftQuizzes.length === 0) {
+              setSelectedQuizId(null);
+            } else if (!draftQuizzes.some(q => q.id === selectedQuizId)) {
+              setSelectedQuizId(draftQuizzes[0].id);
+            }
+          }}
+          style={{
+            flex: 1,
+            padding: '0.4rem 0.4rem',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '0.725rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            background: quizFilterTab === 'draft' ? 'var(--bg-card)' : 'transparent',
+            color: quizFilterTab === 'draft' ? 'var(--accent)' : 'var(--text-muted)',
+            boxShadow: quizFilterTab === 'draft' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+          }}
+        >
+          Drafts ({draftQuizzes.length})
+        </button>
+      </div>
+
+      {displayedQuizzes.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-muted)' }}>
           <ClipboardList size={40} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
-          <p>No quizzes yet</p>
-          <button className="btn btn-primary" onClick={openCreateWizard} style={{ marginTop: '0.5rem' }}>
-            <Plus size={14} /> Create Your First Quiz
-          </button>
+          <p>{quizFilterTab === 'completed' ? 'No completed quizzes yet' : quizFilterTab === 'draft' ? 'No draft quizzes' : 'No active quizzes'}</p>
         </div>
       ) : (
-        quizzes.map(q => (
+        displayedQuizzes.map((q, idx) => (
           <div
             key={q.id}
             className={`quiz-card ${selectedQuizId === q.id ? 'selected' : ''}`}
-            onClick={() => setSelectedQuizId(q.id)}
+            onClick={() => {
+              setSelectedQuizId(q.id);
+              if (quizFilterTab === 'completed' || q.is_deleted) {
+                setActiveTab('submissions');
+                handleOpenStudentMarksModal(q);
+              }
+            }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <h4 style={{ margin: '0 0 0.25rem', fontSize: '0.9rem' }}>{q.title || q.lecture_title}</h4>
+                <h4 style={{ margin: '0 0 0.25rem', fontSize: '0.9rem' }}>
+                  {q.title || `Quiz ${idx + 1}: ${q.lecture_title}`}
+                </h4>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   {q.course_name} • {q.section_label}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span className={`badge ${q.quiz_type === 'post' ? 'badge-info' : q.quiz_type === 'pre' ? 'badge-warning' : 'badge-primary'}`}>
-                  {q.quiz_type.toUpperCase()}
-                </span>
-                <button
-                  onClick={(e) => handleDeleteQuiz(q.id, e)}
-                  title="Delete Quiz"
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#ef4444',
-                    cursor: 'pointer',
-                    padding: '2px',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  <Trash2 size={14} />
-                </button>
+                {quizFilterTab === 'completed' || q.is_deleted ? (
+                  <span className="badge badge-danger">END</span>
+                ) : quizFilterTab === 'draft' || !q.is_published ? (
+                  <span className="badge badge-warning">DRAFT</span>
+                ) : (
+                  <span className={`badge ${q.quiz_type === 'post' ? 'badge-info' : q.quiz_type === 'pre' ? 'badge-warning' : 'badge-primary'}`}>
+                    {q.quiz_type.toUpperCase()}
+                  </span>
+                )}
+                {quizFilterTab === 'active' && !q.is_deleted && (
+                  <button
+                    onClick={(e) => handleDeleteQuiz(q.id, e)}
+                    title="Delete & End Quiz"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      padding: '2px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              <span><HelpCircle size={12} /> {q.questions_count} Q</span>
-              <span><Users size={12} /> {q.attempts_count}</span>
-              <span className={`badge ${q.is_published ? 'badge-success' : 'badge-muted'}`} style={{ fontSize: '0.65rem' }}>
-                {q.is_published ? 'Published' : 'Draft'}
-              </span>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                <span><HelpCircle size={12} /> {q.questions_count} Q</span>
+                <span><Users size={12} /> {q.attempts_count} Attempts</span>
+              </div>
+              <button
+                className="btn btn-ghost"
+                onClick={(e) => handleOpenStudentMarksModal(q, e)}
+                style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', color: 'var(--accent)', fontWeight: 600 }}
+              >
+                <Eye size={12} style={{ marginRight: '3px' }} /> View Marks
+              </button>
             </div>
           </div>
         ))
@@ -412,24 +597,35 @@ export default function TeacherQuizzesPage() {
   //  RENDER: Quiz Details Panel
   // ═══════════════════════════════════════════════════════════
   const renderQuizDetails = () => {
-    if (!selectedQuizId) return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
-        Select a quiz from the sidebar
+    const isSelectedInDisplayed = displayedQuizzes.some(q => q.id === selectedQuizId);
+    if (!selectedQuizId || !isSelectedInDisplayed) return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
+        <ClipboardList size={48} style={{ opacity: 0.25, marginBottom: '0.75rem' }} />
+        <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 500 }}>Select a quiz from the list to view details</p>
       </div>
     );
+
+    const availableTabs = quizFilterTab === 'completed'
+      ? [
+          { key: 'submissions', label: 'Submissions', icon: <Users size={14} /> },
+          { key: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
+        ]
+      : [
+          { key: 'quizzes', label: 'Questions', icon: <ClipboardList size={14} /> },
+          { key: 'submissions', label: 'Submissions', icon: <Users size={14} /> },
+          { key: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
+        ];
+
+    const currentTab = (quizFilterTab === 'completed' && activeTab === 'quizzes') ? 'submissions' : activeTab;
 
     return (
       <div className="quiz-details-panel">
         {/* Tabs */}
         <div className="quiz-detail-tabs">
-          {[
-            { key: 'quizzes', label: 'Questions', icon: <ClipboardList size={14} /> },
-            { key: 'submissions', label: 'Submissions', icon: <Users size={14} /> },
-            { key: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
-          ].map(tab => (
+          {availableTabs.map(tab => (
             <button
               key={tab.key}
-              className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`}
+              className={`tab-btn ${currentTab === tab.key ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.key)}
             >
               {tab.icon} {tab.label}
@@ -443,9 +639,9 @@ export default function TeacherQuizzesPage() {
           </div>
         ) : (
           <>
-            {activeTab === 'quizzes' && renderQuestionsTab()}
-            {activeTab === 'submissions' && renderSubmissionsTab()}
-            {activeTab === 'analytics' && renderAnalyticsTab()}
+            {currentTab === 'quizzes' && renderQuestionsTab()}
+            {currentTab === 'submissions' && renderSubmissionsTab()}
+            {currentTab === 'analytics' && renderAnalyticsTab()}
           </>
         )}
       </div>
@@ -470,7 +666,12 @@ export default function TeacherQuizzesPage() {
                 <button className="btn btn-ghost" onClick={() => setIsEditing(false)} style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}><X size={14} /> Cancel</button>
               </>
             ) : (
-              <button className="btn btn-primary" onClick={() => setIsEditing(true)} style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}><Edit size={14} /> Edit</button>
+              <>
+                <button className="btn btn-ghost" onClick={handleBulkRegrade} title="Re-grade all student submissions" style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem', color: 'var(--accent)' }}>
+                  <RefreshCw size={14} style={{ marginRight: '4px' }} /> Bulk Re-Grade
+                </button>
+                <button className="btn btn-primary" onClick={() => setIsEditing(true)} style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}><Edit size={14} /> Edit</button>
+              </>
             )}
           </div>
         </div>
@@ -479,8 +680,8 @@ export default function TeacherQuizzesPage() {
         {isEditing && (
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem' }}>
-              <Calendar size={14} /> Time Limit:
-              <input type="number" className="input" value={editTimeLimit} onChange={e => setEditTimeLimit(parseInt(e.target.value))} style={{ width: '60px' }} /> mins
+              <HelpCircle size={14} /> Per-Question Timer:
+              <input type="number" className="input" value={editPerQuestionTimer} onChange={e => setEditPerQuestionTimer(parseInt(e.target.value) || 30)} style={{ width: '60px' }} min={5} /> sec
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', cursor: 'pointer' }}>
               <input type="checkbox" checked={editShowHints} onChange={e => setEditShowHints(e.target.checked)} /> Show Hints
@@ -532,7 +733,7 @@ export default function TeacherQuizzesPage() {
                 <div style={{ marginTop: '0.5rem' }}>
                   <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem' }}>{q.question_text}</p>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
-                    {['a', 'b', 'c', 'd'].map(opt => (
+                    {['a', 'b', 'c', 'd'].filter(opt => q[`option_${opt}`] != null && q[`option_${opt}`].toString().trim() !== '').map(opt => (
                       <div key={opt} style={{
                         display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.3rem 0.5rem',
                         borderRadius: '0.25rem', fontSize: '0.8rem',
@@ -612,12 +813,21 @@ export default function TeacherQuizzesPage() {
   // ═══════════════════════════════════════════════════════════
   //  RENDER: Create Quiz Wizard (Modal)
   // ═══════════════════════════════════════════════════════════
+  // ── Overlay Dismiss Protection: shake + toast instead of close ──
+  const [wizardShaking, setWizardShaking] = useState(false);
+  const handleWizardOverlayClick = useCallback((e) => {
+    if (e.target !== e.currentTarget) return;
+    setWizardShaking(true);
+    setTimeout(() => setWizardShaking(false), 500);
+    toast('Please close this dialog first using the ✕ button', { icon: '⚠️', duration: 2500 });
+  }, []);
+
   const renderCreateWizard = () => {
     if (!showCreateWizard) return null;
 
     return (
-      <div className="modal-overlay" onClick={() => setShowCreateWizard(false)}>
-        <div className="modal-content wizard-modal" onClick={e => e.stopPropagation()}>
+      <div className="modal-overlay" onClick={handleWizardOverlayClick}>
+        <div className={`modal-content wizard-modal${wizardShaking ? ' modal-content-shake' : ''}`} onClick={e => e.stopPropagation()}>
           {/* Header */}
           <div className="wizard-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -666,22 +876,14 @@ export default function TeacherQuizzesPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr', gap: '0.85rem', marginBottom: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1.2fr 1.5fr', gap: '0.85rem', marginBottom: '1rem' }}>
         <div>
           <label className="form-label">Quiz Title</label>
           <input className="input" value={manualTitle} onChange={e => setManualTitle(e.target.value)} placeholder="e.g., Chapter 1: Introduction to Data Structures" />
         </div>
         <div>
-          <label className="form-label">Quiz Type</label>
-          <select className="input" value={manualQuizType} onChange={e => setManualQuizType(e.target.value)}>
-            <option value="pre">Pre-Lecture</option>
-            <option value="mid">Mid-Term</option>
-            <option value="post">Post-Lecture</option>
-          </select>
-        </div>
-        <div>
-          <label className="form-label">Time Limit (mins)</label>
-          <input type="number" className="input" value={manualTimeLimit} onChange={e => setManualTimeLimit(parseInt(e.target.value))} placeholder="e.g., 15" min={1} />
+          <label className="form-label">Timer/Q (sec)</label>
+          <input type="number" className="input" value={manualPerQuestionTimer} onChange={e => setManualPerQuestionTimer(parseInt(e.target.value) || 30)} placeholder="e.g., 30" min={5} />
         </div>
         <div>
           <label className="form-label">Deadline Date</label>
@@ -699,23 +901,58 @@ export default function TeacherQuizzesPage() {
         {manualQuestions.map((q, idx) => (
           <div key={idx} className="question-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span className="question-number">Q{idx + 1}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="question-number">Q{idx + 1}</span>
+                <select
+                  className="input"
+                  value={q.question_type || 'mcq'}
+                  onChange={e => {
+                    const type = e.target.value;
+                    handleManualQuestionEdit(idx, 'question_type', type);
+                    if (type === 'true_false') {
+                      handleManualQuestionEdit(idx, 'option_a', 'True');
+                      handleManualQuestionEdit(idx, 'option_b', 'False');
+                      handleManualQuestionEdit(idx, 'option_c', '');
+                      handleManualQuestionEdit(idx, 'option_d', '');
+                      handleManualQuestionEdit(idx, 'correct_answer', 'A');
+                    }
+                  }}
+                  style={{ width: '150px', fontSize: '0.75rem', padding: '0.2rem' }}
+                >
+                  <option value="mcq">Multiple Choice (MCQ)</option>
+                  <option value="true_false">True / False</option>
+                </select>
+              </div>
               <button className="btn btn-ghost" onClick={() => setManualQuestions(prev => prev.filter((_, i) => i !== idx))} style={{ padding: '0.2rem 0.4rem', color: 'var(--danger)' }} title="Delete Question"><Trash2 size={14} /></button>
             </div>
-            <textarea className="input" value={q.question_text} onChange={e => handleManualQuestionEdit(idx, 'question_text', e.target.value)} rows={2} placeholder="Enter question prompt here... (e.g., What is the time complexity of QuickSort?)" style={{ width: '100%', marginBottom: '0.5rem', fontSize: '0.85rem' }} />
+            <textarea className="input" value={q.question_text} onChange={e => handleManualQuestionEdit(idx, 'question_text', e.target.value)} rows={2} placeholder={q.question_type === 'true_false' ? "Enter statement (e.g., QuickSort is an in-place sorting algorithm)..." : "Enter question prompt here... (e.g., What is the time complexity of QuickSort?)"} style={{ width: '100%', marginBottom: '0.5rem', fontSize: '0.85rem' }} />
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginBottom: '0.5rem' }}>
-              <input className="input" value={q.option_a} onChange={e => handleManualQuestionEdit(idx, 'option_a', e.target.value)} placeholder="Option A (e.g., O(n log n))" style={{ fontSize: '0.8rem' }} />
-              <input className="input" value={q.option_b} onChange={e => handleManualQuestionEdit(idx, 'option_b', e.target.value)} placeholder="Option B (e.g., O(n^2))" style={{ fontSize: '0.8rem' }} />
-              <input className="input" value={q.option_c} onChange={e => handleManualQuestionEdit(idx, 'option_c', e.target.value)} placeholder="Option C (e.g., O(n))" style={{ fontSize: '0.8rem' }} />
-              <input className="input" value={q.option_d} onChange={e => handleManualQuestionEdit(idx, 'option_d', e.target.value)} placeholder="Option D (e.g., O(1))" style={{ fontSize: '0.8rem' }} />
-            </div>
+            {q.question_type === 'true_false' ? (
+              <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '0.5rem' }}>
+                <div className="type-chip active" style={{ flex: 1, justifyContent: 'center' }}>Option A: True</div>
+                <div className="type-chip active" style={{ flex: 1, justifyContent: 'center' }}>Option B: False</div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                <input className="input" value={q.option_a} onChange={e => handleManualQuestionEdit(idx, 'option_a', e.target.value)} placeholder="Option A (e.g., O(n log n))" style={{ fontSize: '0.8rem' }} />
+                <input className="input" value={q.option_b} onChange={e => handleManualQuestionEdit(idx, 'option_b', e.target.value)} placeholder="Option B (e.g., O(n^2))" style={{ fontSize: '0.8rem' }} />
+                <input className="input" value={q.option_c} onChange={e => handleManualQuestionEdit(idx, 'option_c', e.target.value)} placeholder="Option C (e.g., O(n))" style={{ fontSize: '0.8rem' }} />
+                <input className="input" value={q.option_d} onChange={e => handleManualQuestionEdit(idx, 'option_d', e.target.value)} placeholder="Option D (e.g., O(1))" style={{ fontSize: '0.8rem' }} />
+              </div>
+            )}
             
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: 'var(--bg-input)', padding: '0.4rem 0.6rem', borderRadius: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                 <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Correct:</span>
-                <select className="input" value={q.correct_answer} onChange={e => handleManualQuestionEdit(idx, 'correct_answer', e.target.value)} style={{ width: '90px', padding: '0.25rem 0.4rem', fontSize: '0.75rem' }}>
-                  {['A','B','C','D'].map(o => <option key={o} value={o}>Option {o}</option>)}
+                <select className="input" value={q.correct_answer} onChange={e => handleManualQuestionEdit(idx, 'correct_answer', e.target.value)} style={{ width: '110px', padding: '0.25rem 0.4rem', fontSize: '0.75rem' }}>
+                  {q.question_type === 'true_false' ? (
+                    <>
+                      <option value="A">A (True)</option>
+                      <option value="B">B (False)</option>
+                    </>
+                  ) : (
+                    ['A','B','C','D'].map(o => <option key={o} value={o}>Option {o}</option>)
+                  )}
                 </select>
               </div>
 
@@ -786,8 +1023,13 @@ export default function TeacherQuizzesPage() {
                         <label key={m.id} className={`material-checkbox ${selectedMaterialIds.includes(m.id) ? 'selected' : ''}`}>
                           <input type="checkbox" checked={selectedMaterialIds.includes(m.id)} onChange={() => toggleMaterial(m.id)} />
                           <span style={{ flex: 1 }}>
-                            <span style={{ fontSize: '0.825rem', fontWeight: 500 }}>{m.file_name}</span>
-                            <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)', display: 'block' }}>
+                            <span style={{ fontSize: '0.825rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              {m.file_type === 'video' || m.file_name.startsWith('🎥') ? <Video size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} /> :
+                               m.file_type === 'assignment' || m.file_name.startsWith('📝') ? <FileText size={14} style={{ color: '#f59e0b', flexShrink: 0 }} /> :
+                               <BookOpen size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />}
+                              <span>{m.file_name}</span>
+                            </span>
+                            <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)', display: 'block', marginTop: '2px', marginLeft: '1.25rem' }}>
                               {m.text_length > 0 ? `${Math.round(m.text_length / 100) / 10} KB processed text` : 'No text content'}
                             </span>
                           </span>
@@ -825,6 +1067,67 @@ export default function TeacherQuizzesPage() {
             </div>
           </div>
 
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label className="form-label" style={{ fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>Question Types to Include</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginTop: '0.4rem' }}>
+              {[
+                { key: 'mcq', label: 'Multiple Choice (MCQ)', desc: 'Standard 4-option questions' },
+                { key: 'true_false', label: 'True / False', desc: 'Binary format statement checks' }
+              ].map(t => {
+                const isChecked = aiQuizQuestionTypes.includes(t.key);
+                return (
+                  <div
+                    key={t.key}
+                    onClick={() => {
+                      setAiQuizQuestionTypes(prev =>
+                        prev.includes(t.key) ? (prev.length > 1 ? prev.filter(x => x !== t.key) : prev) : [...prev, t.key]
+                      );
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.85rem 1rem',
+                      borderRadius: '0.75rem',
+                      border: isChecked ? '2px solid var(--accent, #6366f1)' : '1.5px solid var(--border)',
+                      background: isChecked ? 'rgba(99, 102, 241, 0.08)' : 'var(--bg-input, rgba(255, 255, 255, 0.03))',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      userSelect: 'none',
+                      boxShadow: isChecked ? '0 2px 8px rgba(99, 102, 241, 0.15)' : 'none'
+                    }}
+                  >
+                    {/* Custom Styled Checkbox Square */}
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '6px',
+                      border: isChecked ? 'none' : '2px solid var(--text-muted, #94a3b8)',
+                      background: isChecked ? 'var(--accent, #6366f1)' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      transition: 'all 0.2s ease'
+                    }}>
+                      {isChecked && <Check size={14} style={{ color: '#fff', strokeWidth: 3 }} />}
+                    </div>
+
+                    {/* Label and Description */}
+                    <div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: isChecked ? 'var(--accent, #6366f1)' : 'var(--text-primary)' }}>
+                        {t.label}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        {t.desc}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div style={{ padding: '1.25rem', background: 'var(--accent-subtle, rgba(13, 148, 136, 0.05))', borderRadius: '0.75rem', border: '1px solid var(--border)', marginBottom: '1.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
               <Sparkles size={18} style={{ color: 'var(--accent)' }} />
@@ -857,7 +1160,7 @@ export default function TeacherQuizzesPage() {
           </div>
 
           {/* Save config */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1.5fr 0.8fr 0.8fr 1.2fr', gap: '0.65rem', marginBottom: '1rem', padding: '0.85rem', background: 'var(--bg-input)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 2fr 1fr 1fr 1.5fr', gap: '0.65rem', marginBottom: '1rem', padding: '0.85rem', background: 'var(--bg-input)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
             <div>
               <label className="form-label">Section</label>
               <select className="input" onChange={e => { const sid = parseInt(e.target.value); if (sid) fetchLecturesForSection(sid); }} defaultValue="">
@@ -877,16 +1180,8 @@ export default function TeacherQuizzesPage() {
               <input className="input" value={aiSaveTitle} onChange={e => setAiSaveTitle(e.target.value)} placeholder="e.g., AI Quiz: Machine Learning" />
             </div>
             <div>
-              <label className="form-label">Type</label>
-              <select className="input" value={aiSaveQuizType} onChange={e => setAiSaveQuizType(e.target.value)}>
-                <option value="pre">Pre</option>
-                <option value="mid">Mid</option>
-                <option value="post">Post</option>
-              </select>
-            </div>
-            <div>
-              <label className="form-label">Time (m)</label>
-              <input type="number" className="input" value={aiSaveTimeLimit} onChange={e => setAiSaveTimeLimit(parseInt(e.target.value))} placeholder="15" min={1} />
+              <label className="form-label">Timer/Q (s)</label>
+              <input type="number" className="input" value={aiSavePerQuestionTimer} onChange={e => setAiSavePerQuestionTimer(parseInt(e.target.value) || 30)} placeholder="30" min={5} />
             </div>
             <div>
               <label className="form-label">Deadline</label>
@@ -904,7 +1199,7 @@ export default function TeacherQuizzesPage() {
                 </div>
                 <textarea className="input" value={q.question_text} onChange={e => handleAIQuestionEdit(idx, 'question_text', e.target.value)} rows={2} placeholder="Enter question prompt..." style={{ width: '100%', marginBottom: '0.5rem', fontSize: '0.85rem' }} />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginBottom: '0.4rem' }}>
-                  {['a', 'b', 'c', 'd'].map(opt => (
+                  {(q.question_type === 'true_false' ? ['a', 'b'] : ['a', 'b', 'c', 'd']).map(opt => (
                     <input key={opt} className="input" value={q[`option_${opt}`] || ''} onChange={e => handleAIQuestionEdit(idx, `option_${opt}`, e.target.value)} placeholder={`Option ${opt.toUpperCase()} text...`} style={{ fontSize: '0.8rem' }} />
                   ))}
                 </div>
@@ -912,7 +1207,7 @@ export default function TeacherQuizzesPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Correct:</span>
                     <select className="input" value={q.correct_answer} onChange={e => handleAIQuestionEdit(idx, 'correct_answer', e.target.value)} style={{ width: '90px', padding: '0.2rem 0.4rem', fontSize: '0.75rem' }}>
-                      {['A','B','C','D'].map(o => <option key={o} value={o}>Option {o}</option>)}
+                      {(q.question_type === 'true_false' ? ['A','B'] : ['A','B','C','D']).map(o => <option key={o} value={o}>Option {o}</option>)}
                     </select>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
@@ -1051,6 +1346,18 @@ export default function TeacherQuizzesPage() {
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes modalSlideUp { from { transform: translateY(16px) scale(0.98); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+
+        /* Shake animation for inline modal-content elements */
+        @keyframes inlineModalShake {
+          0%, 100% { transform: translateX(0); }
+          10%, 50%, 90% { transform: translateX(-6px); }
+          30%, 70% { transform: translateX(6px); }
+        }
+        .modal-content-shake {
+          animation: inlineModalShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both !important;
+          border-color: #f59e0b !important;
+          box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25), 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+        }
 
         /* Custom Scrollbar inside modal */
         .modal-scroll-area::-webkit-scrollbar, .modal-content::-webkit-scrollbar { width: 6px; }

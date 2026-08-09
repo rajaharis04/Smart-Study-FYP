@@ -263,22 +263,25 @@ class Dashboard {
   final int totalCourses;           // Total enrolled courses
   final double attendancePercentage; // Attendance %
   final int activeQuizzesCount;      // Kitne quizzes abhi active hain
+  final int activeAssignmentsCount;  // Kitni assignments abhi active/pending hain
 
   const Dashboard({
     required this.overallProgress,
     required this.totalCourses,
     required this.attendancePercentage,
     required this.activeQuizzesCount,
+    required this.activeAssignmentsCount,
   });
 
   // ── fromJson() ──────────────────────────────────────────────────
   factory Dashboard.fromJson(Map<String, dynamic> json) {
     return Dashboard(
       // num.toDouble() use karo — backend int ya double bhej sakta hai
-      overallProgress:      (json['overall_progress']      as num).toDouble(),
-      totalCourses:          json['total_courses']          as int,
-      attendancePercentage: (json['attendance_percentage'] as num).toDouble(),
-      activeQuizzesCount:    json['active_quizzes_count']  as int,
+      overallProgress:      (json['overall_progress']      as num?)?.toDouble() ?? 0.0,
+      totalCourses:          json['total_courses']          as int? ?? 0,
+      attendancePercentage: (json['attendance_percentage'] as num?)?.toDouble() ?? 0.0,
+      activeQuizzesCount:    json['active_quizzes_count']  as int? ?? 0,
+      activeAssignmentsCount: json['active_assignments_count'] as int? ?? json['pending_assignments_count'] as int? ?? 0,
     );
   }
 
@@ -286,15 +289,16 @@ class Dashboard {
   double get progressFraction => overallProgress / 100.0;
 
   Map<String, dynamic> toJson() => {
-    'overall_progress':      overallProgress,
-    'total_courses':         totalCourses,
-    'attendance_percentage': attendancePercentage,
-    'active_quizzes_count':  activeQuizzesCount,
+    'overall_progress':        overallProgress,
+    'total_courses':           totalCourses,
+    'attendance_percentage':   attendancePercentage,
+    'active_quizzes_count':    activeQuizzesCount,
+    'active_assignments_count': activeAssignmentsCount,
   };
 
   @override
   String toString() =>
-      'Dashboard(progress: $overallProgress%, courses: $totalCourses)';
+      'Dashboard(progress: $overallProgress%, courses: $totalCourses, assignments: $activeAssignmentsCount)';
 }
 
 // ──────────────────────────────────────────────────────────────────
@@ -503,6 +507,7 @@ class ActiveQuiz {
   final bool isAttempted;   // Attempt kiya ja chuka hai?
   final int? lectureId;     // Lecture ID link
   final int timeLimitMinutes; // Attempt time limit in minutes
+  final int perQuestionTimerSeconds; // Per-question hard timer in seconds
 
   const ActiveQuiz({
     required this.quizId,
@@ -512,6 +517,7 @@ class ActiveQuiz {
     required this.isAttempted,
     this.lectureId,
     this.timeLimitMinutes = 10,
+    this.perQuestionTimerSeconds = 30,
   });
 
   factory ActiveQuiz.fromJson(Map<String, dynamic> json) {
@@ -525,7 +531,8 @@ class ActiveQuiz {
           : null,
       isAttempted: json['is_attempted'] as bool,
       lectureId:    json['lecture_id']   as int?,
-      timeLimitMinutes: json['time_limit_minutes'] as int? ?? 10,
+      timeLimitMinutes: json['time_limit_mins'] as int? ?? json['time_limit_minutes'] as int? ?? 10,
+      perQuestionTimerSeconds: json['per_question_timer_seconds'] as int? ?? 30,
     );
   }
 

@@ -774,6 +774,8 @@ def list_teacher_quizzes(
     result = []
     for q in quizzes:
         attempts_count = db.query(QuizResponse.student_id).filter(QuizResponse.quiz_id == q.id).distinct().count()
+        eff_q_count = len(q.questions)
+
         result.append({
             "id": q.id,
             "title": q.title or f"{q.quiz_type.upper()} - {q.lecture.title}",
@@ -782,10 +784,14 @@ def list_teacher_quizzes(
             "course_name": q.lecture.section.course.name,
             "quiz_type": q.quiz_type,
             "is_published": q.is_published,
+            "is_deleted": bool(q.is_deleted),
             "publish_date": q.publish_date.isoformat() if q.publish_date else None,
             "time_limit_mins": q.time_limit_mins,
+            "per_question_timer_seconds": q.per_question_timer_seconds or 30,
+            "max_questions_per_student": q.max_questions_per_student,
             "show_hints": q.show_hints,
-            "questions_count": len(q.questions),
+            "due_date": q.due_date.isoformat() if q.due_date else None,
+            "questions_count": eff_q_count,
             "attempts_count": attempts_count
         })
     return result
@@ -793,17 +799,20 @@ def list_teacher_quizzes(
 
 class QuestionEditModel(BaseModel):
     question_text: str
-    option_a: str
-    option_b: str
-    option_c: str
-    option_d: str
-    correct_answer: str
-    difficulty: str
+    option_a: Optional[str] = ""
+    option_b: Optional[str] = ""
+    option_c: Optional[str] = ""
+    option_d: Optional[str] = ""
+    correct_answer: str = "A"
+    difficulty: str = "medium"
+    question_type: Optional[str] = "mcq"
 
 class QuizEditModel(BaseModel):
     title: str
     is_published: bool
     time_limit_mins: int
+    per_question_timer_seconds: Optional[int] = 30
+    max_questions_per_student: Optional[int] = None
     show_hints: bool
     questions: List[QuestionEditModel]
 
@@ -822,6 +831,8 @@ def update_quiz_and_questions(
     quiz.title = payload.title
     quiz.is_published = payload.is_published
     quiz.time_limit_mins = payload.time_limit_mins
+    quiz.per_question_timer_seconds = payload.per_question_timer_seconds if payload.per_question_timer_seconds is not None else 30
+    quiz.max_questions_per_student = payload.max_questions_per_student
     quiz.show_hints = payload.show_hints
     
     if payload.is_published and not quiz.publish_date:
@@ -881,7 +892,10 @@ def get_quiz_details(
         "quiz_type": quiz.quiz_type,
         "is_published": quiz.is_published,
         "time_limit_mins": quiz.time_limit_mins,
+        "per_question_timer_seconds": quiz.per_question_timer_seconds or 30,
+        "max_questions_per_student": quiz.max_questions_per_student,
         "show_hints": quiz.show_hints,
+        "due_date": quiz.due_date.isoformat() if quiz.due_date else None,
         "questions": questions
     }
 
@@ -913,10 +927,13 @@ def get_quiz_submissions(
             QuizResponse.quiz_id == quiz_id, QuizResponse.student_id == student_id
         ).all()
         
-        # Calculate grade
-        total_questions = len(quiz.questions)
+        # Calculate grade based on student's actual total questions
+        effective_total = len(quiz.questions)
+        if len(responses) > 0:
+            effective_total = max(len(responses), effective_total)
+
         correct_answers = sum(1 for r in responses if r.is_correct)
-        score = (correct_answers / total_questions * 100.0) if total_questions > 0 else 0.0
+        score = (correct_answers / effective_total * 100.0) if effective_total > 0 else 0.0
         
         # Find submission timestamp (take latest answered_at)
         sub_time = max(r.answered_at for r in responses) if responses else datetime.utcnow()
@@ -925,7 +942,7 @@ def get_quiz_submissions(
             "student_name": student.user.full_name,
             "reg_number": student.reg_number,
             "correct_count": correct_answers,
-            "total_questions": total_questions,
+            "total_questions": effective_total,
             "score_percentage": round(score, 1),
             "submitted_at": sub_time.isoformat()
         })
@@ -952,13 +969,15 @@ def get_quiz_analytics(
     
     avg_score = 0.0
     correct_count = sum(1 for r in responses if r.is_correct)
-    total_graded = sum(1 for r in responses if r.is_correct is not None)
+    total_graded = sum(1 for r in responses if r.is_correct != None)
     if total_graded > 0:
         avg_score = (correct_count / total_graded * 100)
         
     # Question difficulty analysis (percentage of wrong attempts)
     questions_stats = []
-    for q in quiz.questions:
+    analyzed_questions = list(quiz.questions)
+
+    for q in analyzed_questions:
         q_responses = db.query(QuizResponse).filter(QuizResponse.question_id == q.id).all()
         q_total = len(q_responses)
         q_correct = sum(1 for r in q_responses if r.is_correct)
@@ -993,9 +1012,10 @@ def delete_quiz(
     if not quiz or (quiz.lecture and quiz.lecture.section.teacher_id != teacher.id):
         raise HTTPException(status_code=404, detail="Quiz not found.")
 
-    db.delete(quiz)
+    quiz.is_deleted = True
+    quiz.is_published = False
     db.commit()
-    return {"ok": True, "message": "Quiz deleted successfully."}
+    return {"ok": True, "message": "Quiz deleted (moved to completed) successfully."}
 
 
 
@@ -1554,7 +1574,44 @@ def get_available_materials(
                     "materials": mats_list
                 })
 
-        # 3. Fallback virtual course material if no topic materials/lectures exist yet
+        # 3. Fetch Assignments for this course's sections
+        query_sec_ids = [s.id for s in sections if s.course_id == cid]
+        if not query_sec_ids:
+            query_sec_ids = [s.id for s in db.query(Section).filter(Section.course_id == cid).all()]
+
+        if query_sec_ids:
+            assignments = db.query(Assignment).filter(
+                Assignment.section_id.in_(query_sec_ids),
+                Assignment.is_deleted == False
+            ).all()
+
+            if assignments:
+                assign_mats = []
+                for a in assignments:
+                    assign_qs = db.query(AssignmentQuestion).filter(AssignmentQuestion.assignment_id == a.id).all()
+                    q_summary = "\n".join([f"- Q: {q.question_text}" for q in assign_qs])
+                    assign_text = (
+                        f"=== Assignment Content: {a.title} ===\n\n"
+                        f"Description: {a.description or 'No description'}\n"
+                        f"Total Marks: {a.total_marks}\n\n"
+                        f"Questions & Tasks:\n{q_summary if q_summary else 'Standard course assessment questions.'}"
+                    )
+                    assign_mats.append({
+                        "id": 2000000 + a.id,  # Virtual positive ID offset for assignments
+                        "file_name": f"📝 Assignment: {a.title}",
+                        "file_type": "assignment",
+                        "text_preview": assign_text[:200] + "...",
+                        "text_length": len(assign_text)
+                    })
+
+                topics_data.append({
+                    "topic_id": 88000 + course.id,
+                    "topic_title": f"📋 Course Assignments & Tasks",
+                    "blooms_level": "Apply",
+                    "materials": assign_mats
+                })
+
+        # 4. Fallback virtual course material if no topic materials/lectures/assignments exist yet
         if not topics_data:
             virtual_text = (
                 f"=== Academic Curriculum for {course.name} ({course.code}) ===\n\n"
@@ -1591,6 +1648,7 @@ class AIQuizGenerateRequest(BaseModel):
     material_ids: List[int]
     num_questions: int = 10
     difficulty: str = "medium"  # easy | medium | hard
+    question_types: Optional[List[str]] = ["mcq", "true_false"]
 
 
 @router.post("/ai/generate-quiz")
@@ -1601,7 +1659,7 @@ async def generate_ai_quiz(
 ):
     """
     AI Quiz Generation — Preview mode.
-    Fetches extracted_text from selected materials (or lectures/course curriculum),
+    Fetches extracted_text from selected materials (or lectures/course curriculum/assignments),
     sends to Groq AI, returns generated questions for teacher preview.
     """
     if payload.num_questions < 1 or payload.num_questions > 30:
@@ -1611,7 +1669,19 @@ async def generate_ai_quiz(
 
     if payload.material_ids:
         for mid in payload.material_ids:
-            if mid >= 1000000:
+            if mid >= 2000000:
+                # Assignment virtual ID
+                assign_id = mid - 2000000
+                assign = db.query(Assignment).filter(Assignment.id == assign_id).first()
+                if assign:
+                    assign_qs = db.query(AssignmentQuestion).filter(AssignmentQuestion.assignment_id == assign.id).all()
+                    q_summary = "\n".join([f"- Q: {q.question_text}" for q in assign_qs])
+                    combined_texts.append(
+                        f"=== Assignment Content: {assign.title} ===\n"
+                        f"Description: {assign.description or 'Course Assignment'}\n"
+                        f"Questions & Tasks:\n{q_summary if q_summary else 'Standard course assessment questions.'}"
+                    )
+            elif mid >= 1000000:
                 # Lecture virtual ID
                 lec_id = mid - 1000000
                 lec = db.query(Lecture).filter(Lecture.id == lec_id).first()
@@ -1651,10 +1721,12 @@ async def generate_ai_quiz(
     try:
         from app.services.groq_quiz_service import get_groq_quiz_service
         groq_service = get_groq_quiz_service()
+        q_types = payload.question_types if payload.question_types else ["mcq", "true_false"]
         questions = await groq_service.generate_quiz_questions(
             text=combined_text,
             num_questions=payload.num_questions,
-            difficulty=payload.difficulty
+            difficulty=payload.difficulty,
+            question_types=q_types
         )
 
         return {
@@ -1673,6 +1745,8 @@ class SaveAIQuizRequest(BaseModel):
     title: str
     quiz_type: str = "post"  # pre | mid | post
     time_limit_mins: int = 10
+    per_question_timer_seconds: Optional[int] = 30
+    max_questions_per_student: Optional[int] = None
     due_date: Optional[str] = None
     is_published: bool = False
     show_hints: bool = False
@@ -1708,6 +1782,8 @@ def save_ai_quiz(
         is_published=payload.is_published,
         publish_date=datetime.utcnow() if payload.is_published else None,
         time_limit_mins=payload.time_limit_mins,
+        per_question_timer_seconds=payload.per_question_timer_seconds if payload.per_question_timer_seconds is not None else 30,
+        max_questions_per_student=payload.max_questions_per_student,
         due_date=parsed_due,
         show_hints=payload.show_hints,
         creation_type="ai_generated",
@@ -1752,6 +1828,8 @@ class ManualQuizCreateRequest(BaseModel):
     title: str
     quiz_type: str = "post"
     time_limit_mins: int = 10
+    per_question_timer_seconds: Optional[int] = 30
+    max_questions_per_student: Optional[int] = None
     due_date: Optional[str] = None
     is_published: bool = False
     show_hints: bool = False
@@ -1786,6 +1864,8 @@ def create_manual_quiz(
         is_published=payload.is_published,
         publish_date=datetime.utcnow() if payload.is_published else None,
         time_limit_mins=payload.time_limit_mins,
+        per_question_timer_seconds=payload.per_question_timer_seconds if payload.per_question_timer_seconds is not None else 30,
+        max_questions_per_student=payload.max_questions_per_student,
         due_date=parsed_due,
         show_hints=payload.show_hints,
         creation_type="manual"
@@ -1929,6 +2009,7 @@ def list_section_assignments(
             "due_date": a.due_date.isoformat() if a.due_date else None,
             "total_marks": a.total_marks,
             "is_published": a.is_published,
+            "is_deleted": bool(a.is_deleted),
             "publish_date": a.publish_date.isoformat() if a.publish_date else None,
             "questions_count": len(a.questions),
             "submissions_count": len(a.submissions),
@@ -1936,6 +2017,85 @@ def list_section_assignments(
         }
         for a in assignments
     ]
+
+
+
+@router.get("/assignments/regrade-requests")
+def get_teacher_regrade_requests(
+    teacher: Teacher = Depends(get_current_teacher),
+    db: Session = Depends(get_db)
+):
+    from app.models.models import RegradeRequest, AssignmentSubmission, Assignment, Section, Student
+    requests = db.query(RegradeRequest).join(AssignmentSubmission).join(Assignment).join(Section).filter(
+        Section.teacher_id == teacher.id
+    ).all()
+
+    rows = []
+    for req in requests:
+        student = req.student
+        submission = req.submission
+        assignment = submission.assignment if submission else None
+
+        rows.append({
+            "id": req.id,
+            "submission_id": req.submission_id,
+            "student_id": req.student_id,
+            "student_name": student.user.full_name if student and student.user else "N/A",
+            "reg_number": student.reg_number if student else "N/A",
+            "assignment_title": assignment.title if assignment else "N/A",
+            "total_marks": assignment.total_marks if assignment else 100,
+            "current_score": submission.total_score if submission else 0,
+            "reason": req.reason,
+            "status": req.status,
+            "adjusted_marks": req.adjusted_marks,
+            "teacher_feedback": req.teacher_feedback,
+            "created_at": req.created_at.isoformat() if req.created_at else None,
+        })
+
+    return {"requests": rows}
+
+
+class RespondRegradePayload(BaseModel):
+    status: str
+    adjusted_marks: Optional[int] = None
+    teacher_feedback: Optional[str] = None
+
+
+@router.post("/assignments/regrade-requests/{request_id}/respond")
+def respond_to_regrade_request(
+    request_id: int,
+    payload: RespondRegradePayload,
+    teacher: Teacher = Depends(get_current_teacher),
+    db: Session = Depends(get_db)
+):
+    from app.models.models import RegradeRequest, AssignmentSubmission, Notification
+    req = db.query(RegradeRequest).filter(RegradeRequest.id == request_id).first()
+    if not req:
+        raise HTTPException(status_code=404, detail="Regrade request not found.")
+
+    req.status = payload.status
+    req.adjusted_marks = payload.adjusted_marks
+    req.teacher_feedback = payload.teacher_feedback
+
+    if payload.status == "approved" and payload.adjusted_marks is not None:
+        sub = db.query(AssignmentSubmission).filter(AssignmentSubmission.id == req.submission_id).first()
+        if sub:
+            sub.total_score = payload.adjusted_marks
+            sub.status = "graded"
+
+    student = req.student
+    if student and student.user:
+        notif = Notification(
+            user_id=student.user.id,
+            title=f"Assignment Regrade Request {payload.status.capitalize()}",
+            message=f"Your regrade request for '{req.submission.assignment.title}' was {payload.status}. {payload.teacher_feedback or ''}",
+            is_read=False,
+            created_at=datetime.utcnow()
+        )
+        db.add(notif)
+
+    db.commit()
+    return {"ok": True, "message": f"Regrade request {payload.status} successfully."}
 
 
 @router.get("/assignments/{assignment_id}")
@@ -2040,9 +2200,10 @@ def delete_assignment(
     if not assignment or assignment.section.teacher_id != teacher.id:
         raise HTTPException(status_code=404, detail="Assignment not found.")
 
-    db.delete(assignment)
+    assignment.is_deleted = True
+    assignment.is_published = False
     db.commit()
-    return {"ok": True, "message": "Assignment deleted successfully."}
+    return {"ok": True, "message": "Assignment deleted (moved to completed) successfully."}
 
 
 
@@ -2132,6 +2293,8 @@ def get_assignment_submission_details(
         "max_score": max_s,
         "score_percentage": pct,
         "submitted_at": sub.submitted_at.isoformat() if sub.submitted_at else datetime.utcnow().isoformat(),
+        "attached_file_url": sub.attached_file_url,
+        "attached_file_name": sub.attached_file_name,
         "questions": question_details
     }
 
@@ -2198,10 +2361,19 @@ async def evaluate_assignment_submission_ai(
     }
 
 
+class QuestionGradeItem(BaseModel):
+    question_id: int
+    marks_awarded: float
+
+class GradeSubmissionPayload(BaseModel):
+    question_grades: List[QuestionGradeItem]
+    teacher_feedback: Optional[str] = None
+
+
 @router.put("/assignments/submissions/{submission_id}/grade")
 def grade_assignment_submission(
     submission_id: int,
-    payload: Dict,
+    payload: GradeSubmissionPayload,
     teacher: Teacher = Depends(get_current_teacher),
     db: Session = Depends(get_db)
 ):
@@ -2210,12 +2382,12 @@ def grade_assignment_submission(
     if not sub or sub.assignment.section.teacher_id != teacher.id:
         raise HTTPException(status_code=404, detail="Submission not found.")
 
-    question_grades = payload.get("question_grades", [])  # list of { question_id, marks_awarded }
+    question_grades = payload.question_grades  # list of QuestionGradeItem
     total_score = 0.0
 
     for qg in question_grades:
-        q_id = qg.get("question_id")
-        marks = float(qg.get("marks_awarded", 0))
+        q_id = qg.question_id
+        marks = float(qg.marks_awarded)
         total_score += marks
 
         ans = db.query(AssignmentAnswer).filter(
@@ -2270,9 +2442,13 @@ def get_assignment_analytics(
 
     q_performance = []
     for i, q in enumerate(questions):
+        ans_records = db.query(AssignmentAnswer).filter(AssignmentAnswer.question_id == q.id).all()
+        tot_ans = len(ans_records)
+        corr_ans = sum(1 for a in ans_records if a.is_correct or (a.marks_awarded is not null and a.marks_awarded > 0))
+        s_rate = (corr_ans / tot_ans * 100.0) if tot_ans > 0 else (0.0 if attempts_count == 0 else 100.0)
         q_performance.append({
             "question_text": f"Q{i + 1}: {q.question_text}",
-            "success_rate": 85.0 if attempts_count > 0 else 0.0,
+            "success_rate": round(s_rate, 1),
             "difficulty_rating": (q.difficulty or "medium").capitalize()
         })
 
@@ -2308,7 +2484,19 @@ async def generate_ai_assignment(
 
     if payload.material_ids:
         for mid in payload.material_ids:
-            if mid >= 1000000:
+            if mid >= 2000000:
+                # Assignment virtual ID
+                assign_id = mid - 2000000
+                assign = db.query(Assignment).filter(Assignment.id == assign_id).first()
+                if assign:
+                    assign_qs = db.query(AssignmentQuestion).filter(AssignmentQuestion.assignment_id == assign.id).all()
+                    q_summary = "\n".join([f"- Q: {q.question_text}" for q in assign_qs])
+                    combined_texts.append(
+                        f"=== Assignment Content: {assign.title} ===\n"
+                        f"Description: {assign.description or 'Course Assignment'}\n"
+                        f"Questions & Tasks:\n{q_summary if q_summary else 'Standard course assessment questions.'}"
+                    )
+            elif mid >= 1000000:
                 # Lecture virtual ID
                 lec_id = mid - 1000000
                 lec = db.query(Lecture).filter(Lecture.id == lec_id).first()
@@ -2443,3 +2631,313 @@ def save_ai_assignment(
         "assignment_id": assignment.id,
         "questions_count": len(payload.questions)
     }
+
+
+# ════════════════════════════════════════════════════════════════════
+#  EXAM GRADES (Midterm, Final, & Others)
+# ════════════════════════════════════════════════════════════════════
+
+@router.get("/sections/{section_id}/exam-grades")
+def get_section_exam_grades(
+    section_id: int,
+    teacher: Teacher = Depends(get_current_teacher),
+    db: Session = Depends(get_db)
+):
+    section = db.query(Section).filter(Section.id == section_id, Section.teacher_id == teacher.id).first()
+    if not section:
+        raise HTTPException(status_code=404, detail="Section not found.")
+
+    from app.models.models import Enrollment, Student, ExamGrade
+    enrollments = db.query(Enrollment).filter(Enrollment.section_id == section_id, Enrollment.is_active == True).all()
+
+    rows = []
+    for e in enrollments:
+        student = e.student
+        if not student:
+            continue
+        grade = db.query(ExamGrade).filter(
+            ExamGrade.section_id == section_id,
+            ExamGrade.student_id == student.id,
+        ).first()
+
+        rows.append({
+            "student_id": student.id,
+            "student_name": student.user.full_name,
+            "student_email": student.user.email,
+            "reg_number": student.reg_number,
+            "midterm_score": grade.midterm_score if grade else 0.0,
+            "midterm_max": grade.midterm_max if grade else 30.0,
+            "final_score": grade.final_score if grade else 0.0,
+            "final_max": grade.final_max if grade else 50.0,
+            "others_score": grade.others_score if grade else 0.0,
+            "others_max": grade.others_max if grade else 20.0,
+            "others_title": grade.others_title if grade else "Project & Presentation",
+        })
+
+    return {"section_id": section_id, "students": rows}
+
+
+class SaveExamGradeItem(BaseModel):
+    student_id: int
+    midterm_score: Optional[float] = 0.0
+    midterm_max: Optional[float] = 30.0
+    final_score: Optional[float] = 0.0
+    final_max: Optional[float] = 50.0
+    others_score: Optional[float] = 0.0
+    others_max: Optional[float] = 20.0
+    others_title: Optional[str] = "Project & Presentation"
+
+
+class SaveSectionExamGradesPayload(BaseModel):
+    students: List[SaveExamGradeItem]
+
+
+@router.post("/sections/{section_id}/exam-grades/save")
+def save_section_exam_grades(
+    section_id: int,
+    payload: SaveSectionExamGradesPayload,
+    teacher: Teacher = Depends(get_current_teacher),
+    db: Session = Depends(get_db)
+):
+    section = db.query(Section).filter(Section.id == section_id, Section.teacher_id == teacher.id).first()
+    if not section:
+        raise HTTPException(status_code=404, detail="Section not found.")
+
+    from app.models.models import ExamGrade
+    for item in payload.students:
+        grade = db.query(ExamGrade).filter(
+            ExamGrade.section_id == section_id,
+            ExamGrade.student_id == item.student_id,
+        ).first()
+
+        if grade:
+            grade.midterm_score = item.midterm_score or 0.0
+            grade.midterm_max = item.midterm_max or 30.0
+            grade.final_score = item.final_score or 0.0
+            grade.final_max = item.final_max or 50.0
+            grade.others_score = item.others_score or 0.0
+            grade.others_max = item.others_max or 20.0
+            grade.others_title = item.others_title or "Project & Presentation"
+            grade.updated_at = datetime.utcnow()
+        else:
+            grade = ExamGrade(
+                section_id=section_id,
+                student_id=item.student_id,
+                midterm_score=item.midterm_score or 0.0,
+                midterm_max=item.midterm_max or 30.0,
+                final_score=item.final_score or 0.0,
+                final_max=item.final_max or 50.0,
+                others_score=item.others_score or 0.0,
+                others_max=item.others_max or 20.0,
+                others_title=item.others_title or "Project & Presentation",
+            )
+            db.add(grade)
+
+    db.commit()
+    return {"ok": True, "saved_count": len(payload.students)}
+
+
+# ════════════════════════════════════════════════════════════════════
+#  END-OF-SEMESTER COMPILED RESULTS (100 Marks Weighted Average)
+# ════════════════════════════════════════════════════════════════════
+
+@router.get("/sections/{section_id}/compiled-results")
+def get_section_compiled_results(
+    section_id: int,
+    teacher: Teacher = Depends(get_current_teacher),
+    db: Session = Depends(get_db)
+):
+    section = db.query(Section).filter(Section.id == section_id, Section.teacher_id == teacher.id).first()
+    if not section:
+        raise HTTPException(status_code=404, detail="Section not found.")
+
+    from app.models.models import Enrollment, GradingPolicy, ExamGrade, QuizResponse, Quiz, AssignmentSubmission, Assignment, SemesterResult, Lecture
+
+    policy = db.query(GradingPolicy).filter((GradingPolicy.section_id == section_id) | (GradingPolicy.section_id == None)).order_by(GradingPolicy.section_id.desc()).first()
+    w_q = policy.quizzes_weight if policy else 15.0
+    w_a = policy.assignments_weight if policy else 15.0
+    w_m = policy.midterm_weight if policy else 25.0
+    w_f = policy.final_weight if policy else 40.0
+    w_o = policy.others_weight if policy else 5.0
+
+    enrollments = db.query(Enrollment).filter(Enrollment.section_id == section_id, Enrollment.is_active == True).all()
+
+    lectures = db.query(Lecture).filter(Lecture.section_id == section_id).all()
+    lecture_ids = [l.id for l in lectures]
+    quizzes = db.query(Quiz).filter(Quiz.lecture_id.in_(lecture_ids)).all() if lecture_ids else []
+    assignments = db.query(Assignment).filter(Assignment.section_id == section_id).all()
+
+    rows = []
+    submission_status = "draft"
+
+    for e in enrollments:
+        student = e.student
+        if not student:
+            continue
+
+        q_pct = 0.0
+        if quizzes:
+            q_pct_list = []
+            for q in quizzes:
+                res = db.query(QuizResponse).filter(QuizResponse.quiz_id == q.id, QuizResponse.student_id == student.id).all()
+                if res:
+                    correct = sum(1 for r in res if r.is_correct)
+                    q_max = len(q.questions) if q.questions else len(res)
+                    if len(res) > 0:
+                        q_max = max(len(res), q_max)
+                    q_pct_list.append((correct / q_max * 100.0) if q_max > 0 else 0.0)
+                else:
+                    q_pct_list.append(0.0)
+
+            if policy and policy.drop_lowest_quiz and len(q_pct_list) > 1:
+                q_pct_list.sort()
+                q_pct_list.pop(0)
+
+            q_pct = sum(q_pct_list) / len(q_pct_list) if q_pct_list else 0.0
+
+        a_pct = 0.0
+        if assignments:
+            total_a_pct = 0.0
+            for a in assignments:
+                sub = db.query(AssignmentSubmission).filter(AssignmentSubmission.assignment_id == a.id, AssignmentSubmission.student_id == student.id).first()
+                if sub:
+                    max_sc = sub.max_score or a.total_marks or 100
+                    sc = sub.total_score if sub.total_score is not None else 0.0
+                    total_a_pct += ((sc / max_sc * 100.0) if max_sc > 0 else 0.0)
+            a_pct = total_a_pct / len(assignments)
+
+        eg = db.query(ExamGrade).filter(ExamGrade.section_id == section_id, ExamGrade.student_id == student.id).first()
+        m_pct = ((eg.midterm_score / eg.midterm_max * 100.0) if (eg and eg.midterm_max) else 0.0)
+        f_pct = ((eg.final_score / eg.final_max * 100.0) if (eg and eg.final_max) else 0.0)
+        o_pct = ((eg.others_score / eg.others_max * 100.0) if (eg and eg.others_max) else 0.0)
+
+        q_comp = round(q_pct * (w_q / 100.0), 2)
+        a_comp = round(a_pct * (w_a / 100.0), 2)
+        m_comp = round(m_pct * (w_m / 100.0), 2)
+        f_comp = round(f_pct * (w_f / 100.0), 2)
+        o_comp = round(o_pct * (w_o / 100.0), 2)
+
+        total_100 = round(q_comp + a_comp + m_comp + f_comp + o_comp, 1)
+
+        if total_100 >= 85:
+            grade, gpa = "A", 4.0
+        elif total_100 >= 75:
+            grade, gpa = "B", 3.0
+        elif total_100 >= 65:
+            grade, gpa = "C", 2.0
+        elif total_100 >= 50:
+            grade, gpa = "D", 1.0
+        else:
+            grade, gpa = "F", 0.0
+
+        existing = db.query(SemesterResult).filter(SemesterResult.section_id == section_id, SemesterResult.student_id == student.id).first()
+        if existing and existing.status:
+            submission_status = existing.status
+
+        rows.append({
+            "student_id": student.id,
+            "student_name": student.user.full_name,
+            "reg_number": student.reg_number,
+            "quizzes_comp": q_comp,
+            "assignments_comp": a_comp,
+            "midterm_comp": m_comp,
+            "final_comp": f_comp,
+            "others_comp": o_comp,
+            "total_weighted_score": total_100,
+            "letter_grade": grade,
+            "gpa": gpa,
+            "status": existing.status if existing else "draft"
+        })
+
+    return {
+        "section_id": section_id,
+        "policy": {
+            "quizzes_weight": w_q,
+            "assignments_weight": w_a,
+            "midterm_weight": w_m,
+            "final_weight": w_f,
+            "others_weight": w_o,
+            "drop_lowest_quiz": policy.drop_lowest_quiz if policy else False
+        },
+        "submission_status": submission_status,
+        "students": rows
+    }
+
+
+@router.post("/sections/{section_id}/submit-final-results")
+def submit_section_final_results(
+    section_id: int,
+    teacher: Teacher = Depends(get_current_teacher),
+    db: Session = Depends(get_db)
+):
+    section = db.query(Section).filter(Section.id == section_id, Section.teacher_id == teacher.id).first()
+    if not section:
+        raise HTTPException(status_code=404, detail="Section not found.")
+
+    res_data = get_section_compiled_results(section_id, teacher, db)
+    from app.models.models import SemesterResult
+
+    for s_item in res_data["students"]:
+        existing = db.query(SemesterResult).filter(SemesterResult.section_id == section_id, SemesterResult.student_id == s_item["student_id"]).first()
+        if existing:
+            existing.quizzes_score_100 = s_item["quizzes_comp"]
+            existing.assignments_score_100 = s_item["assignments_comp"]
+            existing.midterm_score_100 = s_item["midterm_comp"]
+            existing.final_score_100 = s_item["final_comp"]
+            existing.others_score_100 = s_item["others_comp"]
+            existing.total_weighted_score = s_item["total_weighted_score"]
+            existing.letter_grade = s_item["letter_grade"]
+            existing.gpa = s_item["gpa"]
+            existing.status = "submitted"
+            existing.submitted_at = datetime.utcnow()
+        else:
+            sr = SemesterResult(
+                section_id=section_id,
+                student_id=s_item["student_id"],
+                quizzes_score_100=s_item["quizzes_comp"],
+                assignments_score_100=s_item["assignments_comp"],
+                midterm_score_100=s_item["midterm_comp"],
+                final_score_100=s_item["final_comp"],
+                others_score_100=s_item["others_comp"],
+                total_weighted_score=s_item["total_weighted_score"],
+                letter_grade=s_item["letter_grade"],
+                gpa=s_item["gpa"],
+                status="submitted",
+                submitted_at=datetime.utcnow()
+            )
+            db.add(sr)
+
+    db.commit()
+    return {"ok": True, "message": "Final grades submitted to Admin for approval."}
+
+
+@router.post("/quizzes/{quiz_id}/regrade")
+def bulk_regrade_quiz(
+    quiz_id: int,
+    teacher: Teacher = Depends(get_current_teacher),
+    db: Session = Depends(get_db)
+):
+    from app.models.models import Quiz, QuizQuestion, QuizResponse
+    quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found.")
+
+    questions = db.query(QuizQuestion).filter(QuizQuestion.quiz_id == quiz_id).all()
+    q_map = {q.id: (q.correct_answer or "").strip().lower() for q in questions}
+
+    responses = db.query(QuizResponse).filter(QuizResponse.quiz_id == quiz_id).all()
+    regraded_count = 0
+
+    for r in responses:
+        correct_ans = q_map.get(r.question_id)
+        if correct_ans:
+            student_ans = (r.answer or "").strip().lower()
+            new_is_correct = (student_ans == correct_ans)
+            if r.is_correct != new_is_correct:
+                r.is_correct = new_is_correct
+                regraded_count += 1
+
+    db.commit()
+    return {"ok": True, "regraded_count": regraded_count, "message": f"Successfully re-graded {regraded_count} student responses."}
+
+

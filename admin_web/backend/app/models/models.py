@@ -360,10 +360,13 @@ class Quiz(Base):
     is_published    = Column(Boolean, default=False)
     publish_date    = Column(DateTime, nullable=True)
     time_limit_mins = Column(Integer, default=10, nullable=True)
+    per_question_timer_seconds = Column(Integer, default=30, nullable=True)
+    max_questions_per_student = Column(Integer, nullable=True)
     show_hints      = Column(Boolean, default=False)
     creation_type   = Column(String(20), default="manual")   # manual | ai_generated
     source_material_ids = Column(Text, nullable=True)        # JSON array of TopicMaterial IDs used by AI
     due_date        = Column(DateTime, nullable=True)
+    is_deleted      = Column(Boolean, default=False)
     created_at      = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -417,6 +420,23 @@ class QuizResponse(Base):
     quiz     = relationship("Quiz",         back_populates="responses")
     question = relationship("QuizQuestion", back_populates="responses")
     student  = relationship("Student",      back_populates="quiz_responses")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  QuizAttemptSession — Server-side timestamp & timer tracking
+# ════════════════════════════════════════════════════════════════════
+class QuizAttemptSession(Base):
+    __tablename__ = "quiz_attempt_sessions"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    quiz_id      = Column(Integer, ForeignKey("quizzes.id", ondelete="CASCADE"), nullable=False)
+    student_id   = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    started_at   = Column(DateTime, default=datetime.utcnow, nullable=False)
+    submitted_at = Column(DateTime, nullable=True)
+    is_completed = Column(Boolean, default=False)
+    is_cancelled = Column(Boolean, default=False)
+    proctoring_warnings_count = Column(Integer, default=0)
+    proctoring_logs           = Column(Text, nullable=True)
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -522,8 +542,11 @@ class Assignment(Base):
     source_material_ids = Column(Text, nullable=True)           # JSON array of TopicMaterial IDs
     due_date            = Column(DateTime, nullable=True)
     total_marks         = Column(Integer, default=100)
+    late_penalty_pct    = Column(Float, default=0.0)
+    grace_period_hours  = Column(Integer, default=0)
     is_published        = Column(Boolean, default=False)
     publish_date        = Column(DateTime, nullable=True)
+    is_deleted          = Column(Boolean, default=False)
     created_at          = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -572,7 +595,9 @@ class AssignmentSubmission(Base):
     submitted_at   = Column(DateTime, default=datetime.utcnow)
     total_score    = Column(Integer, nullable=True)
     max_score      = Column(Integer, nullable=True)
-    status         = Column(String(20), default="pending")  # pending | submitted | graded
+    status             = Column(String(20), default="pending")  # pending | submitted | graded
+    attached_file_url  = Column(String(500), nullable=True)
+    attached_file_name = Column(String(255), nullable=True)
 
     # Relationships
     assignment = relationship("Assignment", back_populates="submissions")
@@ -597,4 +622,93 @@ class AssignmentAnswer(Base):
 
     # Relationships
     submission = relationship("AssignmentSubmission", back_populates="answers")
-    question   = relationship("AssignmentQuestion",   back_populates="answers")
+    question   = relationship("AssignmentQuestion")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  ExamGrade — Midterm, Final Exam, and Other Evaluation Marks
+# ════════════════════════════════════════════════════════════════════
+class ExamGrade(Base):
+    __tablename__ = "exam_grades"
+
+    id            = Column(Integer, primary_key=True, index=True)
+    student_id    = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    section_id    = Column(Integer, ForeignKey("sections.id", ondelete="CASCADE"), nullable=False)
+    midterm_score = Column(Float, default=0.0)
+    midterm_max   = Column(Float, default=30.0)
+    final_score   = Column(Float, default=0.0)
+    final_max     = Column(Float, default=50.0)
+    others_score  = Column(Float, default=0.0)
+    others_max    = Column(Float, default=20.0)
+    others_title  = Column(String(200), default="Project & Presentation")
+    updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    student = relationship("Student")
+    section = relationship("Section")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  GradingPolicy — Admin-configurable 100-mark weightages
+# ════════════════════════════════════════════════════════════════════
+class GradingPolicy(Base):
+    __tablename__ = "grading_policies"
+
+    id                 = Column(Integer, primary_key=True, index=True)
+    section_id         = Column(Integer, ForeignKey("sections.id", ondelete="CASCADE"), nullable=True)
+    quizzes_weight     = Column(Float, default=15.0)
+    assignments_weight = Column(Float, default=15.0)
+    midterm_weight     = Column(Float, default=25.0)
+    final_weight       = Column(Float, default=40.0)
+    others_weight      = Column(Float, default=5.0)
+    drop_lowest_quiz   = Column(Boolean, default=False)
+    updated_at         = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    section = relationship("Section")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  SemesterResult — End of Semester compiled grade & announcement status
+# ════════════════════════════════════════════════════════════════════
+class SemesterResult(Base):
+    __tablename__ = "semester_results"
+
+    id                    = Column(Integer, primary_key=True, index=True)
+    student_id            = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    section_id            = Column(Integer, ForeignKey("sections.id", ondelete="CASCADE"), nullable=False)
+    quizzes_score_100     = Column(Float, default=0.0)
+    assignments_score_100 = Column(Float, default=0.0)
+    midterm_score_100     = Column(Float, default=0.0)
+    final_score_100       = Column(Float, default=0.0)
+    others_score_100      = Column(Float, default=0.0)
+    total_weighted_score  = Column(Float, default=0.0)
+    letter_grade          = Column(String(10), default="F")
+    gpa                   = Column(Float, default=0.0)
+    status                = Column(String(30), default="draft")  # draft | submitted | announced
+    submitted_at          = Column(DateTime, nullable=True)
+    announced_at          = Column(DateTime, nullable=True)
+
+    # Relationships
+    student = relationship("Student")
+    section = relationship("Section")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  RegradeRequest — Student Assignment Regrade Appeal System
+# ════════════════════════════════════════════════════════════════════
+class RegradeRequest(Base):
+    __tablename__ = "regrade_requests"
+
+    id               = Column(Integer, primary_key=True, index=True)
+    submission_id    = Column(Integer, ForeignKey("assignment_submissions.id", ondelete="CASCADE"), nullable=False)
+    student_id       = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    reason           = Column(Text, nullable=False)
+    status           = Column(String(20), default="pending")  # pending | approved | rejected
+    adjusted_marks   = Column(Integer, nullable=True)
+    teacher_feedback = Column(Text, nullable=True)
+    created_at       = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    submission = relationship("AssignmentSubmission")
+    student    = relationship("Student")

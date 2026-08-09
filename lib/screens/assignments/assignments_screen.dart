@@ -3,8 +3,10 @@
 // ║  Displays all active & published assignments with submission ui   ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/api_service.dart';
 
@@ -143,9 +145,33 @@ class _AssignmentsScreenState extends ConsumerState<AssignmentsScreen> {
   }
 
   void _openSubmissionSheet(StudentAssignmentItem item) {
+    final settings = ref.read(settingsProvider);
+    final isUrdu = settings.language == 'Urdu';
+
+    if (item.isSubmitted) {
+      final scoreText = item.score != null ? ' (${isUrdu ? "نمبرز" : "Score"}: ${item.score}/${item.totalMarks})' : '';
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isUrdu
+                ? 'اسائنمنٹ "${item.title}" جمع ہو چکی ہے! $scoreText گریڈز سیکشن میں چیک کریں۔'
+                : 'Assignment "${item.title}" is already submitted!$scoreText Check your marks in Grades section.',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.green.shade800,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       backgroundColor: Colors.transparent,
       builder: (context) => _AssignmentSubmissionSheet(
         item: item,
@@ -473,13 +499,22 @@ class _AssignmentsScreenState extends ConsumerState<AssignmentsScreen> {
                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurfaceVariant),
                     ),
                     const Spacer(),
-                    if (item.score != null) ...[
-                      const Icon(Icons.star_rounded, size: 14, color: Colors.amber),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Score: ${item.score}/${item.totalMarks}',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.amber),
-                      ),
+                    if (item.isSubmitted) ...[
+                      if (item.score != null) ...[
+                        const Icon(Icons.star_rounded, size: 14, color: Colors.green),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Score: ${item.score}/${item.totalMarks}',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green),
+                        ),
+                      ] else ...[
+                        const Icon(Icons.hourglass_top_rounded, size: 14, color: Colors.orange),
+                        const SizedBox(width: 4),
+                        Text(
+                          isUrdu ? 'زیرِ جائزہ (ٹیچر مارک کرے گا)' : 'Under Evaluation',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.orange),
+                        ),
+                      ],
                     ],
                   ],
                 ),
@@ -554,6 +589,7 @@ class _AssignmentSubmissionSheet extends StatefulWidget {
 class _AssignmentSubmissionSheetState extends State<_AssignmentSubmissionSheet> {
   final Map<int, TextEditingController> _controllers = {};
   bool _submitting = false;
+  PlatformFile? _attachedFile;
 
   @override
   void initState() {
@@ -571,16 +607,69 @@ class _AssignmentSubmissionSheetState extends State<_AssignmentSubmissionSheet> 
     super.dispose();
   }
 
+  Future<void> _pickFile() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'docx', 'doc'],
+      );
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        final ext = file.extension?.toLowerCase() ?? '';
+        if (['pdf', 'docx', 'doc'].contains(ext)) {
+          setState(() => _attachedFile = file);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Only PDF and DOCX files are allowed.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('File selection error: ${e.toString()}'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   void _submit() async {
     bool hasAnyAnswer = _controllers.values.any((c) => c.text.trim().isNotEmpty);
-    if (!hasAnyAnswer) {
+    if (!hasAnyAnswer && _attachedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please answer at least one question before submitting.')),
+        const SnackBar(content: Text('Please answer at least one question or attach a PDF/DOCX document.')),
       );
       return;
     }
 
     setState(() => _submitting = true);
+
+    String? fileUrl;
+    String? fileName;
+
+    if (_attachedFile != null && _attachedFile!.path != null) {
+      try {
+        final uploadRes = await ApiService().uploadAssignmentAttachment(File(_attachedFile!.path!));
+        fileUrl = uploadRes['file_url'];
+        fileName = uploadRes['file_name'];
+      } catch (e) {
+        if (mounted) {
+          setState(() => _submitting = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to upload attached document: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      }
+    }
 
     final List<Map<String, dynamic>> answersPayload = [];
     _controllers.forEach((qId, controller) {
@@ -596,13 +685,15 @@ class _AssignmentSubmissionSheetState extends State<_AssignmentSubmissionSheet> 
       await ApiService().submitStudentAssignment(
         assignmentId: widget.item.id,
         answers: answersPayload,
+        attachedFileUrl: fileUrl,
+        attachedFileName: fileName,
       );
       if (mounted) {
         widget.onSubmitted();
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Assignment "${widget.item.title}" submitted to teacher successfully!'),
+            content: Text('Assignment "${widget.item.title}" submitted successfully!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -773,20 +864,53 @@ class _AssignmentSubmissionSheetState extends State<_AssignmentSubmissionSheet> 
 
                   const SizedBox(height: 8),
 
-                  // File upload simulation button
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('File attachment selected (PDF / Code / ZIP)')),
-                      );
-                    },
-                    icon: const Icon(Icons.attach_file_rounded),
-                    label: const Text('Attach File (PDF/Doc/ZIP)'),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  // Real File Attachment Section (PDF / DOCX Only)
+                  if (_attachedFile != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 22),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _attachedFile!.name,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '${(_attachedFile!.size / 1024).toStringAsFixed(1)} KB • PDF/DOCX Document',
+                                  style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded, size: 18, color: Colors.red),
+                            onPressed: () => setState(() => _attachedFile = null),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    OutlinedButton.icon(
+                      onPressed: _pickFile,
+                      icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent),
+                      label: const Text('Attach Document (PDF or DOCX Only)'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 20),
 
                   ElevatedButton(

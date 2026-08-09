@@ -41,17 +41,38 @@ Base.metadata.create_all(bind=engine)
 
 def _run_db_migrations():
     """Auto-add missing columns to existing DB tables if created prior to schema updates."""
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("ALTER TABLE quizzes ADD COLUMN IF NOT EXISTS creation_type VARCHAR(20) DEFAULT 'manual';"))
-            conn.execute(text("ALTER TABLE quizzes ADD COLUMN IF NOT EXISTS source_material_ids TEXT;"))
-            conn.execute(text("ALTER TABLE quizzes ADD COLUMN IF NOT EXISTS due_date TIMESTAMP;"))
-            conn.execute(text("ALTER TABLE assignments ADD COLUMN IF NOT EXISTS assignment_type VARCHAR(20) DEFAULT 'manual';"))
-            conn.execute(text("ALTER TABLE assignments ADD COLUMN IF NOT EXISTS source_material_ids TEXT;"))
-            conn.commit()
-            print("✅ DB columns verified/migrated for quizzes and assignments.")
-    except Exception as e:
-        print(f"⚠️ Migration warning: {e}")
+    is_postgres = "postgres" in str(engine.url).lower()
+    columns_to_add = [
+        ("quizzes", "creation_type", "VARCHAR(20) DEFAULT 'manual'"),
+        ("quizzes", "source_material_ids", "TEXT"),
+        ("quizzes", "due_date", "TIMESTAMP"),
+        ("quizzes", "per_question_timer_seconds", "INTEGER DEFAULT 30"),
+        ("quizzes", "max_questions_per_student", "INTEGER"),
+        ("quizzes", "is_deleted", "BOOLEAN DEFAULT FALSE"),
+        ("quiz_attempt_sessions", "proctoring_warnings_count", "INTEGER DEFAULT 0"),
+        ("quiz_attempt_sessions", "proctoring_logs", "TEXT"),
+        ("assignments", "assignment_type", "VARCHAR(20) DEFAULT 'manual'"),
+        ("assignments", "is_deleted", "BOOLEAN DEFAULT FALSE"),
+        ("assignments", "late_penalty_pct", "FLOAT DEFAULT 0.0"),
+        ("assignments", "grace_period_hours", "INTEGER DEFAULT 0"),
+        ("assignment_submissions", "attached_file_url", "VARCHAR(500)"),
+        ("assignment_submissions", "attached_file_name", "VARCHAR(255)"),
+        ("grading_policies", "drop_lowest_quiz", "BOOLEAN DEFAULT FALSE"),
+    ]
+    with engine.connect() as conn:
+        for table, col, col_type in columns_to_add:
+            try:
+                if is_postgres:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {col_type};"))
+                else:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type};"))
+                conn.commit()
+            except Exception:
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
+    print("✅ DB columns verified/migrated for PostgreSQL & SQLite.")
 
 _run_db_migrations()
 
@@ -121,3 +142,8 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
