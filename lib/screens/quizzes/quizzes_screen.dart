@@ -9,8 +9,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../core/constants.dart';
 import '../../models/models.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/learning_provider.dart';
 import '../../services/api_service.dart';
 import '../../services/ai_proctoring_service.dart';
 
@@ -63,15 +66,36 @@ class _QuizzesScreenState extends ConsumerState<QuizzesScreen> {
           .contains(_searchQuery.trim().toLowerCase());
       if (!matchesSearch) return false;
 
+      final isExpired = q.dueDate != null && DateTime.now().isAfter(q.dueDate!);
+
       if (_selectedFilter == 'completed') return q.isAttempted;
-      // Active main view hides already attempted quizzes
-      return !q.isAttempted;
+      // Active main view hides already attempted or expired un-attempted quizzes
+      return !q.isAttempted && !isExpired;
     }).toList();
   }
 
   void _openQuizModal(ActiveQuiz quiz) async {
     final settings = ref.read(settingsProvider);
     final isUrdu = settings.language == 'Urdu';
+
+    final isExpired = quiz.dueDate != null && DateTime.now().isAfter(quiz.dueDate!);
+    if (isExpired && !quiz.isAttempted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isUrdu
+                ? 'اس کوئز کی آخری تاریخ ختم ہو چکی ہے!'
+                : 'This quiz deadline has expired!',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.red.shade800,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
     if (quiz.isAttempted) {
       ScaffoldMessenger.of(context).clearSnackBars();
@@ -870,6 +894,9 @@ class _QuizAttemptSheetState extends ConsumerState<_QuizAttemptSheet> with Widge
       );
     } catch (_) {}
 
+    // Trigger learning profile refresh in background
+    ref.read(learningProfileProvider.notifier).refresh();
+
     if (!mounted) return;
 
     showDialog(
@@ -889,29 +916,61 @@ class _QuizAttemptSheetState extends ConsumerState<_QuizAttemptSheet> with Widge
             Text('Quiz Completed'),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Quiz completed! You can check your marks in Grades section.',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, height: 1.4),
+            const Text(
+              'Quiz submitted successfully! Your BKT Learning Profile has been updated.',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.psychology_rounded, color: Colors.green, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'AI Learning Model analyzed your attempt.',
+                      style: TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
         actions: [
-          ElevatedButton(
+          OutlinedButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               if (mounted) {
                 Navigator.of(context).pop();
               }
             },
+            child: const Text('Close'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              if (mounted) {
+                Navigator.of(context).pop();
+                GoRouter.of(context).go(AppConstants.routeDashboardLearning);
+              }
+            },
+            icon: const Icon(Icons.analytics_rounded, size: 18),
+            label: const Text('View Learning Profile'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

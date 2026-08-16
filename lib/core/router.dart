@@ -24,6 +24,7 @@ import '../screens/courses/course_details_screen.dart';
 import '../screens/attendance/attendance_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/notification_center_screen.dart';
+import '../screens/learning/learning_profile_screen.dart';
 
 // ── Other screens ─────────────────────────────────────────────────────────
 import '../screens/lecture/pre_assessment_screen.dart';
@@ -297,6 +298,13 @@ final GoRouter appRouter = GoRouter(
           path: AppConstants.routeDashboardAttendance,
           name: 'dashboard-attendance',
           builder: (context, state) => const AttendanceScreen(),
+        ),
+
+        // Tab 4: Learning Profile
+        GoRoute(
+          path: AppConstants.routeDashboardLearning,
+          name: 'dashboard-learning',
+          builder: (context, state) => const LearningProfileScreen(),
         ),
 
         // Tab 4: Profile

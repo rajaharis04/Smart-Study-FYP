@@ -4,7 +4,7 @@ Student Portal API Routers — Attendance, Profile Progress, and Question Bank.
 import os
 from datetime import datetime, date, timedelta
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -464,6 +464,9 @@ def get_student_assignments(
                 "marks": q.marks or 5
             })
 
+        q_sum = sum(q.marks for q in a.questions) if a.questions else 0
+        eff_total = q_sum if q_sum > 0 else (a.total_marks or 100)
+
         is_graded = sub is not None and (sub.status or "").lower() in ["graded", "evaluated", "completed"]
         result.append({
             "id": a.id,
@@ -471,7 +474,7 @@ def get_student_assignments(
             "course_name": course.name if course else "Course",
             "course_code": course.code if course else "CS",
             "description": a.description or "",
-            "total_marks": a.total_marks or 100,
+            "total_marks": eff_total,
             "due_date": a.due_date.isoformat() if a.due_date else None,
             "type": a.assignment_type or "manual",
             "is_submitted": sub is not None,
@@ -523,6 +526,7 @@ async def upload_assignment_attachment(
 
 @student_assignment_router.post("/{assignment_id}/submit")
 def submit_student_assignment(
+    background_tasks: BackgroundTasks,
     assignment_id: int,
     payload: SubmitAssignmentPayload,
     student: Student = Depends(_get_current_student),
@@ -544,13 +548,16 @@ def submit_student_assignment(
 
     sub_status = "late_submitted" if is_late else "submitted"
 
+    q_sum = sum(q.marks for q in assignment.questions) if assignment.questions else 0
+    eff_max = q_sum if q_sum > 0 else (assignment.total_marks or 100)
+
     if not sub:
         sub = AssignmentSubmission(
             assignment_id=assignment_id,
             student_id=student.id,
             submitted_at=datetime.utcnow(),
             status=sub_status,
-            max_score=assignment.total_marks or 100,
+            max_score=eff_max,
             attached_file_url=payload.attached_file_url,
             attached_file_name=payload.attached_file_name
         )
@@ -559,6 +566,7 @@ def submit_student_assignment(
     else:
         sub.submitted_at = datetime.utcnow()
         sub.status = sub_status
+        sub.max_score = eff_max
         if payload.attached_file_url:
             sub.attached_file_url = payload.attached_file_url
             sub.attached_file_name = payload.attached_file_name
@@ -574,7 +582,32 @@ def submit_student_assignment(
         db.add(answer_rec)
 
     db.commit()
+
+    # ── Auto-trigger learning profile update in background ──────────
+    def _trigger_learning_update_assignment(student_id: int, section_id: int):
+        from app.db.database import SessionLocal
+        from app.models.models import Topic, Course, Section as Sec
+        from app.services.learning_model import recalculate_student_learning_profile
+        _db = SessionLocal()
+        try:
+            sec = _db.query(Sec).filter(Sec.id == section_id).first()
+            if sec and sec.course:
+                topics = _db.query(Topic).filter(Topic.course_id == sec.course_id).all()
+                for t in topics:
+                    recalculate_student_learning_profile(student_id, t.id, _db)
+        except Exception as e:
+            print(f"[Learning Model] Assignment trigger error: {e}")
+        finally:
+            _db.close()
+
+    background_tasks.add_task(
+        _trigger_learning_update_assignment,
+        sub.student_id,
+        assignment.section_id
+    )
+
     return {"ok": True, "message": "Assignment submitted successfully.", "submission_id": sub.id}
+
 student_portal_router = APIRouter(prefix="/student", tags=["Student Portal"])
 
 
@@ -638,7 +671,8 @@ def get_student_marks(
         status_lower = (s.status or "").lower()
         is_graded = status_lower in ["graded", "evaluated", "completed"]
         score = s.total_score if (is_graded and s.total_score is not None) else None
-        max_marks = s.max_score or assign.total_marks or 100
+        q_sum = sum(q.marks for q in assign.questions) if assign.questions else 0
+        max_marks = q_sum if q_sum > 0 else (s.max_score or assign.total_marks or 100)
         pct = (score / max_marks * 100.0) if (is_graded and score is not None and max_marks > 0) else 0.0
 
         if is_graded and score is not None:
@@ -938,4 +972,249 @@ def get_ai_remedial_quiz(
         "questions": remedial_questions
     }
 
+# ═══════════════════════════════════════════════════════════════════════════════
+#  LEARNING PROFILE ROUTER
+# ═══════════════════════════════════════════════════════════════════════════════
+learning_router = APIRouter(prefix="/student/learning", tags=["Learning Profile (Student)"])
 
+
+def _compute_badges(profiles, enrollments, db) -> list:
+    """Compute earned badges based on student learning data."""
+    from app.models.models import Attendance
+    badges = []
+    all_mastery = [p.mastery_score for p in profiles if p and p.mastery_score is not None]
+    mastered_count = sum(1 for m in all_mastery if m >= 90.0)
+    avg_mastery = (sum(all_mastery) / len(all_mastery)) if all_mastery else 0.0
+
+    if mastered_count >= 1:
+        badges.append({"id": "topic_master", "title": "Topic Master", "icon": "🏆",
+                       "description": f"Mastered {mastered_count} topic(s) with 90%+ score", "earned": True})
+    if avg_mastery >= 80:
+        badges.append({"id": "high_achiever", "title": "High Achiever", "icon": "⭐",
+                       "description": "Overall average mastery above 80%", "earned": True})
+    if any((p.hint_dependency or 0.0) < 0.1 for p in profiles if p and (p.mastery_score or 0.0) > 0):
+        badges.append({"id": "independent", "title": "Independent Learner", "icon": "💡",
+                       "description": "Solved quizzes with minimal hint usage", "earned": True})
+    if any((p.engagement_score or 0.0) >= 80 for p in profiles if p):
+        badges.append({"id": "engaged", "title": "Highly Engaged", "icon": "🎯",
+                       "description": "Lecture engagement score above 80%", "earned": True})
+
+    for e in enrollments:
+        total_att = db.query(Attendance).filter(
+            Attendance.student_id == e.student_id,
+            Attendance.section_id == e.section_id
+        ).count()
+        present_att = db.query(Attendance).filter(
+            Attendance.student_id == e.student_id,
+            Attendance.section_id == e.section_id,
+            Attendance.is_present == True
+        ).count()
+        if total_att > 0 and (present_att / total_att) >= 0.90:
+            badges.append({"id": "consistent", "title": "Consistent Attendee", "icon": "📅",
+                           "description": "Maintained 90%+ lecture attendance", "earned": True})
+            break
+
+    if not badges:
+        badges.append({"id": "getting_started", "title": "Getting Started", "icon": "🌱",
+                       "description": "You're on your learning journey! Keep going.", "earned": True})
+    return badges
+
+
+@learning_router.get("/profile")
+def get_learning_profile(
+    student: Student = Depends(_get_current_student),
+    db: Session = Depends(get_db)
+):
+    """Full learning profile — per-topic mastery, badges, weekly trend, weak topics."""
+    from app.models.models import StudentLearningProfile, Enrollment, Topic, Lecture
+    from app.services.learning_model import recalculate_student_learning_profile
+
+    enrollments = db.query(Enrollment).filter(
+        Enrollment.student_id == student.id,
+        Enrollment.is_active == True
+    ).all()
+
+    course_topics_data = []
+    all_profiles = []
+    weak_topics = []
+
+    for e in enrollments:
+        sec = e.section
+        if not sec or not sec.course:
+            continue
+        course = sec.course
+        topics = db.query(Topic).filter(Topic.course_id == course.id).order_by(Topic.sequence_number).all()
+        topics_list = []
+
+        for t in topics:
+            profile = db.query(StudentLearningProfile).filter(
+                StudentLearningProfile.student_id == student.id,
+                StudentLearningProfile.topic_id == t.id
+            ).first()
+            if not profile:
+                profile = recalculate_student_learning_profile(student.id, t.id, db)
+            if profile:
+                all_profiles.append(profile)
+
+            m = profile.mastery_score if profile else 0.0
+            if m >= 90:
+                status, color = "Mastered", "green"
+            elif m >= 75:
+                status, color = "Proficient", "blue"
+            elif m >= 60:
+                status, color = "Learning", "orange"
+            elif m >= 40:
+                status, color = "Needs Practice", "red"
+            else:
+                status, color = "Struggling", "red"
+
+            rec_lecture = None
+            if m < 60:
+                rl = db.query(Lecture).filter(
+                    Lecture.topic_id == t.id,
+                    Lecture.is_published == True
+                ).order_by(Lecture.created_at.asc()).first()
+                if rl:
+                    rec_lecture = {"id": rl.id, "title": rl.title}
+                    weak_topics.append({
+                        "topic_title": t.title,
+                        "course_code": course.code,
+                        "mastery": m,
+                        "recommended_lecture": rec_lecture
+                    })
+
+            topics_list.append({
+                "topic_id": t.id,
+                "topic_title": t.title,
+                "blooms_level": t.blooms_level or "Remember",
+                "mastery_score": round(m, 1),
+                "confidence_score": round(profile.confidence_score if profile else 0.0, 1),
+                "engagement_score": round(profile.engagement_score if profile else 0.0, 1),
+                "hint_dependency_pct": round((profile.hint_dependency if profile else 0.0) * 100, 1),
+                "learning_pace": round(profile.learning_pace if profile else 30.0, 1),
+                "learning_score": round(profile.learning_score if profile else 0.0, 1),
+                "is_weak": profile.is_weak if profile else False,
+                "status": status,
+                "status_color": color,
+                "recommended_lecture": rec_lecture
+            })
+
+        course_topics_data.append({
+            "course_id": course.id,
+            "course_code": course.code,
+            "course_name": course.name,
+            "topics": topics_list
+        })
+
+    overall_learning_score = round(
+        sum(p.learning_score for p in all_profiles) / len(all_profiles), 1
+    ) if all_profiles else 0.0
+
+    overall_mastery = round(
+        sum(p.mastery_score for p in all_profiles) / len(all_profiles), 1
+    ) if all_profiles else 0.0
+
+    # Weekly trend from profile updated_at timestamps
+    weekly_trend = []
+    sorted_profiles = sorted(
+        [p for p in all_profiles if p.updated_at], key=lambda p: p.updated_at
+    )
+    if sorted_profiles:
+        chunk_size = max(1, len(sorted_profiles) // 4)
+        for i in range(4):
+            chunk = sorted_profiles[i * chunk_size: (i + 1) * chunk_size]
+            avg_m = sum(p.mastery_score for p in chunk) / len(chunk) if chunk else 0.0
+            weekly_trend.append(round(avg_m, 1))
+
+    badges = _compute_badges(all_profiles, [e for e in enrollments if e.section], db)
+
+    return {
+        "overall_learning_score": overall_learning_score,
+        "overall_mastery": overall_mastery,
+        "total_topics": len(all_profiles),
+        "weak_topics_count": len(weak_topics),
+        "badges": badges,
+        "weekly_trend": weekly_trend,
+        "weak_topics": weak_topics,
+        "courses": course_topics_data
+    }
+
+
+@learning_router.get("/post-quiz-feedback/{quiz_id}")
+def get_post_quiz_feedback(
+    quiz_id: int,
+    student: Student = Depends(_get_current_student),
+    db: Session = Depends(get_db)
+):
+    """Post-quiz feedback: score, mastery delta, recommended lecture, wrong questions."""
+    from app.models.models import Quiz, QuizResponse, StudentLearningProfile, Lecture
+
+    quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found.")
+
+    responses = db.query(QuizResponse).filter(
+        QuizResponse.quiz_id == quiz_id,
+        QuizResponse.student_id == student.id
+    ).all()
+
+    total_q = len(quiz.questions) if quiz.questions else 0
+    correct = sum(1 for r in responses if r.is_correct)
+    score_pct = round((correct / total_q * 100.0), 1) if total_q > 0 else 0.0
+
+    lecture = quiz.lecture if quiz else None
+    topic = lecture.topic if lecture else None
+    current_mastery = 0.0
+    mastery_delta = 0.0
+    topic_name = topic.title if topic else "General Quiz"
+
+    if topic:
+        profile = db.query(StudentLearningProfile).filter(
+            StudentLearningProfile.student_id == student.id,
+            StudentLearningProfile.topic_id == topic.id
+        ).first()
+        if profile:
+            current_mastery = profile.mastery_score
+            mastery_delta = round(score_pct - current_mastery, 1)
+
+    rec_lecture = None
+    if current_mastery < 60.0 and topic:
+        rl = db.query(Lecture).filter(
+            Lecture.topic_id == topic.id,
+            Lecture.is_published == True
+        ).order_by(Lecture.created_at.asc()).first()
+        if rl:
+            rec_lecture = {"id": rl.id, "title": rl.title}
+
+    wrong_questions = []
+    for r in responses:
+        if not r.is_correct and r.question:
+            wrong_questions.append({
+                "question_text": r.question.question_text,
+                "your_answer": r.answer or "Skipped",
+                "correct_answer": r.question.correct_answer or "N/A"
+            })
+
+    performance_label = (
+        "Excellent! 🔥" if score_pct >= 80 else
+        "Good Job! 💪" if score_pct >= 60 else
+        "Keep Practicing 📚" if score_pct >= 40 else
+        "Needs More Work ⚠️"
+    )
+
+    return {
+        "quiz_id": quiz_id,
+        "quiz_title": quiz.title or f"Quiz #{quiz_id}",
+        "topic_name": topic_name,
+        "score": correct,
+        "total_marks": total_q,
+        "score_percentage": score_pct,
+        "performance_label": performance_label,
+        "current_mastery": round(current_mastery, 1),
+        "mastery_delta": mastery_delta,
+        "is_weak": current_mastery < 60.0,
+        "recommended_lecture": rec_lecture,
+        "wrong_questions_count": len(wrong_questions),
+        "wrong_questions": wrong_questions[:5],
+        "celebration": score_pct >= 80 and current_mastery >= 75
+    }

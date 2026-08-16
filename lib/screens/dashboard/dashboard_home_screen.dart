@@ -74,6 +74,78 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
                     children: [
                       // Progress card
                       _buildProgressCard(theme, dashState.dashboardData),
+                      const SizedBox(height: 16),
+                      // Learning Model Profile Banner
+                      InkWell(
+                        onTap: () => context.go(AppConstants.routeDashboardLearning),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                theme.colorScheme.primary.withOpacity(0.9),
+                                const Color(0xFF1D9E75),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.colorScheme.primary.withOpacity(0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.psychology_rounded,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isUrdu ? 'ای آئی لرننگ ماڈل ماڈیول' : 'AI Learning Model Profile',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      isUrdu
+                                          ? 'بی کے ٹی الگورتھم کے تحت اپنے کمزور موضوعات کا جائزہ لیں'
+                                          : 'BKT-powered topic mastery & revision analysis',
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.85),
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 24),
                       // Announcements from Admin/Teacher
                       if ((dashState.announcements ?? []).isNotEmpty) ...[

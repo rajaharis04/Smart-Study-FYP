@@ -21,7 +21,8 @@ from app.api.student_portal import (
     profile_router,
     questionbank_router,
     student_assignment_router,
-    student_portal_router
+    student_portal_router,
+    learning_router
 )
 from app.api.teachers_portal import router as teachers_portal_router
 from app.api.resources import (
@@ -128,6 +129,7 @@ app.include_router(profile_router,        prefix=API_PREFIX)
 app.include_router(questionbank_router,   prefix=API_PREFIX)
 app.include_router(qa_router,             prefix=API_PREFIX)
 app.include_router(academic_sections_router, prefix=API_PREFIX)
+app.include_router(learning_router,       prefix=API_PREFIX)  # Learning profile & post-quiz feedback
 
 
 @app.get("/")

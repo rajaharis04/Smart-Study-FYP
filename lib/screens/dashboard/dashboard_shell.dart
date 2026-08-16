@@ -38,6 +38,12 @@ class DashboardShell extends ConsumerWidget {
       key: 'attendance',
     ),
     _TabInfo(
+      path: AppConstants.routeDashboardLearning,
+      icon: Icons.analytics_outlined,
+      activeIcon: Icons.analytics_rounded,
+      key: 'learning',
+    ),
+    _TabInfo(
       path: AppConstants.routeDashboardProfile,
       icon: Icons.person_outline_rounded,
       activeIcon: Icons.person_rounded,

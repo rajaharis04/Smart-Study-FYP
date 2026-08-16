@@ -840,3 +840,211 @@ class QuestionBankItem {
     );
   }
 }
+
+// ──────────────────────────────────────────────────────────────────
+//  LEARNING MODEL MODELS
+//  Backend endpoints: /api/student/learning/profile
+//                     /api/student/learning/post-quiz-feedback/{id}
+// ──────────────────────────────────────────────────────────────────
+
+/// Per-topic mastery breakdown from BKT learning model
+class TopicMastery {
+  final int topicId;
+  final String topicTitle;
+  final String bloomsLevel;
+  final double masteryScore;
+  final double confidenceScore;
+  final double engagementScore;
+  final double hintDependencyPct;
+  final double learningPace;
+  final double learningScore;
+  final bool isWeak;
+  final String status;
+  final String statusColor;
+  final Map<String, dynamic>? recommendedLecture;
+
+  const TopicMastery({
+    required this.topicId,
+    required this.topicTitle,
+    required this.bloomsLevel,
+    required this.masteryScore,
+    required this.confidenceScore,
+    required this.engagementScore,
+    required this.hintDependencyPct,
+    required this.learningPace,
+    required this.learningScore,
+    required this.isWeak,
+    required this.status,
+    required this.statusColor,
+    this.recommendedLecture,
+  });
+
+  factory TopicMastery.fromJson(Map<String, dynamic> json) {
+    return TopicMastery(
+      topicId: json['topic_id'] as int? ?? 0,
+      topicTitle: json['topic_title'] as String? ?? '',
+      bloomsLevel: json['blooms_level'] as String? ?? 'Remember',
+      masteryScore: (json['mastery_score'] as num?)?.toDouble() ?? 0.0,
+      confidenceScore: (json['confidence_score'] as num?)?.toDouble() ?? 0.0,
+      engagementScore: (json['engagement_score'] as num?)?.toDouble() ?? 0.0,
+      hintDependencyPct: (json['hint_dependency_pct'] as num?)?.toDouble() ?? 0.0,
+      learningPace: (json['learning_pace'] as num?)?.toDouble() ?? 30.0,
+      learningScore: (json['learning_score'] as num?)?.toDouble() ?? 0.0,
+      isWeak: json['is_weak'] as bool? ?? false,
+      status: json['status'] as String? ?? 'Learning',
+      statusColor: json['status_color'] as String? ?? 'orange',
+      recommendedLecture: json['recommended_lecture'] != null
+          ? Map<String, dynamic>.from(json['recommended_lecture'] as Map)
+          : null,
+    );
+  }
+}
+
+/// Course-level learning data with all topic masteries
+class CourseLearning {
+  final int courseId;
+  final String courseCode;
+  final String courseName;
+  final List<TopicMastery> topics;
+
+  const CourseLearning({
+    required this.courseId,
+    required this.courseCode,
+    required this.courseName,
+    required this.topics,
+  });
+
+  factory CourseLearning.fromJson(Map<String, dynamic> json) {
+    final rawTopics = json['topics'] as List<dynamic>? ?? [];
+    return CourseLearning(
+      courseId: json['course_id'] as int? ?? 0,
+      courseCode: json['course_code'] as String? ?? '',
+      courseName: json['course_name'] as String? ?? '',
+      topics: rawTopics.map((t) => TopicMastery.fromJson(t as Map<String, dynamic>)).toList(),
+    );
+  }
+}
+
+/// Badge earned by student
+class LearningBadge {
+  final String id;
+  final String title;
+  final String icon;
+  final String description;
+  final bool earned;
+
+  const LearningBadge({
+    required this.id,
+    required this.title,
+    required this.icon,
+    required this.description,
+    required this.earned,
+  });
+
+  factory LearningBadge.fromJson(Map<String, dynamic> json) {
+    return LearningBadge(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      icon: json['icon'] as String? ?? '🏆',
+      description: json['description'] as String? ?? '',
+      earned: json['earned'] as bool? ?? false,
+    );
+  }
+}
+
+/// Full learning profile response from /api/student/learning/profile
+class LearningProfile {
+  final double overallLearningScore;
+  final double overallMastery;
+  final int totalTopics;
+  final int weakTopicsCount;
+  final List<LearningBadge> badges;
+  final List<double> weeklyTrend;
+  final List<Map<String, dynamic>> weakTopics;
+  final List<CourseLearning> courses;
+
+  const LearningProfile({
+    required this.overallLearningScore,
+    required this.overallMastery,
+    required this.totalTopics,
+    required this.weakTopicsCount,
+    required this.badges,
+    required this.weeklyTrend,
+    required this.weakTopics,
+    required this.courses,
+  });
+
+  factory LearningProfile.fromJson(Map<String, dynamic> json) {
+    final rawBadges = json['badges'] as List<dynamic>? ?? [];
+    final rawTrend = json['weekly_trend'] as List<dynamic>? ?? [];
+    final rawWeak = json['weak_topics'] as List<dynamic>? ?? [];
+    final rawCourses = json['courses'] as List<dynamic>? ?? [];
+    return LearningProfile(
+      overallLearningScore: (json['overall_learning_score'] as num?)?.toDouble() ?? 0.0,
+      overallMastery: (json['overall_mastery'] as num?)?.toDouble() ?? 0.0,
+      totalTopics: json['total_topics'] as int? ?? 0,
+      weakTopicsCount: json['weak_topics_count'] as int? ?? 0,
+      badges: rawBadges.map((b) => LearningBadge.fromJson(b as Map<String, dynamic>)).toList(),
+      weeklyTrend: rawTrend.map((v) => (v as num?)?.toDouble() ?? 0.0).toList(),
+      weakTopics: rawWeak.map((w) => Map<String, dynamic>.from(w as Map)).toList(),
+      courses: rawCourses.map((c) => CourseLearning.fromJson(c as Map<String, dynamic>)).toList(),
+    );
+  }
+}
+
+/// Post-quiz feedback from /api/student/learning/post-quiz-feedback/{quiz_id}
+class PostQuizFeedback {
+  final int quizId;
+  final String quizTitle;
+  final String topicName;
+  final int score;
+  final int totalMarks;
+  final double scorePercentage;
+  final String performanceLabel;
+  final double currentMastery;
+  final double masteryDelta;
+  final bool isWeak;
+  final Map<String, dynamic>? recommendedLecture;
+  final int wrongQuestionsCount;
+  final List<Map<String, dynamic>> wrongQuestions;
+  final bool celebration;
+
+  const PostQuizFeedback({
+    required this.quizId,
+    required this.quizTitle,
+    required this.topicName,
+    required this.score,
+    required this.totalMarks,
+    required this.scorePercentage,
+    required this.performanceLabel,
+    required this.currentMastery,
+    required this.masteryDelta,
+    required this.isWeak,
+    this.recommendedLecture,
+    required this.wrongQuestionsCount,
+    required this.wrongQuestions,
+    required this.celebration,
+  });
+
+  factory PostQuizFeedback.fromJson(Map<String, dynamic> json) {
+    final rawWrong = json['wrong_questions'] as List<dynamic>? ?? [];
+    return PostQuizFeedback(
+      quizId: json['quiz_id'] as int? ?? 0,
+      quizTitle: json['quiz_title'] as String? ?? '',
+      topicName: json['topic_name'] as String? ?? 'Quiz',
+      score: json['score'] as int? ?? 0,
+      totalMarks: json['total_marks'] as int? ?? 0,
+      scorePercentage: (json['score_percentage'] as num?)?.toDouble() ?? 0.0,
+      performanceLabel: json['performance_label'] as String? ?? '',
+      currentMastery: (json['current_mastery'] as num?)?.toDouble() ?? 0.0,
+      masteryDelta: (json['mastery_delta'] as num?)?.toDouble() ?? 0.0,
+      isWeak: json['is_weak'] as bool? ?? false,
+      recommendedLecture: json['recommended_lecture'] != null
+          ? Map<String, dynamic>.from(json['recommended_lecture'] as Map)
+          : null,
+      wrongQuestionsCount: json['wrong_questions_count'] as int? ?? 0,
+      wrongQuestions: rawWrong.map((w) => Map<String, dynamic>.from(w as Map)).toList(),
+      celebration: json['celebration'] as bool? ?? false,
+    );
+  }
+}

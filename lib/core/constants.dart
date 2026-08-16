@@ -47,6 +47,7 @@ class AppConstants {
   static const String routeCourseRegistration   = '/dashboard/courses/registration';
   static const String routeDashboardQuizzes    = '/dashboard/quizzes';
   static const String routeDashboardAssignments = '/dashboard/assignments';
+  static const String routeDashboardLearning    = '/dashboard/learning';
 
   // Lecture player pipeline
   static const String routeLecture             = '/lecture';

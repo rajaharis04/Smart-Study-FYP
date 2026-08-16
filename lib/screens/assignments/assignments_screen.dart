@@ -139,14 +139,33 @@ class _AssignmentsScreenState extends ConsumerState<AssignmentsScreen> {
       if (_selectedFilter == 'submitted') return a.isSubmitted;
       if (_selectedFilter == 'pending') return !a.isSubmitted && !isOverdue;
       if (_selectedFilter == 'overdue') return isOverdue;
-      // In default view, hide submitted assignments
-      return !a.isSubmitted;
+      // Default view: hide submitted AND hide overdue/expired assignments
+      return !a.isSubmitted && !isOverdue;
     }).toList();
   }
 
   void _openSubmissionSheet(StudentAssignmentItem item) {
     final settings = ref.read(settingsProvider);
     final isUrdu = settings.language == 'Urdu';
+
+    final isOverdue = DateTime.now().isAfter(item.dueDate) && !item.isSubmitted;
+    if (isOverdue) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isUrdu
+                ? 'اسائنمنٹ "${item.title}" کی آخری تاریخ ختم ہو چکی ہے! جمع کروانا ممکن نہیں ہے۔'
+                : 'Assignment "${item.title}" deadline has passed! Submission is closed.',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.red.shade800,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
     if (item.isSubmitted) {
       final scoreText = item.score != null ? ' (${isUrdu ? "نمبرز" : "Score"}: ${item.score}/${item.totalMarks})' : '';

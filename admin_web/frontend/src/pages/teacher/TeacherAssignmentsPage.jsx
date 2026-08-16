@@ -275,11 +275,12 @@ export default function TeacherAssignmentsPage() {
   // ═══════════════════════════════════════════════════════════
   const handleSaveEdit = async () => {
     try {
+      const computedTotal = editQuestions.reduce((sum, q) => sum + (parseInt(q.marks) || 0), 0);
       await teacherPortalApi.updateAssignment(selectedAssignmentId, {
         title: editTitle,
         description: editDescription,
         due_date: editDueDate || null,
-        total_marks: editTotalMarks,
+        total_marks: computedTotal,
         is_published: editIsPublished,
         questions: editQuestions.map(q => ({
           question_text: q.question_text,
@@ -296,7 +297,11 @@ export default function TeacherAssignmentsPage() {
       toast.success('Assignment updated!');
       setIsEditing(false);
       if (editIsPublished) {
-        setAssignmentFilterTab('active');
+        if (editDueDate && new Date(editDueDate) < new Date()) {
+          setAssignmentFilterTab('completed');
+        } else {
+          setAssignmentFilterTab('active');
+        }
       } else {
         setAssignmentFilterTab('draft');
       }
@@ -333,18 +338,23 @@ export default function TeacherAssignmentsPage() {
   const handleSaveManual = async () => {
     if (!newTitle.trim()) { toast.error('Please enter a title.'); return; }
     try {
+      const computedTotal = newQuestions.reduce((sum, q) => sum + (parseInt(q.marks) || 0), 0);
       await teacherPortalApi.createAssignment(selectedSectionId, {
         title: newTitle,
         description: newDescription,
         due_date: newDueDate || null,
-        total_marks: newTotalMarks,
+        total_marks: computedTotal,
         is_published: newIsPublished,
         questions: newQuestions
       });
       toast.success('Assignment created!');
       setShowCreateWizard(false);
       if (newIsPublished) {
-        setAssignmentFilterTab('active');
+        if (newDueDate && new Date(newDueDate) < new Date()) {
+          setAssignmentFilterTab('completed');
+        } else {
+          setAssignmentFilterTab('active');
+        }
       } else {
         setAssignmentFilterTab('draft');
       }
@@ -380,12 +390,13 @@ export default function TeacherAssignmentsPage() {
     if (!aiSaveTitle.trim()) { toast.error('Enter a title.'); return; }
     setSavingAI(true);
     try {
+      const computedTotal = aiGeneratedQuestions.reduce((sum, q) => sum + (parseInt(q.marks) || 0), 0);
       await teacherPortalApi.saveAIAssignment({
         section_id: selectedSectionId,
         title: aiSaveTitle,
         description: aiSaveDescription,
         due_date: aiSaveDueDate || null,
-        total_marks: aiSaveTotalMarks,
+        total_marks: computedTotal,
         is_published: aiSaveIsPublished,
         source_material_ids: selectedMaterialIds,
         questions: aiGeneratedQuestions.map((q, i) => ({
@@ -403,7 +414,11 @@ export default function TeacherAssignmentsPage() {
       toast.success('AI assignment saved!');
       setShowCreateWizard(false);
       if (aiSaveIsPublished) {
-        setAssignmentFilterTab('active');
+        if (aiSaveDueDate && new Date(aiSaveDueDate) < new Date()) {
+          setAssignmentFilterTab('completed');
+        } else {
+          setAssignmentFilterTab('active');
+        }
       } else {
         setAssignmentFilterTab('draft');
       }
@@ -538,8 +553,11 @@ export default function TeacherAssignmentsPage() {
                     <input className="input" value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="e.g., Assignment 1: Web Development & React State Management" />
                   </div>
                   <div>
-                    <label className="form-label">Total Marks</label>
-                    <input type="number" className="input" value={newTotalMarks} onChange={e => setNewTotalMarks(parseInt(e.target.value))} placeholder="e.g., 100" min={1} />
+                    <label className="form-label">Total Marks (Auto-Calculated)</label>
+                    <div className="input" style={{ background: 'var(--bg-tertiary)', fontWeight: 600, color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span>{newQuestions.reduce((sum, q) => sum + (parseInt(q.marks) || 0), 0)} Marks</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>Auto-sum of questions</span>
+                    </div>
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', marginBottom: '1rem' }}>
@@ -731,8 +749,11 @@ export default function TeacherAssignmentsPage() {
                         <input type="datetime-local" className="input" value={aiSaveDueDate} onChange={e => setAiSaveDueDate(e.target.value)} placeholder="Select due date" />
                       </div>
                       <div>
-                        <label className="form-label">Total Marks</label>
-                        <input type="number" className="input" value={aiSaveTotalMarks} onChange={e => setAiSaveTotalMarks(parseInt(e.target.value))} placeholder="e.g., 50" min={1} />
+                        <label className="form-label">Total Marks (Auto-Calculated)</label>
+                        <div className="input" style={{ background: 'var(--bg-tertiary)', fontWeight: 600, color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span>{aiGeneratedQuestions.reduce((sum, q) => sum + (parseInt(q.marks) || 0), 0)} Marks</span>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>Auto-sum of questions</span>
+                        </div>
                       </div>
                       <div>
                         <label className="form-label">Description (Optional)</label>
@@ -778,8 +799,13 @@ export default function TeacherAssignmentsPage() {
     }
   };
 
-  const activeAssignments = assignments.filter(a => a.is_published && !a.is_deleted);
-  const completedAssignments = assignments.filter(a => a.is_published && a.is_deleted);
+  const isExpired = (dueDate) => {
+    if (!dueDate) return false;
+    return new Date(dueDate) < new Date();
+  };
+
+  const activeAssignments = assignments.filter(a => a.is_published && !a.is_deleted && !isExpired(a.due_date));
+  const completedAssignments = assignments.filter(a => a.is_published && (a.is_deleted || isExpired(a.due_date)));
   const draftAssignments = assignments.filter(a => !a.is_published && !a.is_deleted);
   const displayedAssignments = assignmentFilterTab === 'active' ? activeAssignments : assignmentFilterTab === 'draft' ? draftAssignments : completedAssignments;
 
@@ -895,7 +921,7 @@ export default function TeacherAssignmentsPage() {
             className={`assignment-card ${selectedAssignmentId === a.id ? 'selected' : ''}`}
             onClick={() => {
               setSelectedAssignmentId(a.id);
-              if (assignmentFilterTab === 'completed' || a.is_deleted) {
+              if (assignmentFilterTab === 'completed' || a.is_deleted || isExpired(a.due_date)) {
                 setActiveTab('submissions');
               }
             }}
@@ -905,8 +931,10 @@ export default function TeacherAssignmentsPage() {
                 {a.title || `Assignment ${idx + 1}`}
               </h4>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                {assignmentFilterTab === 'completed' || a.is_deleted ? (
-                  <span className="badge badge-danger" style={{ fontSize: '0.6rem' }}>END</span>
+                {assignmentFilterTab === 'completed' || a.is_deleted || isExpired(a.due_date) ? (
+                  <span className={`badge ${a.is_deleted ? 'badge-danger' : 'badge-warning'}`} style={{ fontSize: '0.6rem' }}>
+                    {a.is_deleted ? 'END' : 'EXPIRED'}
+                  </span>
                 ) : assignmentFilterTab === 'draft' || !a.is_published ? (
                   <span className="badge badge-warning" style={{ fontSize: '0.6rem' }}>DRAFT</span>
                 ) : (
@@ -914,7 +942,7 @@ export default function TeacherAssignmentsPage() {
                     {a.assignment_type === 'ai_generated' ? '✨ AI' : 'Manual'}
                   </span>
                 )}
-                {assignmentFilterTab === 'active' && !a.is_deleted && (
+                {assignmentFilterTab === 'active' && !a.is_deleted && !isExpired(a.due_date) && (
                   <button
                     onClick={(e) => handleDeleteAssignment(a.id, e)}
                     title="Delete & End Assignment"
@@ -1076,8 +1104,11 @@ export default function TeacherAssignmentsPage() {
                     <input type="datetime-local" className="input" value={editDueDate} onChange={e => setEditDueDate(e.target.value)} />
                   </div>
                   <div>
-                    <label className="form-label">Total Marks</label>
-                    <input type="number" className="input" value={editTotalMarks} onChange={e => setEditTotalMarks(parseInt(e.target.value))} />
+                    <label className="form-label">Total Marks (Auto-Calculated)</label>
+                    <div className="input" style={{ background: 'var(--bg-tertiary)', fontWeight: 600, color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span>{editQuestions.reduce((sum, q) => sum + (parseInt(q.marks) || 0), 0)} Marks</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>Auto-sum of questions</span>
+                    </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', cursor: 'pointer' }}>

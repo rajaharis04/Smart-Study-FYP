@@ -99,24 +99,31 @@ def get_dashboard_stats(
                 QuizResponse.student_id == student.id,
             ).all()
         }
+        now = datetime.utcnow()
         active_quizzes_count = db.query(Quiz).filter(
             Quiz.lecture_id.in_(lecture_ids),
             Quiz.quiz_type.in_(["post", "mid"]),
+            Quiz.is_published == True,
+            (Quiz.is_deleted == False) | (Quiz.is_deleted == None),
+            (Quiz.due_date == None) | (Quiz.due_date >= now),
             Quiz.id.notin_(attempted_quiz_ids),
         ).count()
     else:
         active_quizzes_count = 0
 
-    # 5. Active assignments count — published assignments in enrolled sections not submitted yet
+    # 5. Active assignments count — published assignments in enrolled sections not submitted yet and not expired
     if section_ids:
         submitted_assignment_ids = {
             s.assignment_id for s in db.query(AssignmentSubmission).filter(
                 AssignmentSubmission.student_id == student.id,
             ).all()
         }
+        now = datetime.utcnow()
         assignment_query = db.query(Assignment).filter(
             Assignment.section_id.in_(section_ids),
             Assignment.is_published == True,
+            (Assignment.is_deleted == False) | (Assignment.is_deleted == None),
+            (Assignment.due_date == None) | (Assignment.due_date >= now)
         )
         if submitted_assignment_ids:
             assignment_query = assignment_query.filter(Assignment.id.notin_(submitted_assignment_ids))
@@ -222,6 +229,7 @@ def get_active_quizzes(
     }
     attempted_quiz_ids = attempted_from_resp.union(attempted_from_sess)
 
+    now = datetime.utcnow()
     quizzes = db.query(Quiz).filter(
         Quiz.lecture_id.in_(lecture_ids),
         Quiz.quiz_type.in_(["post", "mid"]),
@@ -232,6 +240,9 @@ def get_active_quizzes(
     result = []
     for q in quizzes:
         is_att = (q.id in attempted_quiz_ids)
+        is_expired = q.due_date is not None and q.due_date < now
+        if is_expired and not is_att:
+            continue
         result.append({
             "quiz_id":                    q.id,
             "quiz_type":                  q.quiz_type,

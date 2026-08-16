@@ -806,4 +806,31 @@ class ApiService {
       return null;
     }
   }
+
+  // ── Learning Profile Methods ─────────────────────────────────────────────
+  //  New BKT-powered learning model endpoints
+
+  /// GET /api/student/learning/profile
+  /// Returns full LearningProfile — per-topic mastery, badges, weekly trend
+  Future<LearningProfile> getLearningProfile() async {
+    try {
+      final response = await _dio.get('/student/learning/profile');
+      return LearningProfile.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['detail'] ?? 'Failed to load learning profile.',
+      );
+    }
+  }
+
+  /// GET /api/student/learning/post-quiz-feedback/{quiz_id}
+  /// Returns PostQuizFeedback — score, mastery delta, recommendations
+  Future<PostQuizFeedback?> getPostQuizFeedback(int quizId) async {
+    try {
+      final response = await _dio.get('/student/learning/post-quiz-feedback/$quizId');
+      return PostQuizFeedback.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (_) {
+      return null;
+    }
+  }
 }

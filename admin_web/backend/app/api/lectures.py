@@ -630,15 +630,24 @@ def submit_quiz(
             db.add(resp)
         db.commit()
 
-    # Asynchronously trigger student learning profile recalculation
+    # Asynchronously trigger student learning profile recalculation with fresh DB session
     lecture = quiz.lecture if quiz else None
     if lecture and lecture.topic_id:
-        background_tasks.add_task(
-            recalculate_student_learning_profile,
-            student.id,
-            lecture.topic_id,
-            db
-        )
+        topic_id_snap = lecture.topic_id
+        student_id_snap = student.id
+
+        def _bg_recalc(s_id: int, t_id: int):
+            from app.db.database import SessionLocal
+            from app.services.learning_model import recalculate_student_learning_profile as _recalc
+            _db = SessionLocal()
+            try:
+                _recalc(s_id, t_id, _db)
+            except Exception as e:
+                print(f"[Learning Model] Quiz trigger error: {e}")
+            finally:
+                _db.close()
+
+        background_tasks.add_task(_bg_recalc, student_id_snap, topic_id_snap)
 
     return {"ok": True, "submitted": len(payload.answers)}
 

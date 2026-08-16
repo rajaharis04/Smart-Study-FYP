@@ -1132,6 +1132,38 @@ def get_section_analytics(
             else:
                 rec_action = "Schedule tutoring session & follow up on attendance"
                 
+        # ── Enrich with BKT Learning Profile data per student ────────
+        from app.models.models import StudentLearningProfile
+        from app.services.bkt_model import compute_assignment_mastery
+
+        all_profiles_for_student = db.query(StudentLearningProfile).filter(
+            StudentLearningProfile.student_id == student.id
+        ).all()
+
+        avg_learning_score = round(
+            sum((p.learning_score or 0.0) for p in all_profiles_for_student) / len(all_profiles_for_student), 1
+        ) if all_profiles_for_student else 0.0
+
+        avg_confidence = round(
+            sum((p.confidence_score or 0.0) for p in all_profiles_for_student) / len(all_profiles_for_student), 1
+        ) if all_profiles_for_student else 0.0
+
+        avg_hint_dep = round(
+            sum((p.hint_dependency or 0.0) for p in all_profiles_for_student) / len(all_profiles_for_student) * 100, 1
+        ) if all_profiles_for_student else 0.0
+
+        # Assignment mastery (avg across all topics for this section)
+        assign_mastery_sum = 0.0
+        assign_mastery_count = 0
+        for t in topics:
+            am = compute_assignment_mastery(student.id, t.id, db)
+            if am > 0:
+                assign_mastery_sum += am
+                assign_mastery_count += 1
+        avg_assignment_mastery = round(
+            assign_mastery_sum / assign_mastery_count, 1
+        ) if assign_mastery_count > 0 else 0.0
+
         student_analytics = {
             "student_id": student.id,
             "name": student.user.full_name,
@@ -1140,6 +1172,10 @@ def get_section_analytics(
             "attendance_rate": round(attendance_rate, 1),
             "avg_watch_pct": round(avg_watch_pct, 1),
             "avg_engagement": round(avg_engagement * 100.0, 1),
+            "learning_score": avg_learning_score,
+            "confidence_score": avg_confidence,
+            "hint_dependency_pct": avg_hint_dep,
+            "assignment_mastery": avg_assignment_mastery,
             "status": status_label,
             "topic_mastery": topic_mastery,
             "watch_history": watch_history,
@@ -1180,6 +1216,29 @@ def get_section_analytics(
             "difficulty": "Hard" if t_score < 55 else ("Medium" if t_score < 75 else "Easy")
         })
 
+    # ── Topic x Student Mastery Heatmap ───────────────────────────────
+    # Returns: [{topic_title, students: [{name, mastery, color}]}]
+    topic_heatmap = []
+    for t in topics:
+        heatmap_row = {"topic_title": t.title, "students": []}
+        for en in enrollments:
+            st = en.student
+            # Find topic mastery from per-student topic_mastery list
+            stu_data = next((s for s in students_stats if s["student_id"] == st.id), None)
+            if stu_data:
+                tm = next((tm for tm in stu_data["topic_mastery"] if tm["topic_title"] == t.title), None)
+                m_score = tm["score"] if tm else 0.0
+            else:
+                m_score = 0.0
+            color = "green" if m_score >= 75 else ("orange" if m_score >= 50 else "red")
+            heatmap_row["students"].append({
+                "name": st.user.full_name,
+                "reg_number": st.reg_number,
+                "mastery": m_score,
+                "color": color
+            })
+        topic_heatmap.append(heatmap_row)
+
     return {
         "class_avg_mastery": round(class_avg_mastery, 1),
         "class_avg_attendance": round(class_avg_attendance, 1),
@@ -1187,7 +1246,8 @@ def get_section_analytics(
         "students": students_stats,
         "topic_difficulty": topic_difficulty,
         "at_risk_students": at_risk_list,
-        "high_performers": high_performers_list
+        "high_performers": high_performers_list,
+        "topic_heatmap": topic_heatmap
     }
 
 
@@ -1949,13 +2009,14 @@ def create_assignment(
         except ValueError:
             due_dt = None
 
+    calc_total = sum(q.marks for q in payload.questions) if payload.questions else payload.total_marks
     assignment = Assignment(
         section_id=section_id,
         title=payload.title,
         description=payload.description,
         assignment_type="manual",
         due_date=due_dt,
-        total_marks=payload.total_marks,
+        total_marks=calc_total if calc_total > 0 else (payload.total_marks or 100),
         is_published=payload.is_published,
         publish_date=datetime.utcnow() if payload.is_published else None
     )
@@ -2126,6 +2187,11 @@ def get_assignment_details(
         for q in assignment.questions
     ]
 
+    calc_total = sum(q.marks for q in assignment.questions) if assignment.questions else assignment.total_marks
+    if calc_total > 0 and assignment.total_marks != calc_total:
+        assignment.total_marks = calc_total
+        db.commit()
+
     return {
         "id": assignment.id,
         "title": assignment.title,
@@ -2151,9 +2217,10 @@ def update_assignment(
     if not assignment or assignment.section.teacher_id != teacher.id:
         raise HTTPException(status_code=404, detail="Assignment not found.")
 
+    calc_total = sum(q_data.marks for q_data in payload.questions) if payload.questions else payload.total_marks
     assignment.title = payload.title
     assignment.description = payload.description
-    assignment.total_marks = payload.total_marks
+    assignment.total_marks = calc_total if calc_total > 0 else (payload.total_marks or 100)
     assignment.is_published = payload.is_published
 
     if payload.due_date:
@@ -2185,6 +2252,11 @@ def update_assignment(
             order_index=i
         )
         db.add(q)
+
+    # Sync total_marks to existing submissions
+    db.query(AssignmentSubmission).filter(AssignmentSubmission.assignment_id == assignment_id).update(
+        {AssignmentSubmission.max_score: assignment.total_marks}, synchronize_session=False
+    )
 
     db.commit()
     return {"message": "Assignment updated successfully."}
@@ -2226,11 +2298,13 @@ def get_assignment_submissions(
         AssignmentSubmission.assignment_id == assignment_id
     ).all()
 
+    q_sum = sum(q.marks for q in assignment.questions) if assignment.questions else 0
+
     results = []
     for s in subs:
         student = db.query(Student).filter(Student.id == s.student_id).first()
         score = s.total_score or 0
-        max_s = s.max_score or assignment.total_marks or 100
+        max_s = q_sum if q_sum > 0 else (assignment.total_marks or 100)
         pct = round((score / max_s * 100.0), 1) if max_s > 0 else 0.0
 
         results.append({
@@ -2264,13 +2338,16 @@ def get_assignment_submission_details(
     answers = {ans.question_id: ans for ans in sub.answers}
 
     question_details = []
+    q_sum = 0
     for q in questions:
         ans = answers.get(q.id)
+        q_marks = q.marks or 5
+        q_sum += q_marks
         question_details.append({
             "question_id": q.id,
             "question_text": q.question_text,
             "question_type": q.question_type,
-            "marks": q.marks or 5,
+            "marks": q_marks,
             "difficulty": q.difficulty or "medium",
             "correct_answer": q.correct_answer or "",
             "student_answer": ans.answer_text if ans else "",
@@ -2279,7 +2356,7 @@ def get_assignment_submission_details(
         })
 
     score = sub.total_score or 0
-    max_s = sub.max_score or sub.assignment.total_marks or 100
+    max_s = q_sum if q_sum > 0 else (sub.assignment.total_marks or 100)
     pct = round((score / max_s * 100.0), 1) if max_s > 0 else 0.0
 
     return {
@@ -2374,6 +2451,7 @@ class GradeSubmissionPayload(BaseModel):
 def grade_assignment_submission(
     submission_id: int,
     payload: GradeSubmissionPayload,
+    background_tasks: BackgroundTasks,
     teacher: Teacher = Depends(get_current_teacher),
     db: Session = Depends(get_db)
 ):
@@ -2411,6 +2489,29 @@ def grade_assignment_submission(
     sub.total_score = int(round(total_score))
     sub.status = "graded"
     db.commit()
+
+    # ── Auto-trigger BKT learning model update after grading ──────────
+    student_id_snap = sub.student_id
+    section_id_snap = sub.assignment.section_id if sub.assignment else None
+
+    def _bg_learning_after_grade(student_id: int, section_id: int):
+        from app.db.database import SessionLocal
+        from app.models.models import Topic, Section as Sec
+        from app.services.learning_model import recalculate_student_learning_profile
+        _db = SessionLocal()
+        try:
+            sec = _db.query(Sec).filter(Sec.id == section_id).first()
+            if sec and sec.course:
+                topics = _db.query(Topic).filter(Topic.course_id == sec.course_id).all()
+                for t in topics:
+                    recalculate_student_learning_profile(student_id, t.id, _db)
+        except Exception as e:
+            print(f"[Learning Model] Grade trigger error: {e}")
+        finally:
+            _db.close()
+
+    if section_id_snap:
+        background_tasks.add_task(_bg_learning_after_grade, student_id_snap, section_id_snap)
 
     return {
         "message": "Submission graded successfully.",
@@ -2584,6 +2685,7 @@ def save_ai_assignment(
         except ValueError:
             due_dt = None
 
+    calc_total = sum(q.marks for q in payload.questions) if payload.questions else payload.total_marks
     assignment = Assignment(
         section_id=payload.section_id,
         title=payload.title,
@@ -2591,7 +2693,7 @@ def save_ai_assignment(
         assignment_type="ai_generated",
         source_material_ids=json.dumps(payload.source_material_ids) if payload.source_material_ids else None,
         due_date=due_dt,
-        total_marks=payload.total_marks,
+        total_marks=calc_total if calc_total > 0 else (payload.total_marks or 100),
         is_published=payload.is_published,
         publish_date=datetime.utcnow() if payload.is_published else None
     )

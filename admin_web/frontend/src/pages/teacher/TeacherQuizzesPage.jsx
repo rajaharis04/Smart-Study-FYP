@@ -197,7 +197,11 @@ export default function TeacherQuizzesPage() {
       toast.success('Quiz updated successfully!');
       setIsEditing(false);
       if (editIsPublished) {
-        setQuizFilterTab('active');
+        if (editDueDate && new Date(editDueDate) < new Date()) {
+          setQuizFilterTab('completed');
+        } else {
+          setQuizFilterTab('active');
+        }
       } else {
         setQuizFilterTab('draft');
       }
@@ -317,7 +321,8 @@ export default function TeacherQuizzesPage() {
       toast.success('AI quiz saved successfully!');
       setShowCreateWizard(false);
       
-      const targetTab = aiSaveIsPublished ? 'active' : 'draft';
+      const isExp = aiSaveDueDate && new Date(aiSaveDueDate) < new Date();
+      const targetTab = aiSaveIsPublished ? (isExp ? 'completed' : 'active') : 'draft';
       setQuizFilterTab(targetTab);
       
       // Fetch latest quizzes list and select the newly created quiz
@@ -368,7 +373,11 @@ export default function TeacherQuizzesPage() {
       toast.success('Quiz created successfully!');
       setShowCreateWizard(false);
       if (manualIsPublished) {
-        setQuizFilterTab('active');
+        if (manualDueDate && new Date(manualDueDate) < new Date()) {
+          setQuizFilterTab('completed');
+        } else {
+          setQuizFilterTab('active');
+        }
       } else {
         setQuizFilterTab('draft');
       }
@@ -421,9 +430,14 @@ export default function TeacherQuizzesPage() {
     }
   };
 
+  const isQuizExpired = (dueDate) => {
+    if (!dueDate) return false;
+    return new Date(dueDate) < new Date();
+  };
+
   // Filter quizzes into Active vs Completed/Ended vs Drafts
-  const activeQuizzes = quizzes.filter(q => q.is_published && !q.is_deleted && q.attempts_count === 0);
-  const completedQuizzes = quizzes.filter(q => q.is_published && (q.attempts_count > 0 || q.is_deleted));
+  const activeQuizzes = quizzes.filter(q => q.is_published && !q.is_deleted && q.attempts_count === 0 && !isQuizExpired(q.due_date));
+  const completedQuizzes = quizzes.filter(q => q.is_published && (q.attempts_count > 0 || q.is_deleted || isQuizExpired(q.due_date)));
   const draftQuizzes = quizzes.filter(q => !q.is_published && !q.is_deleted);
   const displayedQuizzes = quizFilterTab === 'active' ? activeQuizzes : quizFilterTab === 'draft' ? draftQuizzes : completedQuizzes;
 
@@ -528,7 +542,7 @@ export default function TeacherQuizzesPage() {
             className={`quiz-card ${selectedQuizId === q.id ? 'selected' : ''}`}
             onClick={() => {
               setSelectedQuizId(q.id);
-              if (quizFilterTab === 'completed' || q.is_deleted) {
+              if (quizFilterTab === 'completed' || q.is_deleted || isQuizExpired(q.due_date)) {
                 setActiveTab('submissions');
                 handleOpenStudentMarksModal(q);
               }
@@ -544,8 +558,10 @@ export default function TeacherQuizzesPage() {
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {quizFilterTab === 'completed' || q.is_deleted ? (
-                  <span className="badge badge-danger">END</span>
+                {quizFilterTab === 'completed' || q.is_deleted || isQuizExpired(q.due_date) ? (
+                  <span className={`badge ${q.is_deleted ? 'badge-danger' : 'badge-warning'}`}>
+                    {q.is_deleted ? 'END' : isQuizExpired(q.due_date) ? 'EXPIRED' : 'COMPLETED'}
+                  </span>
                 ) : quizFilterTab === 'draft' || !q.is_published ? (
                   <span className="badge badge-warning">DRAFT</span>
                 ) : (
@@ -553,7 +569,7 @@ export default function TeacherQuizzesPage() {
                     {q.quiz_type.toUpperCase()}
                   </span>
                 )}
-                {quizFilterTab === 'active' && !q.is_deleted && (
+                {quizFilterTab === 'active' && !q.is_deleted && !isQuizExpired(q.due_date) && (
                   <button
                     onClick={(e) => handleDeleteQuiz(q.id, e)}
                     title="Delete & End Quiz"
@@ -893,7 +909,10 @@ export default function TeacherQuizzesPage() {
 
       {/* Questions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-        <h4 style={{ fontSize: '0.9rem', margin: 0, color: 'var(--text-primary)', fontWeight: 600 }}>Questions ({manualQuestions.length})</h4>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h4 style={{ fontSize: '0.9rem', margin: 0, color: 'var(--text-primary)', fontWeight: 600 }}>Questions ({manualQuestions.length})</h4>
+          <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>Total Marks: {manualQuestions.length} (1 mark/Q)</span>
+        </div>
         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Configure options & correct answers</span>
       </div>
 
@@ -1151,9 +1170,12 @@ export default function TeacherQuizzesPage() {
       {wizardStep === 3 && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Sparkles size={16} style={{ color: 'var(--accent)' }} /> {aiGeneratedQuestions.length} AI Questions Generated
-            </h4>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Sparkles size={16} style={{ color: 'var(--accent)' }} /> {aiGeneratedQuestions.length} AI Questions Generated
+              </h4>
+              <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>Total Marks: {aiGeneratedQuestions.length} (1 mark/Q)</span>
+            </div>
             <button className="btn btn-ghost" onClick={() => setWizardStep(2)} style={{ fontSize: '0.775rem', padding: '0.3rem 0.6rem' }}>
               ↻ Regenerate
             </button>
