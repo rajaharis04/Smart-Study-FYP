@@ -1,0 +1,321 @@
+[
+  {
+    "id": "segment_ken_burns_1",
+    "start_ms": 0,
+    "end_ms": 3024.0,
+    "type": "segment",
+    "text": "ken_burns",
+    "payload": {
+      "direction": "pan_right"
+    }
+  },
+  {
+    "id": "segment_scene_start_0",
+    "start_ms": 0,
+    "end_ms": 400,
+    "type": "segment",
+    "text": "scene_start",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_2",
+    "start_ms": 0.0,
+    "end_ms": 2065.1,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "Hello",
+          "start_ms": 0.0,
+          "end_ms": 300.1
+        },
+        {
+          "word": "this",
+          "start_ms": 353.0,
+          "end_ms": 653.1
+        },
+        {
+          "word": "is",
+          "start_ms": 706.0,
+          "end_ms": 1006.1
+        },
+        {
+          "word": "a",
+          "start_ms": 1059.0,
+          "end_ms": 1359.1
+        },
+        {
+          "word": "high",
+          "start_ms": 1412.0,
+          "end_ms": 1712.1
+        },
+        {
+          "word": "fidelity",
+          "start_ms": 1765.0,
+          "end_ms": 2065.1
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_3",
+    "start_ms": 0.0,
+    "end_ms": 300.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Hello",
+      "index": 0,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "sentence_0",
+    "start_ms": 0.0,
+    "end_ms": 2771.1,
+    "type": "sentence",
+    "text": "Hello this is a high fidelity memory test.",
+    "payload": {}
+  },
+  {
+    "id": "word_0",
+    "start_ms": 0.0,
+    "end_ms": 300.1,
+    "type": "word",
+    "text": "Hello",
+    "payload": {}
+  },
+  {
+    "id": "segment_heading_focus_4",
+    "start_ms": 200,
+    "end_ms": 3200,
+    "type": "segment",
+    "text": "heading_focus",
+    "payload": {
+      "heading_left": "",
+      "heading_right": ""
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_5",
+    "start_ms": 353.0,
+    "end_ms": 653.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "this",
+      "index": 1,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_1",
+    "start_ms": 353.0,
+    "end_ms": 653.1,
+    "type": "word",
+    "text": "this",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_6",
+    "start_ms": 706.0,
+    "end_ms": 1006.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "is",
+      "index": 2,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_2",
+    "start_ms": 706.0,
+    "end_ms": 1006.1,
+    "type": "word",
+    "text": "is",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_7",
+    "start_ms": 1059.0,
+    "end_ms": 1359.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 3,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_3",
+    "start_ms": 1059.0,
+    "end_ms": 1359.1,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_8",
+    "start_ms": 1412.0,
+    "end_ms": 1712.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "high",
+      "index": 4,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_4",
+    "start_ms": 1412.0,
+    "end_ms": 1712.1,
+    "type": "word",
+    "text": "high",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_9",
+    "start_ms": 1765.0,
+    "end_ms": 2065.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "fidelity",
+      "index": 5,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_5",
+    "start_ms": 1765.0,
+    "end_ms": 2065.1,
+    "type": "word",
+    "text": "fidelity",
+    "payload": {}
+  },
+  {
+    "id": "seg_bullet_1_0",
+    "start_ms": 2000.0,
+    "end_ms": 3024.0,
+    "type": "bullet",
+    "text": "bullet_1_0",
+    "payload": {}
+  },
+  {
+    "id": "segment_bullet_enter_10",
+    "start_ms": 2000.0,
+    "end_ms": 2600.0,
+    "type": "segment",
+    "text": "bullet_enter",
+    "payload": {
+      "index": 0,
+      "text": "Point 1",
+      "zoom_word": "",
+      "num": "01"
+    }
+  },
+  {
+    "id": "segment_subtitle_show_11",
+    "start_ms": 2118.0,
+    "end_ms": 2771.1,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "memory",
+          "start_ms": 2118.0,
+          "end_ms": 2418.1
+        },
+        {
+          "word": "test.",
+          "start_ms": 2471.0,
+          "end_ms": 2771.1
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_12",
+    "start_ms": 2118.0,
+    "end_ms": 2418.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "memory",
+      "index": 0,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_6",
+    "start_ms": 2118.0,
+    "end_ms": 2418.1,
+    "type": "word",
+    "text": "memory",
+    "payload": {}
+  },
+  {
+    "id": "segment_takeaway_show_13",
+    "start_ms": 2419.2,
+    "end_ms": 3024.0,
+    "type": "segment",
+    "text": "takeaway_show",
+    "payload": {
+      "text": ""
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_14",
+    "start_ms": 2471.0,
+    "end_ms": 2771.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "test.",
+      "index": 1,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_7",
+    "start_ms": 2471.0,
+    "end_ms": 2771.1,
+    "type": "word",
+    "text": "test.",
+    "payload": {}
+  },
+  {
+    "id": "segment_scene_end_15",
+    "start_ms": 2524.0,
+    "end_ms": 3024.0,
+    "type": "segment",
+    "text": "scene_end",
+    "payload": {}
+  },
+  {
+    "id": "seg_bullet_1_1",
+    "start_ms": 3024.0,
+    "end_ms": 3024.0,
+    "type": "bullet",
+    "text": "bullet_1_1",
+    "payload": {}
+  },
+  {
+    "id": "segment_bullet_enter_16",
+    "start_ms": 3024.0,
+    "end_ms": 3624.0,
+    "type": "segment",
+    "text": "bullet_enter",
+    "payload": {
+      "index": 1,
+      "text": "Point 2",
+      "zoom_word": "",
+      "num": "02"
+    }
+  }
+]

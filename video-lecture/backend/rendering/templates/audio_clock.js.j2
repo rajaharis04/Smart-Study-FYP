@@ -1,0 +1,231 @@
+/* ═══════════════════════════════════════════════════════════════
+   SmartStudyInstructor V16 — Audio Clock Module
+   Manages time, supports Virtual Time Mode for Playwright,
+   and overrides standard timing loops to prevent sync drift.
+   V15: Adds bindAudioElement() for narration-driven tick.
+   V16: Hardware-precision AudioContext clock (nanosecond-class).
+   ═══════════════════════════════════════════════════════════════ */
+
+(function () {
+    'use strict';
+
+    const originalPerformanceNow = performance.now.bind(performance);
+    const originalDateNow = Date.now.bind(Date);
+
+    let virtualTime = 0;
+    let lastRealTime = null;
+    const baseTime = originalPerformanceNow();
+    const baseDate = originalDateNow();
+
+    // Set globally on load if capturing
+    const IS_CAPTURING = window.IS_CAPTURING || false;
+
+    // V15: Audio element binding for narration-driven sync
+    let _audioElement = null;
+
+    // V16: Hardware-precision AudioContext singleton
+    // AudioContext.currentTime is backed by the audio hardware clock,
+    // providing sub-millisecond precision that doesn't drift with
+    // requestAnimationFrame jitter or JS event loop congestion.
+    let _audioCtx = null;
+    let _audioCtxBaseTime = 0;  // AudioContext.currentTime at clock start
+
+    function _getOrCreateAudioContext() {
+        if (_audioCtx && _audioCtx.state !== 'closed') return _audioCtx;
+        try {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) {
+                _audioCtx = new AC();
+                _audioCtxBaseTime = _audioCtx.currentTime;
+                console.log('[AudioClock] AudioContext created (hardware precision enabled).');
+            }
+        } catch (e) {
+            console.warn('[AudioClock] AudioContext unavailable, falling back to performance.now():', e.message);
+            _audioCtx = null;
+        }
+        return _audioCtx;
+    }
+
+    if (IS_CAPTURING) {
+        performance.now = function () {
+            return baseTime + virtualTime;
+        };
+        Date.now = function () {
+            return baseDate + virtualTime;
+        };
+        console.log("[AudioClock] Virtual Time Mode enabled (driven by real-sync ticker).");
+    }
+
+    /**
+     * V15: Bind an <audio> element so getSceneTime() returns
+     * audioEl.currentTime * 1000 instead of performance.now() delta.
+     * This ensures all animations fire exactly when the spoken word is heard.
+     */
+    window.bindAudioElement = function (audioEl) {
+        if (audioEl && typeof audioEl.currentTime !== 'undefined') {
+            _audioElement = audioEl;
+            console.log("[AudioClock] Audio element bound for narration-driven sync.");
+        }
+    };
+
+    window.getSceneTime = function () {
+        // Priority 1: In capture mode, use virtual time (Playwright-driven)
+        if (IS_CAPTURING) {
+            return virtualTime;
+        }
+        // Priority 2: Hardware AudioContext clock (nanosecond-class precision)
+        if (_audioCtx && _audioCtx.state === 'running') {
+            return (_audioCtx.currentTime - _audioCtxBaseTime) * 1000;
+        }
+        // Priority 3: If audio element is bound and playing, use its currentTime
+        if (_audioElement && !_audioElement.paused && _audioElement.currentTime > 0) {
+            return _audioElement.currentTime * 1000;
+        }
+        // Priority 4: Fallback to performance.now() delta
+        return performance.now() - baseTime;
+    };
+
+    // V17: Real-time anchor for integrity checking in capture mode
+    var _clockStartReal = 0;
+
+    window.startAudioClock = function () {
+        if (IS_CAPTURING) {
+            lastRealTime = originalPerformanceNow();
+            _clockStartReal = lastRealTime;
+            virtualTime = 0;
+            console.log("[AudioClock] Clock initialized with real-time anchor.");
+            if (window.PLAYWRIGHT_START_TIME) {
+                window.RECORDING_DELAY_MS = originalDateNow() - window.PLAYWRIGHT_START_TIME;
+            } else {
+                window.RECORDING_DELAY_MS = 0;
+            }
+            console.log("[AudioClock] RECORDING_DELAY_MS:", window.RECORDING_DELAY_MS);
+        } else {
+            // V16: Initialize AudioContext for hardware-precision timing
+            var ctx = _getOrCreateAudioContext();
+            if (ctx) {
+                _audioCtxBaseTime = ctx.currentTime;
+                // Resume AudioContext if suspended (browsers require user gesture)
+                if (ctx.state === 'suspended') {
+                    ctx.resume().then(function() {
+                        _audioCtxBaseTime = ctx.currentTime;
+                        console.log('[AudioClock] AudioContext resumed.');
+                    });
+                }
+            }
+        }
+    };
+
+    window.tickAudioClock = function () {
+        if (IS_CAPTURING) {
+            if (lastRealTime === null) {
+                lastRealTime = originalPerformanceNow();
+                _clockStartReal = lastRealTime;
+            }
+            const now = originalPerformanceNow();
+            const delta = now - lastRealTime;
+            // Advance virtual time by the exact elapsed real-world time, capped to prevent massive jumps
+            if (delta > 150.0) {
+                console.warn('[AudioClock] Slow frame detected: ' + delta.toFixed(1) + 'ms');
+            }
+            virtualTime += Math.min(delta, 500.0);
+            lastRealTime = now;
+
+            // V17 INTEGRITY CLAMP: virtualTime must NEVER exceed real elapsed wall-clock
+            // time. Without this, animations/GSAP callbacks can cause virtualTime to race
+            // ahead, setting SCENE_FINISHED at 60s real time for an 80s scene → frozen frames.
+            var realElapsed = now - _clockStartReal;
+            if (virtualTime > realElapsed + 200) {
+                console.warn('[AudioClock] CLAMP: virtualTime (' + virtualTime.toFixed(0) +
+                    'ms) ahead of real (' + realElapsed.toFixed(0) + 'ms). Clamping.');
+                virtualTime = realElapsed;
+            }
+        }
+    };
+
+    window.advanceVirtualClock = function (ms) {
+        // V17: DISABLED in capture mode to prevent uncontrolled time advancement.
+        // Only tickAudioClock (which is clamped to real time) drives the clock.
+        if (IS_CAPTURING) {
+            // Intentionally no-op. Legacy callers are safe.
+            return;
+        }
+    };
+})();
+
+// ADD AFTER EXISTING FILE CONTENT
+(function () {
+  var _aud = null;
+  var _cbs = [];
+  var _fired = {};
+  var _rafId = null;
+  var _wts = [];
+
+  window.AudioMasterClock = {
+    init: function (audioEl, wordTimestamps) {
+      _aud = audioEl;
+      _wts = wordTimestamps || [];
+      _fired = {};
+      _cbs = [];
+
+      // V16: Create AudioContext for hardware-precision word timing
+      try {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (AC && !window._audioCtxForMasterClock) {
+          window._audioCtxForMasterClock = new AC();
+          window._audioCtxMasterBase = window._audioCtxForMasterClock.currentTime;
+          if (window._audioCtxForMasterClock.state === 'suspended') {
+            window._audioCtxForMasterClock.resume();
+          }
+          console.log('[AudioMasterClock] Hardware AudioContext initialized for word-level sync.');
+        }
+      } catch (e) {
+        console.warn('[AudioMasterClock] AudioContext unavailable:', e.message);
+      }
+
+      this._poll();
+    },
+    onTimeMs: function (ms, fn) {
+      var done = false;
+      _cbs.push(function (now) {
+        if (!done && now >= ms) { done = true; try { fn(); } catch (e) {} }
+      });
+    },
+    _poll: function () {
+      var self = this;
+      function tick() {
+        if (!_aud) { _rafId = requestAnimationFrame(tick); return; }
+
+        // V16: Prefer AudioContext hardware clock for sub-ms precision,
+        // fall back to audio element currentTime
+        var now;
+        if (window._audioCtxForMasterClock && window._audioCtxForMasterClock.state === 'running') {
+          now = (window._audioCtxForMasterClock.currentTime - (window._audioCtxMasterBase || 0)) * 1000;
+        } else {
+          now = _aud.currentTime * 1000;
+        }
+
+        for (var i = 0; i < _cbs.length; i++) {
+          try { _cbs[i](now); } catch (e) {}
+        }
+
+        for (var w = 0; w < _wts.length; w++) {
+          var wt = _wts[w];
+          var key = wt.word + '_' + wt.start_ms;
+          if (!_fired[key] && now >= wt.start_ms - 40) {
+            _fired[key] = true;
+            var wordEvt = new CustomEvent('word_spoken', { detail: wt });
+            document.dispatchEvent(wordEvt);
+          }
+        }
+
+        _rafId = requestAnimationFrame(tick);
+      }
+      _rafId = requestAnimationFrame(tick);
+    },
+    stop: function () {
+      if (_rafId) cancelAnimationFrame(_rafId);
+      _aud = null; _cbs = []; _fired = {};
+    }
+  };
+})();

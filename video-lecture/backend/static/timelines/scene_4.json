@@ -1,0 +1,1523 @@
+[
+  {
+    "id": "segment_ken_burns_1",
+    "start_ms": 0,
+    "end_ms": 18768.0,
+    "type": "segment",
+    "text": "ken_burns",
+    "payload": {
+      "direction": "pan_left"
+    }
+  },
+  {
+    "id": "segment_scene_start_0",
+    "start_ms": 0,
+    "end_ms": 400,
+    "type": "segment",
+    "text": "scene_start",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_2",
+    "start_ms": 0.0,
+    "end_ms": 2216.8,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "Let's",
+          "start_ms": 0.0,
+          "end_ms": 322.1
+        },
+        {
+          "word": "compare",
+          "start_ms": 378.9,
+          "end_ms": 701.0
+        },
+        {
+          "word": "Dijkstra's",
+          "start_ms": 757.9,
+          "end_ms": 1080.0
+        },
+        {
+          "word": "algorithm",
+          "start_ms": 1136.8,
+          "end_ms": 1458.9
+        },
+        {
+          "word": "with",
+          "start_ms": 1515.8,
+          "end_ms": 1837.9
+        },
+        {
+          "word": "Bellman-Ford",
+          "start_ms": 1894.7,
+          "end_ms": 2216.8
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_3",
+    "start_ms": 0.0,
+    "end_ms": 322.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Let's",
+      "index": 0,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "sentence_0",
+    "start_ms": 0.0,
+    "end_ms": 2595.7,
+    "type": "sentence",
+    "text": "Let's compare Dijkstra's algorithm with Bellman-Ford algorithm.",
+    "payload": {}
+  },
+  {
+    "id": "word_0",
+    "start_ms": 0.0,
+    "end_ms": 322.1,
+    "type": "word",
+    "text": "Let's",
+    "payload": {}
+  },
+  {
+    "id": "segment_heading_focus_4",
+    "start_ms": 200,
+    "end_ms": 3200,
+    "type": "segment",
+    "text": "heading_focus",
+    "payload": {
+      "heading_left": "Comparison of Algorithms",
+      "heading_right": "Dijkstra's Algorithm vs Bellman-Ford Algorithm"
+    }
+  },
+  {
+    "id": "segment_diagram_flow_animate_6",
+    "start_ms": 378.9,
+    "end_ms": 1878.9,
+    "type": "segment",
+    "text": "diagram_flow_animate",
+    "payload": {
+      "from_component": "Dijkstra's",
+      "to_component": "Bellman-Ford",
+      "path_id": "flow_Dijkstra's_Bellman-Ford",
+      "duration_ms": 1500,
+      "loop": false,
+      "particle_color": "#4F8EF7"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_5",
+    "start_ms": 378.9,
+    "end_ms": 701.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "compare",
+      "index": 1,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_1",
+    "start_ms": 378.9,
+    "end_ms": 701.0,
+    "type": "word",
+    "text": "compare",
+    "payload": {}
+  },
+  {
+    "id": "seg_bullet_4_0",
+    "start_ms": 707.9,
+    "end_ms": 18768.0,
+    "type": "bullet",
+    "text": "bullet_4_0",
+    "payload": {}
+  },
+  {
+    "id": "segment_bullet_enter_7",
+    "start_ms": 707.9,
+    "end_ms": 1307.9,
+    "type": "segment",
+    "text": "bullet_enter",
+    "payload": {
+      "index": 0,
+      "text": "Dijkstra's algorithm is more efficient than Bellman-Ford algorithm for graphs with non-negative weights.",
+      "zoom_word": "Dijkstra's algorithm",
+      "num": "01"
+    }
+  },
+  {
+    "id": "segment_heading_action_10",
+    "start_ms": 757.9,
+    "end_ms": 2257.9,
+    "type": "segment",
+    "text": "heading_action",
+    "payload": {
+      "action_type": "heading_zoom",
+      "target": "heading_right",
+      "zoom_level": 1.12
+    }
+  },
+  {
+    "id": "segment_subtitle_dim_11",
+    "start_ms": 757.9,
+    "end_ms": 1357.9,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_8",
+    "start_ms": 757.9,
+    "end_ms": 1080.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Dijkstra's",
+      "index": 2,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_9",
+    "start_ms": 757.9,
+    "end_ms": 1357.9,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "Dijkstra's algorithm",
+      "element_id": "zw_0",
+      "zoom_word_hit_ms": 757.9
+    }
+  },
+  {
+    "id": "word_2",
+    "start_ms": 757.9,
+    "end_ms": 1080.0,
+    "type": "word",
+    "text": "Dijkstra's",
+    "payload": {}
+  },
+  {
+    "id": "segment_heading_action_13",
+    "start_ms": 1136.8,
+    "end_ms": 2336.8,
+    "type": "segment",
+    "text": "heading_action",
+    "payload": {
+      "action_type": "heading_underline",
+      "target": "heading_right",
+      "zoom_level": 1.12
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_12",
+    "start_ms": 1136.8,
+    "end_ms": 1458.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "algorithm",
+      "index": 3,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_3",
+    "start_ms": 1136.8,
+    "end_ms": 1458.9,
+    "type": "word",
+    "text": "algorithm",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_14",
+    "start_ms": 1515.8,
+    "end_ms": 1837.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "with",
+      "index": 4,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_4",
+    "start_ms": 1515.8,
+    "end_ms": 1837.9,
+    "type": "word",
+    "text": "with",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_dim_17",
+    "start_ms": 1894.7,
+    "end_ms": 2494.7,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_15",
+    "start_ms": 1894.7,
+    "end_ms": 2216.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Bellman-Ford",
+      "index": 5,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_16",
+    "start_ms": 1894.7,
+    "end_ms": 2494.7,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "Bellman-Ford algorithm",
+      "element_id": "zw_1",
+      "zoom_word_hit_ms": 1894.7
+    }
+  },
+  {
+    "id": "word_5",
+    "start_ms": 1894.7,
+    "end_ms": 2216.8,
+    "type": "word",
+    "text": "Bellman-Ford",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_18",
+    "start_ms": 2273.6,
+    "end_ms": 4490.4,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "algorithm.",
+          "start_ms": 2273.6,
+          "end_ms": 2595.7
+        },
+        {
+          "word": "Notice",
+          "start_ms": 2652.6,
+          "end_ms": 2974.7
+        },
+        {
+          "word": "how",
+          "start_ms": 3031.5,
+          "end_ms": 3353.6
+        },
+        {
+          "word": "both",
+          "start_ms": 3410.4,
+          "end_ms": 3732.5
+        },
+        {
+          "word": "algorithms",
+          "start_ms": 3789.4,
+          "end_ms": 4111.5
+        },
+        {
+          "word": "have",
+          "start_ms": 4168.3,
+          "end_ms": 4490.4
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_19",
+    "start_ms": 2273.6,
+    "end_ms": 2595.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "algorithm.",
+      "index": 0,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_6",
+    "start_ms": 2273.6,
+    "end_ms": 2595.7,
+    "type": "word",
+    "text": "algorithm.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_20",
+    "start_ms": 2652.6,
+    "end_ms": 2974.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Notice",
+      "index": 1,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "sentence_1",
+    "start_ms": 2652.6,
+    "end_ms": 9795.6,
+    "type": "sentence",
+    "text": "Notice how both algorithms have their own strengths and weaknesses, and how they differ in their approach and application.",
+    "payload": {}
+  },
+  {
+    "id": "word_7",
+    "start_ms": 2652.6,
+    "end_ms": 2974.7,
+    "type": "word",
+    "text": "Notice",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_21",
+    "start_ms": 3031.5,
+    "end_ms": 3353.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "how",
+      "index": 2,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_8",
+    "start_ms": 3031.5,
+    "end_ms": 3353.6,
+    "type": "word",
+    "text": "how",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_22",
+    "start_ms": 3410.4,
+    "end_ms": 3732.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "both",
+      "index": 3,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_9",
+    "start_ms": 3410.4,
+    "end_ms": 3732.5,
+    "type": "word",
+    "text": "both",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_23",
+    "start_ms": 3789.4,
+    "end_ms": 4111.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "algorithms",
+      "index": 4,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_10",
+    "start_ms": 3789.4,
+    "end_ms": 4111.5,
+    "type": "word",
+    "text": "algorithms",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_24",
+    "start_ms": 4168.3,
+    "end_ms": 4490.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "have",
+      "index": 5,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_11",
+    "start_ms": 4168.3,
+    "end_ms": 4490.4,
+    "type": "word",
+    "text": "have",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_25",
+    "start_ms": 4547.3,
+    "end_ms": 6764.1,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "their",
+          "start_ms": 4547.3,
+          "end_ms": 4869.4
+        },
+        {
+          "word": "own",
+          "start_ms": 4926.2,
+          "end_ms": 5248.3
+        },
+        {
+          "word": "strengths",
+          "start_ms": 5305.1,
+          "end_ms": 5627.2
+        },
+        {
+          "word": "and",
+          "start_ms": 5684.1,
+          "end_ms": 6006.2
+        },
+        {
+          "word": "weaknesses,",
+          "start_ms": 6063.0,
+          "end_ms": 6385.1
+        },
+        {
+          "word": "and",
+          "start_ms": 6442.0,
+          "end_ms": 6764.1
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_26",
+    "start_ms": 4547.3,
+    "end_ms": 4869.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "their",
+      "index": 0,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_12",
+    "start_ms": 4547.3,
+    "end_ms": 4869.4,
+    "type": "word",
+    "text": "their",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_27",
+    "start_ms": 4926.2,
+    "end_ms": 5248.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "own",
+      "index": 1,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_13",
+    "start_ms": 4926.2,
+    "end_ms": 5248.3,
+    "type": "word",
+    "text": "own",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_28",
+    "start_ms": 5305.1,
+    "end_ms": 5627.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "strengths",
+      "index": 2,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_14",
+    "start_ms": 5305.1,
+    "end_ms": 5627.2,
+    "type": "word",
+    "text": "strengths",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_29",
+    "start_ms": 5684.1,
+    "end_ms": 6006.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "and",
+      "index": 3,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_15",
+    "start_ms": 5684.1,
+    "end_ms": 6006.2,
+    "type": "word",
+    "text": "and",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_30",
+    "start_ms": 6063.0,
+    "end_ms": 6385.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "weaknesses,",
+      "index": 4,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_16",
+    "start_ms": 6063.0,
+    "end_ms": 6385.1,
+    "type": "word",
+    "text": "weaknesses,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_31",
+    "start_ms": 6442.0,
+    "end_ms": 6764.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "and",
+      "index": 5,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_17",
+    "start_ms": 6442.0,
+    "end_ms": 6764.1,
+    "type": "word",
+    "text": "and",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_32",
+    "start_ms": 6820.9,
+    "end_ms": 9037.7,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "how",
+          "start_ms": 6820.9,
+          "end_ms": 7143.0
+        },
+        {
+          "word": "they",
+          "start_ms": 7199.8,
+          "end_ms": 7521.9
+        },
+        {
+          "word": "differ",
+          "start_ms": 7578.8,
+          "end_ms": 7900.9
+        },
+        {
+          "word": "in",
+          "start_ms": 7957.7,
+          "end_ms": 8279.8
+        },
+        {
+          "word": "their",
+          "start_ms": 8336.7,
+          "end_ms": 8658.8
+        },
+        {
+          "word": "approach",
+          "start_ms": 8715.6,
+          "end_ms": 9037.7
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_33",
+    "start_ms": 6820.9,
+    "end_ms": 7143.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "how",
+      "index": 0,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_18",
+    "start_ms": 6820.9,
+    "end_ms": 7143.0,
+    "type": "word",
+    "text": "how",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_34",
+    "start_ms": 7199.8,
+    "end_ms": 7521.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "they",
+      "index": 1,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_19",
+    "start_ms": 7199.8,
+    "end_ms": 7521.9,
+    "type": "word",
+    "text": "they",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_35",
+    "start_ms": 7578.8,
+    "end_ms": 7900.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "differ",
+      "index": 2,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_20",
+    "start_ms": 7578.8,
+    "end_ms": 7900.9,
+    "type": "word",
+    "text": "differ",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_36",
+    "start_ms": 7957.7,
+    "end_ms": 8279.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "in",
+      "index": 3,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_21",
+    "start_ms": 7957.7,
+    "end_ms": 8279.8,
+    "type": "word",
+    "text": "in",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_37",
+    "start_ms": 8336.7,
+    "end_ms": 8658.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "their",
+      "index": 4,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_22",
+    "start_ms": 8336.7,
+    "end_ms": 8658.8,
+    "type": "word",
+    "text": "their",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_38",
+    "start_ms": 8715.6,
+    "end_ms": 9037.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "approach",
+      "index": 5,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_23",
+    "start_ms": 8715.6,
+    "end_ms": 9037.7,
+    "type": "word",
+    "text": "approach",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_39",
+    "start_ms": 9094.5,
+    "end_ms": 11311.3,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "and",
+          "start_ms": 9094.5,
+          "end_ms": 9416.6
+        },
+        {
+          "word": "application.",
+          "start_ms": 9473.5,
+          "end_ms": 9795.6
+        },
+        {
+          "word": "Think",
+          "start_ms": 9852.4,
+          "end_ms": 10174.5
+        },
+        {
+          "word": "of",
+          "start_ms": 10231.3,
+          "end_ms": 10553.4
+        },
+        {
+          "word": "it",
+          "start_ms": 10610.3,
+          "end_ms": 10932.4
+        },
+        {
+          "word": "like",
+          "start_ms": 10989.2,
+          "end_ms": 11311.3
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_40",
+    "start_ms": 9094.5,
+    "end_ms": 9416.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "and",
+      "index": 0,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_24",
+    "start_ms": 9094.5,
+    "end_ms": 9416.6,
+    "type": "word",
+    "text": "and",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_41",
+    "start_ms": 9473.5,
+    "end_ms": 9795.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "application.",
+      "index": 1,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_25",
+    "start_ms": 9473.5,
+    "end_ms": 9795.6,
+    "type": "word",
+    "text": "application.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_42",
+    "start_ms": 9852.4,
+    "end_ms": 10174.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Think",
+      "index": 2,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "sentence_2",
+    "start_ms": 9852.4,
+    "end_ms": 18511.2,
+    "type": "sentence",
+    "text": "Think of it like a choice between two different navigation systems, where we need to choose the one that best suits our needs.",
+    "payload": {}
+  },
+  {
+    "id": "word_26",
+    "start_ms": 9852.4,
+    "end_ms": 10174.5,
+    "type": "word",
+    "text": "Think",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_43",
+    "start_ms": 10231.3,
+    "end_ms": 10553.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "of",
+      "index": 3,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_27",
+    "start_ms": 10231.3,
+    "end_ms": 10553.4,
+    "type": "word",
+    "text": "of",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_44",
+    "start_ms": 10610.3,
+    "end_ms": 10932.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "it",
+      "index": 4,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_28",
+    "start_ms": 10610.3,
+    "end_ms": 10932.4,
+    "type": "word",
+    "text": "it",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_45",
+    "start_ms": 10989.2,
+    "end_ms": 11311.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "like",
+      "index": 5,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_29",
+    "start_ms": 10989.2,
+    "end_ms": 11311.3,
+    "type": "word",
+    "text": "like",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_46",
+    "start_ms": 11368.2,
+    "end_ms": 13585.0,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "a",
+          "start_ms": 11368.2,
+          "end_ms": 11690.3
+        },
+        {
+          "word": "choice",
+          "start_ms": 11747.1,
+          "end_ms": 12069.2
+        },
+        {
+          "word": "between",
+          "start_ms": 12126.0,
+          "end_ms": 12448.1
+        },
+        {
+          "word": "two",
+          "start_ms": 12505.0,
+          "end_ms": 12827.1
+        },
+        {
+          "word": "different",
+          "start_ms": 12883.9,
+          "end_ms": 13206.0
+        },
+        {
+          "word": "navigation",
+          "start_ms": 13262.9,
+          "end_ms": 13585.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_47",
+    "start_ms": 11368.2,
+    "end_ms": 11690.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 0,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_30",
+    "start_ms": 11368.2,
+    "end_ms": 11690.3,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_48",
+    "start_ms": 11747.1,
+    "end_ms": 12069.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "choice",
+      "index": 1,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_31",
+    "start_ms": 11747.1,
+    "end_ms": 12069.2,
+    "type": "word",
+    "text": "choice",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_49",
+    "start_ms": 12126.0,
+    "end_ms": 12448.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "between",
+      "index": 2,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_32",
+    "start_ms": 12126.0,
+    "end_ms": 12448.1,
+    "type": "word",
+    "text": "between",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_50",
+    "start_ms": 12505.0,
+    "end_ms": 12827.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "two",
+      "index": 3,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_33",
+    "start_ms": 12505.0,
+    "end_ms": 12827.1,
+    "type": "word",
+    "text": "two",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_51",
+    "start_ms": 12883.9,
+    "end_ms": 13206.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "different",
+      "index": 4,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_34",
+    "start_ms": 12883.9,
+    "end_ms": 13206.0,
+    "type": "word",
+    "text": "different",
+    "payload": {}
+  },
+  {
+    "id": "segment_analogy_overlay_53",
+    "start_ms": 13262.9,
+    "end_ms": 16262.9,
+    "type": "segment",
+    "text": "analogy_overlay",
+    "payload": {
+      "image_url": "/api/assets/broll?q=navigation+systems"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_52",
+    "start_ms": 13262.9,
+    "end_ms": 13585.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "navigation",
+      "index": 5,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_35",
+    "start_ms": 13262.9,
+    "end_ms": 13585.0,
+    "type": "word",
+    "text": "navigation",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_54",
+    "start_ms": 13641.8,
+    "end_ms": 15858.6,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "systems,",
+          "start_ms": 13641.8,
+          "end_ms": 13963.9
+        },
+        {
+          "word": "where",
+          "start_ms": 14020.7,
+          "end_ms": 14342.8
+        },
+        {
+          "word": "we",
+          "start_ms": 14399.7,
+          "end_ms": 14721.8
+        },
+        {
+          "word": "need",
+          "start_ms": 14778.6,
+          "end_ms": 15100.7
+        },
+        {
+          "word": "to",
+          "start_ms": 15157.6,
+          "end_ms": 15479.7
+        },
+        {
+          "word": "choose",
+          "start_ms": 15536.5,
+          "end_ms": 15858.6
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_55",
+    "start_ms": 13641.8,
+    "end_ms": 13963.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "systems,",
+      "index": 0,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_36",
+    "start_ms": 13641.8,
+    "end_ms": 13963.9,
+    "type": "word",
+    "text": "systems,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_56",
+    "start_ms": 14020.7,
+    "end_ms": 14342.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "where",
+      "index": 1,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_37",
+    "start_ms": 14020.7,
+    "end_ms": 14342.8,
+    "type": "word",
+    "text": "where",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_57",
+    "start_ms": 14399.7,
+    "end_ms": 14721.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "we",
+      "index": 2,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_38",
+    "start_ms": 14399.7,
+    "end_ms": 14721.8,
+    "type": "word",
+    "text": "we",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_58",
+    "start_ms": 14778.6,
+    "end_ms": 15100.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "need",
+      "index": 3,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_39",
+    "start_ms": 14778.6,
+    "end_ms": 15100.7,
+    "type": "word",
+    "text": "need",
+    "payload": {}
+  },
+  {
+    "id": "segment_takeaway_show_59",
+    "start_ms": 15014.4,
+    "end_ms": 18768.0,
+    "type": "segment",
+    "text": "takeaway_show",
+    "payload": {
+      "text": "Dijkstra's algorithm and Bellman-Ford algorithm are two popular algorithms used for finding the shortest path in a weighted graph, each with their own strengths and weaknesses."
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_60",
+    "start_ms": 15157.6,
+    "end_ms": 15479.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "to",
+      "index": 4,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_40",
+    "start_ms": 15157.6,
+    "end_ms": 15479.7,
+    "type": "word",
+    "text": "to",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_61",
+    "start_ms": 15536.5,
+    "end_ms": 15858.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "choose",
+      "index": 5,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_41",
+    "start_ms": 15536.5,
+    "end_ms": 15858.6,
+    "type": "word",
+    "text": "choose",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_62",
+    "start_ms": 15915.4,
+    "end_ms": 18132.2,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "the",
+          "start_ms": 15915.4,
+          "end_ms": 16237.5
+        },
+        {
+          "word": "one",
+          "start_ms": 16294.4,
+          "end_ms": 16616.5
+        },
+        {
+          "word": "that",
+          "start_ms": 16673.3,
+          "end_ms": 16995.4
+        },
+        {
+          "word": "best",
+          "start_ms": 17052.2,
+          "end_ms": 17374.3
+        },
+        {
+          "word": "suits",
+          "start_ms": 17431.2,
+          "end_ms": 17753.3
+        },
+        {
+          "word": "our",
+          "start_ms": 17810.1,
+          "end_ms": 18132.2
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_63",
+    "start_ms": 15915.4,
+    "end_ms": 16237.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 0,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_42",
+    "start_ms": 15915.4,
+    "end_ms": 16237.5,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_summary_strip_enter_64",
+    "start_ms": 15952.8,
+    "end_ms": 18768.0,
+    "type": "segment",
+    "text": "summary_strip_enter",
+    "payload": {
+      "text": "Dijkstra's algorithm and Bellman-Ford algorithm are two popular algorithms used for finding the shortest path in a weighted graph, each with their own strengths and weaknesses."
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_65",
+    "start_ms": 16294.4,
+    "end_ms": 16616.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "one",
+      "index": 1,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_43",
+    "start_ms": 16294.4,
+    "end_ms": 16616.5,
+    "type": "word",
+    "text": "one",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_66",
+    "start_ms": 16673.3,
+    "end_ms": 16995.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "that",
+      "index": 2,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_44",
+    "start_ms": 16673.3,
+    "end_ms": 16995.4,
+    "type": "word",
+    "text": "that",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_67",
+    "start_ms": 17052.2,
+    "end_ms": 17374.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "best",
+      "index": 3,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_45",
+    "start_ms": 17052.2,
+    "end_ms": 17374.3,
+    "type": "word",
+    "text": "best",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_68",
+    "start_ms": 17431.2,
+    "end_ms": 17753.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "suits",
+      "index": 4,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_46",
+    "start_ms": 17431.2,
+    "end_ms": 17753.3,
+    "type": "word",
+    "text": "suits",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_69",
+    "start_ms": 17810.1,
+    "end_ms": 18132.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "our",
+      "index": 5,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_47",
+    "start_ms": 17810.1,
+    "end_ms": 18132.2,
+    "type": "word",
+    "text": "our",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_70",
+    "start_ms": 18189.1,
+    "end_ms": 18511.2,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "needs.",
+          "start_ms": 18189.1,
+          "end_ms": 18511.2
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_71",
+    "start_ms": 18189.1,
+    "end_ms": 18511.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "needs.",
+      "index": 0,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_48",
+    "start_ms": 18189.1,
+    "end_ms": 18511.2,
+    "type": "word",
+    "text": "needs.",
+    "payload": {}
+  },
+  {
+    "id": "segment_scene_end_72",
+    "start_ms": 18268.0,
+    "end_ms": 18768.0,
+    "type": "segment",
+    "text": "scene_end",
+    "payload": {}
+  }
+]

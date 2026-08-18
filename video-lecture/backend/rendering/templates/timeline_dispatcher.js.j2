@@ -1,0 +1,580 @@
+/* ═══════════════════════════════════════════════════════════════
+   SmartStudyInstructor — Timeline Dispatcher
+   Controls event firing chronologically and delegates to modules.
+   ═══════════════════════════════════════════════════════════════ */
+
+(function () {
+    'use strict';
+
+    const TD       = window.TIMELINE_DATA || {};
+    const timeline = TD.events || [];
+    const totalMs  = TD.total_duration_ms || 10000;
+
+    const firedFlags = new Array(timeline.length).fill(false);
+
+    /* ─── Preview Replay Support ────────────────────────────── */
+    /* Allows the blueprint editor to reset and re-play the scene */
+    window.resetTimeline = function () {
+        for (let i = 0; i < firedFlags.length; i++) firedFlags[i] = false;
+        window.SCENE_FINISHED = false;
+        /* Reset visual states */
+        document.querySelectorAll('.b-visible').forEach(function(b) { b.classList.remove('b-visible','b-active'); });
+        document.querySelectorAll('.diag-visible').forEach(function(d) { d.classList.remove('diag-visible','diag-zoom'); });
+        var takeaway = document.getElementById('takeaway-bar');
+        if (takeaway) takeaway.classList.remove('takeaway-visible');
+        /* V16: Reset summary strip and remove pulse bars */
+        var strip = document.getElementById('summary-strip');
+        if (strip) strip.classList.remove('strip-visible');
+        document.querySelectorAll('.speaker-pulse-bar').forEach(function(p) { p.remove(); });
+        console.log('[Timeline] Reset — ready for replay.');
+    };
+
+    /* ─── Utils ─────────────────────────────────────────────── */
+    window.$ = id => document.getElementById(id);
+    window.q = sel => document.querySelector(sel);
+    window.qa = sel => document.querySelectorAll(sel);
+
+    /* ─── ADD BEFORE SWITCH STATEMENT ───────────────────────── */
+    function _getSVG() {
+      var s = document.getElementById('annotation-svg');
+      if (!s) {
+        s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        s.id = 'annotation-svg';
+        s.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:200;overflow:visible;';
+        var dw = document.getElementById('diagram-zoom-wrapper');
+        if (dw) dw.appendChild(s);
+      }
+      return s;
+    }
+
+    function _moveCursor(region, imgEl) {
+      if (window.moveCursor) {
+        window.moveCursor(region);
+      }
+    }
+
+    function _drawCircle(region, color, imgEl) {
+      if (window.drawCircleAnnotation) {
+        window.drawCircleAnnotation(region, color);
+      }
+    }
+
+    function _drawHighlight(region, color, imgEl) {
+      if (window.drawHighlightBox) {
+        window.drawHighlightBox(region, color);
+      }
+    }
+
+    function _drawArrow(fromR, toR, label, color, imgEl) {
+      if (window.drawFlowArrow) {
+        window.drawFlowArrow(fromR, toR, label, color);
+      }
+    }
+
+    function _zoomToRegion(region, scale) {
+      if (window.zoomToRegion) {
+        window.zoomToRegion(region, scale, 0.9);
+      }
+    }
+
+    function _zoomOut(dur) {
+      if (window.zoomOut) {
+        window.zoomOut(dur);
+      }
+    }
+
+    function _clearAnnotations() {
+      if (window.clearAnnotations) {
+        window.clearAnnotations();
+      }
+    }
+
+    /* ─── Dispatch event by type ────────────────────────────── */
+    function handleEvent(ev) {
+        const t = ev.event_type;
+        const d = ev.data || {};
+        const durMs = ev.end_ms - ev.start_ms;
+
+        switch (t) {
+            case 'scene_start': {
+                const flash = window.$('scene-flash');
+                if (flash && typeof gsap !== 'undefined') {
+                    gsap.fromTo(flash, {opacity: 1}, {opacity: 0, duration: 0.4});
+                }
+                break;
+            }
+            case 'scene_end': {
+                const flash = window.$('scene-flash');
+                if (flash && typeof gsap !== 'undefined') {
+                    gsap.fromTo(flash, {opacity: 0}, {opacity: 1, duration: 0.3, yoyo: true, repeat: 1});
+                }
+                break;
+            }
+            case 'heading_focus':
+            case 'heading_glow': {
+                const heading = window.$('heading-left') || window.q('.slide-heading');
+                if (heading && typeof gsap !== 'undefined') {
+                    gsap.fromTo(heading, 
+                        { opacity: 0, y: 30 }, 
+                        { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', onComplete: () => {
+                            const goldWord = heading.querySelector('.gold-word');
+                            if (goldWord) {
+                                gsap.to(goldWord, {
+                                    color: '#FFD700',
+                                    textShadow: '0 0 24px rgba(255,200,0,0.95)',
+                                    duration: 0.5,
+                                    ease: 'power2.out'
+                                });
+                            }
+                        }}
+                    );
+                }
+                break;
+            }
+            case 'heading_action': {
+                if (d.action_type) {
+                    const target = d.target || 'heading_right';
+                    const el = document.querySelector('.' + target.replace('_', '-')) || window.$(target.replace('_', '-'));
+                    if (el) {
+                        if (d.action_type === 'heading_zoom') {
+                            el.classList.add('heading-active');
+                            if (window.AudioMasterClock) {
+                                window.AudioMasterClock.onTimeMs(ev.start_ms + (durMs || 1500), function() { el.classList.remove('heading-active'); });
+                            } else {
+                                setTimeout(() => el.classList.remove('heading-active'), durMs || 1500);
+                            }
+                        } else if (d.action_type === 'heading_underline') {
+                            el.classList.add('heading-underline-anim');
+                            if (window.AudioMasterClock) {
+                                window.AudioMasterClock.onTimeMs(ev.start_ms + (durMs || 1500), function() { el.classList.remove('heading-underline-anim'); });
+                            } else {
+                                setTimeout(() => el.classList.remove('heading-underline-anim'), durMs || 1500);
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            case 'ken_burns': {
+                const kbEl = window.$('kb-target');
+                if (kbEl) {
+                    const dir = (d.direction || 'pan_right').replace(/_/g, '-');
+                    kbEl.classList.remove('kb-pan-right','kb-pan-left','kb-zoom-in','kb-zoom-out');
+                    void kbEl.offsetWidth; // force reflow
+                    kbEl.classList.add('kb-' + dir);
+                }
+                break;
+            }
+            case 'takeaway_show': {
+                const el = window.$('takeaway-bar');
+                if (el && typeof gsap !== 'undefined') {
+                    gsap.fromTo(el, {y:'100%',opacity:0}, {y:'0%',opacity:1,duration:0.5,ease:'power3.out'});
+                    el.classList.add('takeaway-visible');
+                }
+                break;
+            }
+            /* V16: Summary strip slide-in animation */
+            case 'summary_strip_enter': {
+                const strip = window.$('summary-strip');
+                if (strip) {
+                    if (typeof gsap !== 'undefined') {
+                        gsap.fromTo(strip,
+                            { opacity: 0, y: 16, scale: 0.96 },
+                            { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: 'back.out(1.4)',
+                              onStart: function() { strip.classList.add('strip-visible'); }
+                            }
+                        );
+                    } else {
+                        strip.classList.add('strip-visible');
+                    }
+                }
+                break;
+            }
+            case 'analogy_overlay': {
+                const ov = window.$('analogy-overlay');
+                if (ov) {
+                    ov.style.background = 'linear-gradient(135deg, rgba(74,143,224,0.15), rgba(212,168,83,0.15))';
+                    ov.classList.add('analogy-visible');
+                    /* FIX 3C: Use AudioMasterClock instead of setTimeout */
+                    if (window.AudioMasterClock) {
+                        window.AudioMasterClock.onTimeMs(ev.start_ms + (durMs || 3000), function() { ov.classList.remove('analogy-visible'); });
+                    } else {
+                        setTimeout(() => ov.classList.remove('analogy-visible'), durMs || 3000);
+                    }
+                }
+                break;
+            }
+            case 'dramatic_pause': {
+                const stage = window.$('diag-stage') || window.$('right-panel');
+                if (stage && typeof gsap !== 'undefined') {
+                    gsap.to(stage, { filter: 'brightness(0.85)', duration: 0.3 });
+                    /* FIX 3C: Use AudioMasterClock instead of setTimeout */
+                    if (window.AudioMasterClock) {
+                        window.AudioMasterClock.onTimeMs(ev.start_ms + (durMs || 900), function() {
+                            gsap.to(stage, { filter: 'brightness(1.0)', duration: 0.5 });
+                        });
+                    } else {
+                        setTimeout(() => {
+                            gsap.to(stage, { filter: 'brightness(1.0)', duration: 0.5 });
+                        }, durMs || 900);
+                    }
+                }
+                break;
+            }
+            case 'attention_hook': {
+                let hook = window.$('attention-hook-box');
+                if (!hook) {
+                    hook = document.createElement('div');
+                    hook.id = 'attention-hook-box';
+                    document.body.appendChild(hook);
+                }
+                const icons = {'did_you_know':'💡','quick_recap':'🔄','warning_box':'⚠️','callout_bubble':'📌'};
+                hook.className = 'hook-' + (d.hook_type||'did_you_know') + ' hook-' + (d.position||'top-right');
+                hook.innerHTML = '<span class="hook-icon">' + (icons[d.hook_type]||'💡') + '</span><span class="hook-text">' + (d.text||'') + '</span>';
+                hook.style.display = 'flex';
+                if (typeof gsap !== 'undefined') {
+                    gsap.fromTo(hook, {opacity:0,y:-20,scale:0.8}, {opacity:1,y:0,scale:1,duration:0.4,ease:'back.out(1.5)'});
+                    gsap.to(hook, {opacity:0,y:10,duration:0.4,delay:3.0,onComplete:()=>{hook.style.display='none';}});
+                } else {
+                    hook.style.opacity = '0';
+                    requestAnimationFrame(() => { hook.style.opacity = '1'; });
+                    setTimeout(() => { hook.style.opacity='0'; setTimeout(()=>{hook.style.display='none';},400); }, 3500);
+                }
+                break;
+            }
+            case 'pause_and_think':
+            case 'rhetorical_question': {
+                if (window.BulletEffects && typeof window.BulletEffects.showThinkIndicator === 'function') {
+                    window.BulletEffects.showThinkIndicator(t, d.duration_ms, d.marker_type);
+                }
+                break;
+            }
+            case 'layout_shift': {
+                if (typeof gsap !== 'undefined') {
+                    let leftPct = 50, rightPct = 50;
+                    if (d.layout === 'diagram_focus') { leftPct = 30; rightPct = 70; }
+                    else if (d.layout === 'text_focus') { leftPct = 70; rightPct = 30; }
+                    else if (d.layout === 'balanced') { leftPct = 55; rightPct = 45; }
+                    
+                    gsap.to(document.body, {
+                        '--col-left': leftPct + '%',
+                        '--col-right': rightPct + '%',
+                        duration: 1.2,
+                        ease: 'power2.inOut'
+                    });
+                }
+                break;
+            }
+            case 'bullet_enter': {
+                if (window.BulletEffects && typeof window.BulletEffects.handleEvent === 'function') {
+                    window.BulletEffects.handleEvent(t, d, durMs);
+                } else {
+                    var bulletIdx = d.index !== undefined ? d.index : d.bullet_index;
+                    var el = window.$('bullet_' + window.TIMELINE_DATA.scene_index + '_' + bulletIdx) || window.$('bullet_' + bulletIdx) || window.q(`.bullet[data-index="${bulletIdx}"]`);
+                    if (el) {
+                        el.classList.add('b-visible');
+                        if (typeof gsap !== 'undefined') {
+                            gsap.fromTo(el, { x: -12, opacity: 0 }, { x: 0, opacity: 1, duration: 0.22, ease: 'power3.out' });
+                        } else {
+                            el.style.opacity = '1';
+                        }
+                    }
+                }
+                break;
+            }
+            /* ── ADD AFTER LAST EXISTING CASE ───────────────────────── */
+            case 'diagram_zoom_in': {
+              var img = document.getElementById('diagram-img');
+              if (ev.data && ev.data.region) {
+                _zoomToRegion(ev.data.region, ev.data.zoom_scale||2.2);
+                if (img) _moveCursor(ev.data.region, img);
+              }
+              break;
+            }
+            case 'diagram_zoom_out':
+              _zoomOut(0.85);
+              break;
+
+            case 'diagram_overview':
+              _zoomOut(0.6);
+              _clearAnnotations();
+              break;
+
+            case 'diagram_annotate_circle': {
+              var imgC = document.getElementById('diagram-img');
+              if (ev.data && ev.data.region) _drawCircle(ev.data.region, ev.data.annotation_color||'#FF6B35', imgC);
+              break;
+            }
+            case 'diagram_highlight_region': {
+              var imgH = document.getElementById('diagram-img');
+              if (ev.data && ev.data.region) _drawHighlight(ev.data.region, ev.data.annotation_color||'#FF4444', imgH);
+              break;
+            }
+            case 'diagram_flow_arrow': {
+              var imgA = document.getElementById('diagram-img');
+              if (ev.data && ev.data.from_region && ev.data.to_region)
+                _drawArrow(ev.data.from_region, ev.data.to_region, ev.data.label||'', '#FFD700', imgA);
+              break;
+            }
+            case 'diagram_cursor_move': {
+              var imgM = document.getElementById('diagram-img');
+              if (ev.data && ev.data.region && imgM) _moveCursor(ev.data.region, imgM);
+              break;
+            }
+            case 'formula_step_reveal':
+              if (ev.data && window.FormulaAnim)
+                FormulaAnim.revealStep(ev.data.step_index, ev.data.latex, ev.data.explanation);
+              break;
+
+            case 'formula_term_highlight':
+              if (ev.data && window.FormulaAnim)
+                FormulaAnim.highlightTerm(ev.data.term, ev.data.color||'#FFD700');
+              break;
+
+            /* ── V16: 2-Phase Diagram Takeover ────────────────────── */
+            case 'diagram_phase_start': {
+              var rightPanel = document.getElementById('right-panel');
+              var diagCard = document.getElementById('diagram-card');
+              if (rightPanel) {
+                // Phase 2: Hide bullets, expand diagram to full panel
+                rightPanel.classList.add('diagram-phase');
+              }
+              if (diagCard) {
+                diagCard.classList.add('diag-visible');
+                if (typeof gsap !== 'undefined') {
+                  gsap.fromTo(diagCard,
+                    { opacity: 0, scale: 0.92 },
+                    { opacity: 1, scale: 1, duration: 0.7, ease: 'power3.out' }
+                  );
+                }
+              }
+              console.log('[Timeline] Diagram phase started — bullets hidden, diagram expanded');
+              break;
+            }
+
+            case 'diagram_expand': {
+              // Legacy handler + fallback
+              var mode = ev.data && ev.data.mode;
+              var rp = document.getElementById('right-panel');
+              var dc = document.getElementById('diagram-card');
+              if (rp) rp.classList.add('diagram-phase');
+              if (dc) {
+                dc.classList.add('diag-visible');
+                if (typeof gsap !== 'undefined') {
+                  gsap.to(dc, { opacity: 1, duration: 0.5 });
+                }
+              }
+              if (mode === 'fullscreen' && window.DiagramExpansion) {
+                window.DiagramExpansion.expandFull();
+              } else if (window.DiagramExpansion) {
+                window.DiagramExpansion.expandForDiagram(0);
+              }
+              break;
+            }
+
+            case 'diagram_wide': {
+              if (window.DiagramExpansion) window.DiagramExpansion.expandForDiagram(0);
+              break;
+            }
+
+            case 'diagram_collapse': {
+              if (window.DiagramExpansion) window.DiagramExpansion.collapse();
+              break;
+            }
+
+            default:
+              // Delegate any unhandled events (like custom drawing/table spotlights) to legacy handlers
+              if (window.BulletEffects && typeof window.BulletEffects.handleEvent === 'function') {
+                  window.BulletEffects.handleEvent(t, d, durMs);
+              }
+              if (window.DiagramEffects && typeof window.DiagramEffects.handleEvent === 'function') {
+                  window.DiagramEffects.handleEvent(t, d, durMs, ev);
+              }
+              break;
+        }
+    }
+
+    /* ─── Main tick loop ────────────────────────────────────── */
+    let lastPanicCheck = 0;
+
+    function tick() {
+        try {
+            // Advance clock using real-sync elapsed time
+            if (typeof window.tickAudioClock === 'function') {
+                window.tickAudioClock();
+            }
+
+            const ms = window.getSceneTime();
+
+            // Check timeline events
+            for (let i = 0; i < timeline.length; i++) {
+                if (!firedFlags[i] && ms >= timeline[i].start_ms) {
+                    firedFlags[i] = true;
+                    try { handleEvent(timeline[i]); } catch(e) { console.error('[Timeline]', e); }
+                }
+            }
+
+            // Update bullet highlights based on current time and segments
+            if (window.BulletEffects && typeof window.BulletEffects.updateActiveBulletByTime === 'function') {
+                try { window.BulletEffects.updateActiveBulletByTime(ms); } catch(e) { console.error('[BulletEffects]', e); }
+            }
+
+            // V15: Active speaker bar — visual pulse on the currently narrated bullet
+            const activeBullet = window.q('.bullet.b-active');
+            if (activeBullet && !activeBullet.querySelector('.speaker-bar')) {
+                const bar = document.createElement('div');
+                bar.className = 'speaker-bar';
+                activeBullet.prepend(bar);
+            }
+            const staleBarBullets = window.qa('.bullet:not(.b-active) .speaker-bar');
+            if (staleBarBullets) {
+                staleBarBullets.forEach(function(b) { b.remove(); });
+            }
+
+            // Update diagram zooms and flow animations — only on scenes with valid diagram data
+            if (window.DiagAnim && (!window.hasValidDiagram || window.hasValidDiagram())) {
+                if (typeof window.DiagAnim.updateActiveRegionByTime === 'function') {
+                    try { window.DiagAnim.updateActiveRegionByTime(ms); } catch(e) {}
+                }
+                if (typeof window.DiagAnim.updateActiveFlowByTime === 'function') {
+                    try { window.DiagAnim.updateActiveFlowByTime(ms); } catch(e) {}
+                }
+            }
+
+            if (debugOverlay) {
+                const activeBulletId = (window.BulletEffects && window.BulletEffects.currentActiveBulletId) || 'None';
+                const activeRegionId = (window.DiagAnim && window.DiagAnim.currentActiveRegionId) || 'None';
+                const activeFlowId = (window.DiagAnim && window.DiagAnim.currentActiveFlowId) || 'None';
+                debugOverlay.innerHTML = `Time: ${Math.round(ms)}ms / ${totalMs}ms<br>Active Bullet: ${activeBulletId}<br>Active Region: ${activeRegionId}<br>Active Flow: ${activeFlowId}`;
+            }
+
+            // Watchdog & Fail-Safes
+            if (ms > lastPanicCheck + 1000) {
+                lastPanicCheck = ms;
+                runWatchdog(ms);
+            }
+
+            // End of scene check
+            if (ms >= totalMs + 500) {
+                window.SCENE_FINISHED = true;
+                console.log("[Timeline] Scene finished. Flag set.");
+            }
+        } catch (tickErr) {
+            console.error("[Timeline tick error]", tickErr);
+        }
+
+        if (window.getSceneTime() < totalMs + 1000) {
+            requestAnimationFrame(tick);
+        }
+    }
+
+    function runWatchdog(ms) {
+        // 1. Heading Fail-Safe
+        const h = window.$('heading-left') || window.q('.slide-heading');
+        if (h && ms > totalMs * 0.15) {
+            const hOpacity = window.getComputedStyle(h).opacity;
+            if (hOpacity === '0' || h.style.color === 'transparent') {
+                h.style.color = '';
+                h.style.opacity = '1';
+            }
+        }
+
+        // 2. Bullet Fail-Safe
+        const bullets = window.qa('.bullet');
+        bullets.forEach((b, i) => {
+            const revealThreshold = (totalMs * 0.15) + (i * (totalMs * 0.1));
+            if (ms > revealThreshold && !b.classList.contains('b-visible')) {
+                b.classList.add('b-visible');
+                const spans = b.querySelectorAll('.word-span');
+                if (spans.length > 0 && typeof gsap !== 'undefined') {
+                    gsap.killTweensOf(spans);
+                    gsap.set(spans, {opacity: 1, y: 0, filter: 'blur(0px)'});
+                }
+                console.warn(`[Watchdog] Panic-revealing bullet ${i}`);
+            }
+        });
+
+        // 3. Diagram Fail-Safe
+        const dCard = window.$('diagram-card');
+        if (dCard && ms > totalMs * 0.4 && !dCard.classList.contains('diag-visible')) {
+            dCard.classList.add('diag-visible');
+        }
+    }
+
+    /* ─── Auto Fallbacks ────────────────────────────────────── */
+    function autoShowDiagram() {
+        const card = window.$('diagram-card');
+        if (!card) return;
+        const hasEvent = timeline.some(e => e.event_type === 'diagram_enter');
+        if (!hasEvent) {
+            setTimeout(() => {
+                card.classList.add('diag-visible');
+                setTimeout(() => card.classList.add('diag-zoom'), 700);
+            }, 1000);
+        }
+    }
+
+    function autoRevealBullets() {
+        const hasEvents = timeline.some(e => e.event_type === 'bullet_enter');
+        if (!hasEvents) {
+            window.qa('.bullet').forEach((b, i) => {
+                setTimeout(() => {
+                    b.classList.add('b-visible');
+                    if (i === 0) b.classList.add('b-active');
+                }, 500 + i * 800);
+            });
+        }
+    }
+
+    // Add timeline debug overlay in dev/preview mode
+    const isDebug = !window.IS_CAPTURING || window.location.search.includes('debug');
+    let debugOverlay = null;
+
+    /* ─── Init on load or immediate if DOM already ready ──────── */
+    function initEngine() {
+        document.body.classList.add('scene-ready');
+        
+        if (isDebug) {
+            debugOverlay = document.createElement('div');
+            debugOverlay.id = 'timeline-debug-overlay';
+            debugOverlay.style.position = 'fixed';
+            debugOverlay.style.bottom = '10px';
+            debugOverlay.style.right = '10px';
+            debugOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
+            debugOverlay.style.color = '#00FF00';
+            debugOverlay.style.fontFamily = 'monospace';
+            debugOverlay.style.fontSize = '12px';
+            debugOverlay.style.padding = '8px 12px';
+            debugOverlay.style.borderRadius = '5px';
+            debugOverlay.style.zIndex = '10000';
+            debugOverlay.style.pointerEvents = 'none';
+            debugOverlay.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+            debugOverlay.innerHTML = 'Time: 0ms | Active: None';
+            document.body.appendChild(debugOverlay);
+        }
+
+        // Global safety backup timer in case requestAnimationFrame stalls or throws
+        setTimeout(() => {
+            if (!window.SCENE_FINISHED) {
+                window.SCENE_FINISHED = true;
+                console.warn("[Timeline] Global fallback timer forced SCENE_FINISHED to true.");
+            }
+        }, totalMs + 3000);
+
+        setTimeout(() => {
+            autoShowDiagram();
+            autoRevealBullets();
+            if (typeof window.startAudioClock === 'function') {
+                window.startAudioClock();
+            }
+            requestAnimationFrame(tick);
+        }, 100);
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initEngine();
+    } else {
+        window.addEventListener('load', initEngine);
+    }
+
+})();

@@ -1,0 +1,1487 @@
+[
+  {
+    "id": "segment_ken_burns_1",
+    "start_ms": 0,
+    "end_ms": 19776.0,
+    "type": "segment",
+    "text": "ken_burns",
+    "payload": {
+      "direction": "pan_right"
+    }
+  },
+  {
+    "id": "segment_scene_start_0",
+    "start_ms": 0,
+    "end_ms": 400,
+    "type": "segment",
+    "text": "scene_start",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_2",
+    "start_ms": 0.0,
+    "end_ms": 2385.9,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "Let's",
+          "start_ms": 0.0,
+          "end_ms": 346.7
+        },
+        {
+          "word": "go",
+          "start_ms": 407.8,
+          "end_ms": 754.5
+        },
+        {
+          "word": "through",
+          "start_ms": 815.7,
+          "end_ms": 1162.4
+        },
+        {
+          "word": "the",
+          "start_ms": 1223.5,
+          "end_ms": 1570.2
+        },
+        {
+          "word": "step-by-step",
+          "start_ms": 1631.3,
+          "end_ms": 1978.0
+        },
+        {
+          "word": "process",
+          "start_ms": 2039.2,
+          "end_ms": 2385.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_3",
+    "start_ms": 0.0,
+    "end_ms": 346.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Let's",
+      "index": 0,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "sentence_0",
+    "start_ms": 0.0,
+    "end_ms": 4017.2,
+    "type": "sentence",
+    "text": "Let's go through the step-by-step process of implementing Dijkstra's algorithm.",
+    "payload": {}
+  },
+  {
+    "id": "word_0",
+    "start_ms": 0.0,
+    "end_ms": 346.7,
+    "type": "word",
+    "text": "Let's",
+    "payload": {}
+  },
+  {
+    "id": "segment_heading_focus_4",
+    "start_ms": 200,
+    "end_ms": 3200,
+    "type": "segment",
+    "text": "heading_focus",
+    "payload": {
+      "heading_left": "Step-by-Step Process",
+      "heading_right": "Implementation of Dijkstra's Algorithm"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_5",
+    "start_ms": 407.8,
+    "end_ms": 754.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "go",
+      "index": 1,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_1",
+    "start_ms": 407.8,
+    "end_ms": 754.5,
+    "type": "word",
+    "text": "go",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_6",
+    "start_ms": 815.7,
+    "end_ms": 1162.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "through",
+      "index": 2,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_2",
+    "start_ms": 815.7,
+    "end_ms": 1162.4,
+    "type": "word",
+    "text": "through",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_7",
+    "start_ms": 1223.5,
+    "end_ms": 1570.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 3,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_3",
+    "start_ms": 1223.5,
+    "end_ms": 1570.2,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_8",
+    "start_ms": 1631.3,
+    "end_ms": 1978.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "step-by-step",
+      "index": 4,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_4",
+    "start_ms": 1631.3,
+    "end_ms": 1978.0,
+    "type": "word",
+    "text": "step-by-step",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_9",
+    "start_ms": 2039.2,
+    "end_ms": 2385.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "process",
+      "index": 5,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_5",
+    "start_ms": 2039.2,
+    "end_ms": 2385.9,
+    "type": "word",
+    "text": "process",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_10",
+    "start_ms": 2447.0,
+    "end_ms": 4832.9,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "of",
+          "start_ms": 2447.0,
+          "end_ms": 2793.7
+        },
+        {
+          "word": "implementing",
+          "start_ms": 2854.8,
+          "end_ms": 3201.5
+        },
+        {
+          "word": "Dijkstra's",
+          "start_ms": 3262.7,
+          "end_ms": 3609.4
+        },
+        {
+          "word": "algorithm.",
+          "start_ms": 3670.5,
+          "end_ms": 4017.2
+        },
+        {
+          "word": "Notice",
+          "start_ms": 4078.3,
+          "end_ms": 4425.0
+        },
+        {
+          "word": "how",
+          "start_ms": 4486.2,
+          "end_ms": 4832.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_11",
+    "start_ms": 2447.0,
+    "end_ms": 2793.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "of",
+      "index": 0,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_6",
+    "start_ms": 2447.0,
+    "end_ms": 2793.7,
+    "type": "word",
+    "text": "of",
+    "payload": {}
+  },
+  {
+    "id": "segment_diagram_flow_animate_14",
+    "start_ms": 2854.8,
+    "end_ms": 4354.8,
+    "type": "segment",
+    "text": "diagram_flow_animate",
+    "payload": {
+      "from_component": "initializing",
+      "to_component": "extracting",
+      "path_id": "flow_initializing_extracting",
+      "duration_ms": 1500,
+      "loop": false,
+      "particle_color": "#4F8EF7"
+    }
+  },
+  {
+    "id": "segment_heading_action_13",
+    "start_ms": 2854.8,
+    "end_ms": 4354.8,
+    "type": "segment",
+    "text": "heading_action",
+    "payload": {
+      "action_type": "heading_zoom",
+      "target": "heading_right",
+      "zoom_level": 1.12
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_12",
+    "start_ms": 2854.8,
+    "end_ms": 3201.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "implementing",
+      "index": 1,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_7",
+    "start_ms": 2854.8,
+    "end_ms": 3201.5,
+    "type": "word",
+    "text": "implementing",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_15",
+    "start_ms": 3262.7,
+    "end_ms": 3609.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Dijkstra's",
+      "index": 2,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_8",
+    "start_ms": 3262.7,
+    "end_ms": 3609.4,
+    "type": "word",
+    "text": "Dijkstra's",
+    "payload": {}
+  },
+  {
+    "id": "segment_heading_action_17",
+    "start_ms": 3670.5,
+    "end_ms": 4870.5,
+    "type": "segment",
+    "text": "heading_action",
+    "payload": {
+      "action_type": "heading_underline",
+      "target": "heading_right",
+      "zoom_level": 1.12
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_16",
+    "start_ms": 3670.5,
+    "end_ms": 4017.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "algorithm.",
+      "index": 3,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_9",
+    "start_ms": 3670.5,
+    "end_ms": 4017.2,
+    "type": "word",
+    "text": "algorithm.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_18",
+    "start_ms": 4078.3,
+    "end_ms": 4425.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Notice",
+      "index": 4,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "sentence_1",
+    "start_ms": 4078.3,
+    "end_ms": 12173.9,
+    "type": "sentence",
+    "text": "Notice how the algorithm involves several steps, including initializing the distance array, creating a minheap, and extracting the minimum vertex.",
+    "payload": {}
+  },
+  {
+    "id": "word_10",
+    "start_ms": 4078.3,
+    "end_ms": 4425.0,
+    "type": "word",
+    "text": "Notice",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_19",
+    "start_ms": 4486.2,
+    "end_ms": 4832.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "how",
+      "index": 5,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_11",
+    "start_ms": 4486.2,
+    "end_ms": 4832.9,
+    "type": "word",
+    "text": "how",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_20",
+    "start_ms": 4894.0,
+    "end_ms": 7279.9,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "the",
+          "start_ms": 4894.0,
+          "end_ms": 5240.7
+        },
+        {
+          "word": "algorithm",
+          "start_ms": 5301.8,
+          "end_ms": 5648.5
+        },
+        {
+          "word": "involves",
+          "start_ms": 5709.7,
+          "end_ms": 6056.4
+        },
+        {
+          "word": "several",
+          "start_ms": 6117.5,
+          "end_ms": 6464.2
+        },
+        {
+          "word": "steps,",
+          "start_ms": 6525.3,
+          "end_ms": 6872.0
+        },
+        {
+          "word": "including",
+          "start_ms": 6933.2,
+          "end_ms": 7279.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_21",
+    "start_ms": 4894.0,
+    "end_ms": 5240.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 0,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_12",
+    "start_ms": 4894.0,
+    "end_ms": 5240.7,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_22",
+    "start_ms": 5301.8,
+    "end_ms": 5648.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "algorithm",
+      "index": 1,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_13",
+    "start_ms": 5301.8,
+    "end_ms": 5648.5,
+    "type": "word",
+    "text": "algorithm",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_23",
+    "start_ms": 5709.7,
+    "end_ms": 6056.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "involves",
+      "index": 2,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_14",
+    "start_ms": 5709.7,
+    "end_ms": 6056.4,
+    "type": "word",
+    "text": "involves",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_24",
+    "start_ms": 6117.5,
+    "end_ms": 6464.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "several",
+      "index": 3,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_15",
+    "start_ms": 6117.5,
+    "end_ms": 6464.2,
+    "type": "word",
+    "text": "several",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_25",
+    "start_ms": 6525.3,
+    "end_ms": 6872.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "steps,",
+      "index": 4,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_16",
+    "start_ms": 6525.3,
+    "end_ms": 6872.0,
+    "type": "word",
+    "text": "steps,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_26",
+    "start_ms": 6933.2,
+    "end_ms": 7279.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "including",
+      "index": 5,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_17",
+    "start_ms": 6933.2,
+    "end_ms": 7279.9,
+    "type": "word",
+    "text": "including",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_27",
+    "start_ms": 7341.0,
+    "end_ms": 9726.9,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "initializing",
+          "start_ms": 7341.0,
+          "end_ms": 7687.7
+        },
+        {
+          "word": "the",
+          "start_ms": 7748.8,
+          "end_ms": 8095.5
+        },
+        {
+          "word": "distance",
+          "start_ms": 8156.7,
+          "end_ms": 8503.4
+        },
+        {
+          "word": "array,",
+          "start_ms": 8564.5,
+          "end_ms": 8911.2
+        },
+        {
+          "word": "creating",
+          "start_ms": 8972.3,
+          "end_ms": 9319.0
+        },
+        {
+          "word": "a",
+          "start_ms": 9380.2,
+          "end_ms": 9726.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_28",
+    "start_ms": 7341.0,
+    "end_ms": 7687.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "initializing",
+      "index": 0,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_18",
+    "start_ms": 7341.0,
+    "end_ms": 7687.7,
+    "type": "word",
+    "text": "initializing",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_29",
+    "start_ms": 7748.8,
+    "end_ms": 8095.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 1,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_19",
+    "start_ms": 7748.8,
+    "end_ms": 8095.5,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "seg_bullet_5_0",
+    "start_ms": 8106.7,
+    "end_ms": 19776.0,
+    "type": "bullet",
+    "text": "bullet_5_0",
+    "payload": {}
+  },
+  {
+    "id": "segment_bullet_enter_30",
+    "start_ms": 8106.7,
+    "end_ms": 8706.7,
+    "type": "segment",
+    "text": "bullet_enter",
+    "payload": {
+      "index": 0,
+      "text": "The algorithm starts by initializing the distance array and creating a minheap.",
+      "zoom_word": "distance array",
+      "num": "01"
+    }
+  },
+  {
+    "id": "segment_subtitle_dim_33",
+    "start_ms": 8156.7,
+    "end_ms": 8756.7,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_31",
+    "start_ms": 8156.7,
+    "end_ms": 8503.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "distance",
+      "index": 2,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_32",
+    "start_ms": 8156.7,
+    "end_ms": 8756.7,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "distance array",
+      "element_id": "zw_0",
+      "zoom_word_hit_ms": 8156.7
+    }
+  },
+  {
+    "id": "word_20",
+    "start_ms": 8156.7,
+    "end_ms": 8503.4,
+    "type": "word",
+    "text": "distance",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_34",
+    "start_ms": 8564.5,
+    "end_ms": 8911.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "array,",
+      "index": 3,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_21",
+    "start_ms": 8564.5,
+    "end_ms": 8911.2,
+    "type": "word",
+    "text": "array,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_35",
+    "start_ms": 8972.3,
+    "end_ms": 9319.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "creating",
+      "index": 4,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_22",
+    "start_ms": 8972.3,
+    "end_ms": 9319.0,
+    "type": "word",
+    "text": "creating",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_36",
+    "start_ms": 9380.2,
+    "end_ms": 9726.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 5,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_23",
+    "start_ms": 9380.2,
+    "end_ms": 9726.9,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_dim_40",
+    "start_ms": 9788.0,
+    "end_ms": 10334.7,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_show_37",
+    "start_ms": 9788.0,
+    "end_ms": 12173.9,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "minheap,",
+          "start_ms": 9788.0,
+          "end_ms": 10134.7
+        },
+        {
+          "word": "and",
+          "start_ms": 10195.8,
+          "end_ms": 10542.5
+        },
+        {
+          "word": "extracting",
+          "start_ms": 10603.7,
+          "end_ms": 10950.4
+        },
+        {
+          "word": "the",
+          "start_ms": 11011.5,
+          "end_ms": 11358.2
+        },
+        {
+          "word": "minimum",
+          "start_ms": 11419.3,
+          "end_ms": 11766.0
+        },
+        {
+          "word": "vertex.",
+          "start_ms": 11827.2,
+          "end_ms": 12173.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_38",
+    "start_ms": 9788.0,
+    "end_ms": 10134.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "minheap,",
+      "index": 0,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_39",
+    "start_ms": 9788.0,
+    "end_ms": 10334.7,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "minheap",
+      "element_id": "zw_1",
+      "zoom_word_hit_ms": 9788.0
+    }
+  },
+  {
+    "id": "word_24",
+    "start_ms": 9788.0,
+    "end_ms": 10134.7,
+    "type": "word",
+    "text": "minheap,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_41",
+    "start_ms": 10195.8,
+    "end_ms": 10542.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "and",
+      "index": 1,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_25",
+    "start_ms": 10195.8,
+    "end_ms": 10542.5,
+    "type": "word",
+    "text": "and",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_42",
+    "start_ms": 10603.7,
+    "end_ms": 10950.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "extracting",
+      "index": 2,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_26",
+    "start_ms": 10603.7,
+    "end_ms": 10950.4,
+    "type": "word",
+    "text": "extracting",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_43",
+    "start_ms": 11011.5,
+    "end_ms": 11358.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 3,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_27",
+    "start_ms": 11011.5,
+    "end_ms": 11358.2,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_44",
+    "start_ms": 11419.3,
+    "end_ms": 11766.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "minimum",
+      "index": 4,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_28",
+    "start_ms": 11419.3,
+    "end_ms": 11766.0,
+    "type": "word",
+    "text": "minimum",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_45",
+    "start_ms": 11827.2,
+    "end_ms": 12173.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "vertex.",
+      "index": 5,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_29",
+    "start_ms": 11827.2,
+    "end_ms": 12173.9,
+    "type": "word",
+    "text": "vertex.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_46",
+    "start_ms": 12235.0,
+    "end_ms": 14620.9,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "Think",
+          "start_ms": 12235.0,
+          "end_ms": 12581.7
+        },
+        {
+          "word": "of",
+          "start_ms": 12642.8,
+          "end_ms": 12989.5
+        },
+        {
+          "word": "it",
+          "start_ms": 13050.7,
+          "end_ms": 13397.4
+        },
+        {
+          "word": "like",
+          "start_ms": 13458.5,
+          "end_ms": 13805.2
+        },
+        {
+          "word": "a",
+          "start_ms": 13866.3,
+          "end_ms": 14213.0
+        },
+        {
+          "word": "recipe,",
+          "start_ms": 14274.2,
+          "end_ms": 14620.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_47",
+    "start_ms": 12235.0,
+    "end_ms": 12581.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Think",
+      "index": 0,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "sentence_2",
+    "start_ms": 12235.0,
+    "end_ms": 19514.9,
+    "type": "sentence",
+    "text": "Think of it like a recipe, where we need to follow each step to get the desired result.",
+    "payload": {}
+  },
+  {
+    "id": "word_30",
+    "start_ms": 12235.0,
+    "end_ms": 12581.7,
+    "type": "word",
+    "text": "Think",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_48",
+    "start_ms": 12642.8,
+    "end_ms": 12989.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "of",
+      "index": 1,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_31",
+    "start_ms": 12642.8,
+    "end_ms": 12989.5,
+    "type": "word",
+    "text": "of",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_49",
+    "start_ms": 13050.7,
+    "end_ms": 13397.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "it",
+      "index": 2,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_32",
+    "start_ms": 13050.7,
+    "end_ms": 13397.4,
+    "type": "word",
+    "text": "it",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_50",
+    "start_ms": 13458.5,
+    "end_ms": 13805.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "like",
+      "index": 3,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_33",
+    "start_ms": 13458.5,
+    "end_ms": 13805.2,
+    "type": "word",
+    "text": "like",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_51",
+    "start_ms": 13866.3,
+    "end_ms": 14213.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 4,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_34",
+    "start_ms": 13866.3,
+    "end_ms": 14213.0,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_analogy_overlay_53",
+    "start_ms": 14274.2,
+    "end_ms": 17274.2,
+    "type": "segment",
+    "text": "analogy_overlay",
+    "payload": {
+      "image_url": "/api/assets/broll?q=recipe"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_52",
+    "start_ms": 14274.2,
+    "end_ms": 14620.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "recipe,",
+      "index": 5,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_35",
+    "start_ms": 14274.2,
+    "end_ms": 14620.9,
+    "type": "word",
+    "text": "recipe,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_54",
+    "start_ms": 14682.0,
+    "end_ms": 17067.9,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "where",
+          "start_ms": 14682.0,
+          "end_ms": 15028.7
+        },
+        {
+          "word": "we",
+          "start_ms": 15089.8,
+          "end_ms": 15436.5
+        },
+        {
+          "word": "need",
+          "start_ms": 15497.7,
+          "end_ms": 15844.4
+        },
+        {
+          "word": "to",
+          "start_ms": 15905.5,
+          "end_ms": 16252.2
+        },
+        {
+          "word": "follow",
+          "start_ms": 16313.3,
+          "end_ms": 16660.0
+        },
+        {
+          "word": "each",
+          "start_ms": 16721.2,
+          "end_ms": 17067.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_55",
+    "start_ms": 14682.0,
+    "end_ms": 15028.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "where",
+      "index": 0,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_36",
+    "start_ms": 14682.0,
+    "end_ms": 15028.7,
+    "type": "word",
+    "text": "where",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_56",
+    "start_ms": 15089.8,
+    "end_ms": 15436.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "we",
+      "index": 1,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_37",
+    "start_ms": 15089.8,
+    "end_ms": 15436.5,
+    "type": "word",
+    "text": "we",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_57",
+    "start_ms": 15497.7,
+    "end_ms": 15844.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "need",
+      "index": 2,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_38",
+    "start_ms": 15497.7,
+    "end_ms": 15844.4,
+    "type": "word",
+    "text": "need",
+    "payload": {}
+  },
+  {
+    "id": "segment_takeaway_show_58",
+    "start_ms": 15820.8,
+    "end_ms": 19776.0,
+    "type": "segment",
+    "text": "takeaway_show",
+    "payload": {
+      "text": "Implementing Dijkstra's algorithm involves several steps, including initializing the distance array, creating a minheap, and extracting the minimum vertex."
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_59",
+    "start_ms": 15905.5,
+    "end_ms": 16252.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "to",
+      "index": 3,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_39",
+    "start_ms": 15905.5,
+    "end_ms": 16252.2,
+    "type": "word",
+    "text": "to",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_60",
+    "start_ms": 16313.3,
+    "end_ms": 16660.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "follow",
+      "index": 4,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_40",
+    "start_ms": 16313.3,
+    "end_ms": 16660.0,
+    "type": "word",
+    "text": "follow",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_61",
+    "start_ms": 16721.2,
+    "end_ms": 17067.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "each",
+      "index": 5,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_41",
+    "start_ms": 16721.2,
+    "end_ms": 17067.9,
+    "type": "word",
+    "text": "each",
+    "payload": {}
+  },
+  {
+    "id": "segment_summary_strip_enter_62",
+    "start_ms": 16809.6,
+    "end_ms": 19776.0,
+    "type": "segment",
+    "text": "summary_strip_enter",
+    "payload": {
+      "text": "Implementing Dijkstra's algorithm involves several steps, including initializing the distance array, creating a minheap, and extracting the minimum vertex."
+    }
+  },
+  {
+    "id": "segment_subtitle_show_63",
+    "start_ms": 17129.0,
+    "end_ms": 19514.9,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "step",
+          "start_ms": 17129.0,
+          "end_ms": 17475.7
+        },
+        {
+          "word": "to",
+          "start_ms": 17536.8,
+          "end_ms": 17883.5
+        },
+        {
+          "word": "get",
+          "start_ms": 17944.7,
+          "end_ms": 18291.4
+        },
+        {
+          "word": "the",
+          "start_ms": 18352.5,
+          "end_ms": 18699.2
+        },
+        {
+          "word": "desired",
+          "start_ms": 18760.3,
+          "end_ms": 19107.0
+        },
+        {
+          "word": "result.",
+          "start_ms": 19168.2,
+          "end_ms": 19514.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_64",
+    "start_ms": 17129.0,
+    "end_ms": 17475.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "step",
+      "index": 0,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_42",
+    "start_ms": 17129.0,
+    "end_ms": 17475.7,
+    "type": "word",
+    "text": "step",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_65",
+    "start_ms": 17536.8,
+    "end_ms": 17883.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "to",
+      "index": 1,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_43",
+    "start_ms": 17536.8,
+    "end_ms": 17883.5,
+    "type": "word",
+    "text": "to",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_66",
+    "start_ms": 17944.7,
+    "end_ms": 18291.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "get",
+      "index": 2,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_44",
+    "start_ms": 17944.7,
+    "end_ms": 18291.4,
+    "type": "word",
+    "text": "get",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_67",
+    "start_ms": 18352.5,
+    "end_ms": 18699.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 3,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_45",
+    "start_ms": 18352.5,
+    "end_ms": 18699.2,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_68",
+    "start_ms": 18760.3,
+    "end_ms": 19107.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "desired",
+      "index": 4,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_46",
+    "start_ms": 18760.3,
+    "end_ms": 19107.0,
+    "type": "word",
+    "text": "desired",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_69",
+    "start_ms": 19168.2,
+    "end_ms": 19514.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "result.",
+      "index": 5,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_47",
+    "start_ms": 19168.2,
+    "end_ms": 19514.9,
+    "type": "word",
+    "text": "result.",
+    "payload": {}
+  },
+  {
+    "id": "segment_scene_end_70",
+    "start_ms": 19276.0,
+    "end_ms": 19776.0,
+    "type": "segment",
+    "text": "scene_end",
+    "payload": {}
+  }
+]

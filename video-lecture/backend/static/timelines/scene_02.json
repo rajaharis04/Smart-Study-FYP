@@ -1,0 +1,5099 @@
+[
+  {
+    "id": "segment_ken_burns_1",
+    "start_ms": 0,
+    "end_ms": 63288.0,
+    "type": "segment",
+    "text": "ken_burns",
+    "payload": {
+      "direction": "pan_right"
+    }
+  },
+  {
+    "id": "segment_scene_start_0",
+    "start_ms": 0,
+    "end_ms": 400,
+    "type": "segment",
+    "text": "scene_start",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_2",
+    "start_ms": 0.0,
+    "end_ms": 2476.9,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "This",
+          "start_ms": 0.0,
+          "end_ms": 359.9
+        },
+        {
+          "word": "formula",
+          "start_ms": 423.4,
+          "end_ms": 783.3
+        },
+        {
+          "word": "is",
+          "start_ms": 846.8,
+          "end_ms": 1206.7
+        },
+        {
+          "word": "actually",
+          "start_ms": 1270.2,
+          "end_ms": 1630.1
+        },
+        {
+          "word": "a",
+          "start_ms": 1693.6,
+          "end_ms": 2053.5
+        },
+        {
+          "word": "compressed",
+          "start_ms": 2117.0,
+          "end_ms": 2476.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_3",
+    "start_ms": 0.0,
+    "end_ms": 359.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "This",
+      "index": 0,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "sentence_0",
+    "start_ms": 0.0,
+    "end_ms": 2900.4,
+    "type": "sentence",
+    "text": "This formula is actually a compressed story.",
+    "payload": {}
+  },
+  {
+    "id": "word_0",
+    "start_ms": 0.0,
+    "end_ms": 359.9,
+    "type": "word",
+    "text": "This",
+    "payload": {}
+  },
+  {
+    "id": "segment_heading_focus_4",
+    "start_ms": 200,
+    "end_ms": 3200,
+    "type": "segment",
+    "text": "heading_focus",
+    "payload": {
+      "heading_left": "Hashing Basics",
+      "heading_right": "Part 2"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_5",
+    "start_ms": 423.4,
+    "end_ms": 783.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "formula",
+      "index": 1,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_1",
+    "start_ms": 423.4,
+    "end_ms": 783.3,
+    "type": "word",
+    "text": "formula",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_6",
+    "start_ms": 846.8,
+    "end_ms": 1206.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "is",
+      "index": 2,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_2",
+    "start_ms": 846.8,
+    "end_ms": 1206.7,
+    "type": "word",
+    "text": "is",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_7",
+    "start_ms": 1270.2,
+    "end_ms": 1630.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "actually",
+      "index": 3,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_3",
+    "start_ms": 1270.2,
+    "end_ms": 1630.1,
+    "type": "word",
+    "text": "actually",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_8",
+    "start_ms": 1693.6,
+    "end_ms": 2053.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 4,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_4",
+    "start_ms": 1693.6,
+    "end_ms": 2053.5,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_9",
+    "start_ms": 2117.0,
+    "end_ms": 2476.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "compressed",
+      "index": 5,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_5",
+    "start_ms": 2117.0,
+    "end_ms": 2476.9,
+    "type": "word",
+    "text": "compressed",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_10",
+    "start_ms": 2540.5,
+    "end_ms": 5017.4,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "story.",
+          "start_ms": 2540.5,
+          "end_ms": 2900.4
+        },
+        {
+          "word": "Let",
+          "start_ms": 2963.9,
+          "end_ms": 3323.8
+        },
+        {
+          "word": "us",
+          "start_ms": 3387.3,
+          "end_ms": 3747.2
+        },
+        {
+          "word": "decompress",
+          "start_ms": 3810.7,
+          "end_ms": 4170.6
+        },
+        {
+          "word": "it",
+          "start_ms": 4234.1,
+          "end_ms": 4594.0
+        },
+        {
+          "word": "—",
+          "start_ms": 4657.5,
+          "end_ms": 5017.4
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_11",
+    "start_ms": 2540.5,
+    "end_ms": 2900.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "story.",
+      "index": 0,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_6",
+    "start_ms": 2540.5,
+    "end_ms": 2900.4,
+    "type": "word",
+    "text": "story.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_12",
+    "start_ms": 2963.9,
+    "end_ms": 3323.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Let",
+      "index": 1,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "sentence_1",
+    "start_ms": 2963.9,
+    "end_ms": 10098.3,
+    "type": "sentence",
+    "text": "Let us decompress it — consider a scenario where you need to store and retrieve data efficiently.",
+    "payload": {}
+  },
+  {
+    "id": "word_7",
+    "start_ms": 2963.9,
+    "end_ms": 3323.8,
+    "type": "word",
+    "text": "Let",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_13",
+    "start_ms": 3387.3,
+    "end_ms": 3747.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "us",
+      "index": 2,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_8",
+    "start_ms": 3387.3,
+    "end_ms": 3747.2,
+    "type": "word",
+    "text": "us",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_14",
+    "start_ms": 3810.7,
+    "end_ms": 4170.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "decompress",
+      "index": 3,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_9",
+    "start_ms": 3810.7,
+    "end_ms": 4170.6,
+    "type": "word",
+    "text": "decompress",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_15",
+    "start_ms": 4234.1,
+    "end_ms": 4594.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "it",
+      "index": 4,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_10",
+    "start_ms": 4234.1,
+    "end_ms": 4594.0,
+    "type": "word",
+    "text": "it",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_16",
+    "start_ms": 4657.5,
+    "end_ms": 5017.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "—",
+      "index": 5,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_11",
+    "start_ms": 4657.5,
+    "end_ms": 5017.4,
+    "type": "word",
+    "text": "—",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_17",
+    "start_ms": 5080.9,
+    "end_ms": 7557.9,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "consider",
+          "start_ms": 5080.9,
+          "end_ms": 5440.8
+        },
+        {
+          "word": "a",
+          "start_ms": 5504.3,
+          "end_ms": 5864.2
+        },
+        {
+          "word": "scenario",
+          "start_ms": 5927.7,
+          "end_ms": 6287.6
+        },
+        {
+          "word": "where",
+          "start_ms": 6351.1,
+          "end_ms": 6711.0
+        },
+        {
+          "word": "you",
+          "start_ms": 6774.6,
+          "end_ms": 7134.5
+        },
+        {
+          "word": "need",
+          "start_ms": 7198.0,
+          "end_ms": 7557.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_18",
+    "start_ms": 5080.9,
+    "end_ms": 5440.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "consider",
+      "index": 0,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_12",
+    "start_ms": 5080.9,
+    "end_ms": 5440.8,
+    "type": "word",
+    "text": "consider",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_19",
+    "start_ms": 5504.3,
+    "end_ms": 5864.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 1,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_13",
+    "start_ms": 5504.3,
+    "end_ms": 5864.2,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_20",
+    "start_ms": 5927.7,
+    "end_ms": 6287.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "scenario",
+      "index": 2,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_14",
+    "start_ms": 5927.7,
+    "end_ms": 6287.6,
+    "type": "word",
+    "text": "scenario",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_21",
+    "start_ms": 6351.1,
+    "end_ms": 6711.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "where",
+      "index": 3,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_15",
+    "start_ms": 6351.1,
+    "end_ms": 6711.0,
+    "type": "word",
+    "text": "where",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_22",
+    "start_ms": 6774.6,
+    "end_ms": 7134.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "you",
+      "index": 4,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_16",
+    "start_ms": 6774.6,
+    "end_ms": 7134.5,
+    "type": "word",
+    "text": "you",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_23",
+    "start_ms": 7198.0,
+    "end_ms": 7557.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "need",
+      "index": 5,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_17",
+    "start_ms": 7198.0,
+    "end_ms": 7557.9,
+    "type": "word",
+    "text": "need",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_24",
+    "start_ms": 7621.4,
+    "end_ms": 10098.3,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "to",
+          "start_ms": 7621.4,
+          "end_ms": 7981.3
+        },
+        {
+          "word": "store",
+          "start_ms": 8044.8,
+          "end_ms": 8404.7
+        },
+        {
+          "word": "and",
+          "start_ms": 8468.2,
+          "end_ms": 8828.1
+        },
+        {
+          "word": "retrieve",
+          "start_ms": 8891.6,
+          "end_ms": 9251.5
+        },
+        {
+          "word": "data",
+          "start_ms": 9315.0,
+          "end_ms": 9674.9
+        },
+        {
+          "word": "efficiently.",
+          "start_ms": 9738.4,
+          "end_ms": 10098.3
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_25",
+    "start_ms": 7621.4,
+    "end_ms": 7981.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "to",
+      "index": 0,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_18",
+    "start_ms": 7621.4,
+    "end_ms": 7981.3,
+    "type": "word",
+    "text": "to",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_27",
+    "start_ms": 8044.8,
+    "end_ms": 9044.8,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e10"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_26",
+    "start_ms": 8044.8,
+    "end_ms": 8404.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "store",
+      "index": 1,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_19",
+    "start_ms": 8044.8,
+    "end_ms": 8404.7,
+    "type": "word",
+    "text": "store",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_28",
+    "start_ms": 8468.2,
+    "end_ms": 8828.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "and",
+      "index": 2,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_20",
+    "start_ms": 8468.2,
+    "end_ms": 8828.1,
+    "type": "word",
+    "text": "and",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_30",
+    "start_ms": 8891.6,
+    "end_ms": 9891.6,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e11"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_29",
+    "start_ms": 8891.6,
+    "end_ms": 9251.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "retrieve",
+      "index": 3,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_21",
+    "start_ms": 8891.6,
+    "end_ms": 9251.5,
+    "type": "word",
+    "text": "retrieve",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_32",
+    "start_ms": 9315.0,
+    "end_ms": 10315.0,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e4"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_31",
+    "start_ms": 9315.0,
+    "end_ms": 9674.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "data",
+      "index": 4,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_22",
+    "start_ms": 9315.0,
+    "end_ms": 9674.9,
+    "type": "word",
+    "text": "data",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_33",
+    "start_ms": 9738.4,
+    "end_ms": 10098.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "efficiently.",
+      "index": 5,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_23",
+    "start_ms": 9738.4,
+    "end_ms": 10098.3,
+    "type": "word",
+    "text": "efficiently.",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_36",
+    "start_ms": 10161.8,
+    "end_ms": 11161.8,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e2"
+    }
+  },
+  {
+    "id": "segment_subtitle_show_34",
+    "start_ms": 10161.8,
+    "end_ms": 12638.8,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "Hashing",
+          "start_ms": 10161.8,
+          "end_ms": 10521.7
+        },
+        {
+          "word": "allows",
+          "start_ms": 10585.2,
+          "end_ms": 10945.1
+        },
+        {
+          "word": "us",
+          "start_ms": 11008.6,
+          "end_ms": 11368.5
+        },
+        {
+          "word": "to",
+          "start_ms": 11432.1,
+          "end_ms": 11792.0
+        },
+        {
+          "word": "achieve",
+          "start_ms": 11855.5,
+          "end_ms": 12215.4
+        },
+        {
+          "word": "this",
+          "start_ms": 12278.9,
+          "end_ms": 12638.8
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_35",
+    "start_ms": 10161.8,
+    "end_ms": 10521.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Hashing",
+      "index": 0,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "sentence_2",
+    "start_ms": 10161.8,
+    "end_ms": 16872.9,
+    "type": "sentence",
+    "text": "Hashing allows us to achieve this by mapping keys to unique indices using a hash function.",
+    "payload": {}
+  },
+  {
+    "id": "word_24",
+    "start_ms": 10161.8,
+    "end_ms": 10521.7,
+    "type": "word",
+    "text": "Hashing",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_37",
+    "start_ms": 10585.2,
+    "end_ms": 10945.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "allows",
+      "index": 1,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_25",
+    "start_ms": 10585.2,
+    "end_ms": 10945.1,
+    "type": "word",
+    "text": "allows",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_38",
+    "start_ms": 11008.6,
+    "end_ms": 11368.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "us",
+      "index": 2,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_26",
+    "start_ms": 11008.6,
+    "end_ms": 11368.5,
+    "type": "word",
+    "text": "us",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_39",
+    "start_ms": 11432.1,
+    "end_ms": 11792.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "to",
+      "index": 3,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_27",
+    "start_ms": 11432.1,
+    "end_ms": 11792.0,
+    "type": "word",
+    "text": "to",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_40",
+    "start_ms": 11855.5,
+    "end_ms": 12215.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "achieve",
+      "index": 4,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_28",
+    "start_ms": 11855.5,
+    "end_ms": 12215.4,
+    "type": "word",
+    "text": "achieve",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_41",
+    "start_ms": 12278.9,
+    "end_ms": 12638.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "this",
+      "index": 5,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_29",
+    "start_ms": 12278.9,
+    "end_ms": 12638.8,
+    "type": "word",
+    "text": "this",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_42",
+    "start_ms": 12702.3,
+    "end_ms": 15179.2,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "by",
+          "start_ms": 12702.3,
+          "end_ms": 13062.2
+        },
+        {
+          "word": "mapping",
+          "start_ms": 13125.7,
+          "end_ms": 13485.6
+        },
+        {
+          "word": "keys",
+          "start_ms": 13549.1,
+          "end_ms": 13909.0
+        },
+        {
+          "word": "to",
+          "start_ms": 13972.5,
+          "end_ms": 14332.4
+        },
+        {
+          "word": "unique",
+          "start_ms": 14395.9,
+          "end_ms": 14755.8
+        },
+        {
+          "word": "indices",
+          "start_ms": 14819.3,
+          "end_ms": 15179.2
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_43",
+    "start_ms": 12702.3,
+    "end_ms": 13062.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "by",
+      "index": 0,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_30",
+    "start_ms": 12702.3,
+    "end_ms": 13062.2,
+    "type": "word",
+    "text": "by",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_44",
+    "start_ms": 13125.7,
+    "end_ms": 13485.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "mapping",
+      "index": 1,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_31",
+    "start_ms": 13125.7,
+    "end_ms": 13485.6,
+    "type": "word",
+    "text": "mapping",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_45",
+    "start_ms": 13549.1,
+    "end_ms": 13909.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "keys",
+      "index": 2,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_32",
+    "start_ms": 13549.1,
+    "end_ms": 13909.0,
+    "type": "word",
+    "text": "keys",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_46",
+    "start_ms": 13972.5,
+    "end_ms": 14332.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "to",
+      "index": 3,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_33",
+    "start_ms": 13972.5,
+    "end_ms": 14332.4,
+    "type": "word",
+    "text": "to",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_47",
+    "start_ms": 14395.9,
+    "end_ms": 14755.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "unique",
+      "index": 4,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_34",
+    "start_ms": 14395.9,
+    "end_ms": 14755.8,
+    "type": "word",
+    "text": "unique",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_48",
+    "start_ms": 14819.3,
+    "end_ms": 15179.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "indices",
+      "index": 5,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_35",
+    "start_ms": 14819.3,
+    "end_ms": 15179.2,
+    "type": "word",
+    "text": "indices",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_49",
+    "start_ms": 15242.7,
+    "end_ms": 17719.7,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "using",
+          "start_ms": 15242.7,
+          "end_ms": 15602.6
+        },
+        {
+          "word": "a",
+          "start_ms": 15666.1,
+          "end_ms": 16026.0
+        },
+        {
+          "word": "hash",
+          "start_ms": 16089.6,
+          "end_ms": 16449.5
+        },
+        {
+          "word": "function.",
+          "start_ms": 16513.0,
+          "end_ms": 16872.9
+        },
+        {
+          "word": "The",
+          "start_ms": 16936.4,
+          "end_ms": 17296.3
+        },
+        {
+          "word": "properties",
+          "start_ms": 17359.8,
+          "end_ms": 17719.7
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_50",
+    "start_ms": 15242.7,
+    "end_ms": 15602.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "using",
+      "index": 0,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_36",
+    "start_ms": 15242.7,
+    "end_ms": 15602.6,
+    "type": "word",
+    "text": "using",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_51",
+    "start_ms": 15666.1,
+    "end_ms": 16026.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 1,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_37",
+    "start_ms": 15666.1,
+    "end_ms": 16026.0,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_53",
+    "start_ms": 16089.6,
+    "end_ms": 17089.6,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e5"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_52",
+    "start_ms": 16089.6,
+    "end_ms": 16449.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "hash",
+      "index": 2,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_38",
+    "start_ms": 16089.6,
+    "end_ms": 16449.5,
+    "type": "word",
+    "text": "hash",
+    "payload": {}
+  },
+  {
+    "id": "seg_bullet_2_0",
+    "start_ms": 16463.0,
+    "end_ms": 21543.9,
+    "type": "bullet",
+    "text": "bullet_2_0",
+    "payload": {}
+  },
+  {
+    "id": "segment_bullet_enter_54",
+    "start_ms": 16463.0,
+    "end_ms": 17063.0,
+    "type": "segment",
+    "text": "bullet_enter",
+    "payload": {
+      "index": 0,
+      "text": "Hashing allows us to achieve this by mapping keys to unique indices using a hash function",
+      "zoom_word": "function",
+      "num": "01"
+    }
+  },
+  {
+    "id": "segment_subtitle_dim_58",
+    "start_ms": 16513.0,
+    "end_ms": 17072.9,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_dim_59",
+    "start_ms": 16513.0,
+    "end_ms": 17072.9,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_55",
+    "start_ms": 16513.0,
+    "end_ms": 16872.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "function.",
+      "index": 3,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_56",
+    "start_ms": 16513.0,
+    "end_ms": 17072.9,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "function",
+      "element_id": "zw_0",
+      "zoom_word_hit_ms": 16513.0
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_57",
+    "start_ms": 16513.0,
+    "end_ms": 17072.9,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "function",
+      "element_id": "zw_3",
+      "zoom_word_hit_ms": 16513.0
+    }
+  },
+  {
+    "id": "word_39",
+    "start_ms": 16513.0,
+    "end_ms": 16872.9,
+    "type": "word",
+    "text": "function.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_60",
+    "start_ms": 16936.4,
+    "end_ms": 17296.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "The",
+      "index": 4,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "sentence_3",
+    "start_ms": 16936.4,
+    "end_ms": 23647.4,
+    "type": "sentence",
+    "text": "The properties of a good hash function include fast computation, uniform distribution, determinism, and minimal collisions.",
+    "payload": {}
+  },
+  {
+    "id": "word_40",
+    "start_ms": 16936.4,
+    "end_ms": 17296.3,
+    "type": "word",
+    "text": "The",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_61",
+    "start_ms": 17359.8,
+    "end_ms": 17719.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "properties",
+      "index": 5,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_41",
+    "start_ms": 17359.8,
+    "end_ms": 17719.7,
+    "type": "word",
+    "text": "properties",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_62",
+    "start_ms": 17783.2,
+    "end_ms": 20260.1,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "of",
+          "start_ms": 17783.2,
+          "end_ms": 18143.1
+        },
+        {
+          "word": "a",
+          "start_ms": 18206.6,
+          "end_ms": 18566.5
+        },
+        {
+          "word": "good",
+          "start_ms": 18630.0,
+          "end_ms": 18989.9
+        },
+        {
+          "word": "hash",
+          "start_ms": 19053.4,
+          "end_ms": 19413.3
+        },
+        {
+          "word": "function",
+          "start_ms": 19476.8,
+          "end_ms": 19836.7
+        },
+        {
+          "word": "include",
+          "start_ms": 19900.2,
+          "end_ms": 20260.1
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_63",
+    "start_ms": 17783.2,
+    "end_ms": 18143.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "of",
+      "index": 0,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_42",
+    "start_ms": 17783.2,
+    "end_ms": 18143.1,
+    "type": "word",
+    "text": "of",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_64",
+    "start_ms": 18206.6,
+    "end_ms": 18566.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 1,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_43",
+    "start_ms": 18206.6,
+    "end_ms": 18566.5,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_65",
+    "start_ms": 18630.0,
+    "end_ms": 18989.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "good",
+      "index": 2,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_44",
+    "start_ms": 18630.0,
+    "end_ms": 18989.9,
+    "type": "word",
+    "text": "good",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_66",
+    "start_ms": 19053.4,
+    "end_ms": 19413.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "hash",
+      "index": 3,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_45",
+    "start_ms": 19053.4,
+    "end_ms": 19413.3,
+    "type": "word",
+    "text": "hash",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_67",
+    "start_ms": 19476.8,
+    "end_ms": 19836.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "function",
+      "index": 4,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_46",
+    "start_ms": 19476.8,
+    "end_ms": 19836.7,
+    "type": "word",
+    "text": "function",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_68",
+    "start_ms": 19900.2,
+    "end_ms": 20260.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "include",
+      "index": 5,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_47",
+    "start_ms": 19900.2,
+    "end_ms": 20260.1,
+    "type": "word",
+    "text": "include",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_71",
+    "start_ms": 20323.7,
+    "end_ms": 21323.7,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e6"
+    }
+  },
+  {
+    "id": "segment_prog_node_insert_72",
+    "start_ms": 20323.7,
+    "end_ms": 21323.7,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e12"
+    }
+  },
+  {
+    "id": "segment_subtitle_show_69",
+    "start_ms": 20323.7,
+    "end_ms": 22800.6,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "fast",
+          "start_ms": 20323.7,
+          "end_ms": 20683.6
+        },
+        {
+          "word": "computation,",
+          "start_ms": 20747.1,
+          "end_ms": 21107.0
+        },
+        {
+          "word": "uniform",
+          "start_ms": 21170.5,
+          "end_ms": 21530.4
+        },
+        {
+          "word": "distribution,",
+          "start_ms": 21593.9,
+          "end_ms": 21953.8
+        },
+        {
+          "word": "determinism,",
+          "start_ms": 22017.3,
+          "end_ms": 22377.2
+        },
+        {
+          "word": "and",
+          "start_ms": 22440.7,
+          "end_ms": 22800.6
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_70",
+    "start_ms": 20323.7,
+    "end_ms": 20683.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "fast",
+      "index": 0,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_48",
+    "start_ms": 20323.7,
+    "end_ms": 20683.6,
+    "type": "word",
+    "text": "fast",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_73",
+    "start_ms": 20747.1,
+    "end_ms": 21107.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "computation,",
+      "index": 1,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_49",
+    "start_ms": 20747.1,
+    "end_ms": 21107.0,
+    "type": "word",
+    "text": "computation,",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_75",
+    "start_ms": 21170.5,
+    "end_ms": 22170.5,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e7"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_74",
+    "start_ms": 21170.5,
+    "end_ms": 21530.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "uniform",
+      "index": 2,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_50",
+    "start_ms": 21170.5,
+    "end_ms": 21530.4,
+    "type": "word",
+    "text": "uniform",
+    "payload": {}
+  },
+  {
+    "id": "seg_bullet_2_1",
+    "start_ms": 21543.9,
+    "end_ms": 23660.9,
+    "type": "bullet",
+    "text": "bullet_2_1",
+    "payload": {}
+  },
+  {
+    "id": "segment_bullet_enter_76",
+    "start_ms": 21543.9,
+    "end_ms": 22143.9,
+    "type": "segment",
+    "text": "bullet_enter",
+    "payload": {
+      "index": 1,
+      "text": "The properties of a good hash function include fast computation, uniform distribution, determinism, and minimal collisions",
+      "zoom_word": "distribution",
+      "num": "02"
+    }
+  },
+  {
+    "id": "segment_subtitle_dim_79",
+    "start_ms": 21593.9,
+    "end_ms": 22153.8,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_77",
+    "start_ms": 21593.9,
+    "end_ms": 21953.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "distribution,",
+      "index": 3,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_78",
+    "start_ms": 21593.9,
+    "end_ms": 22153.8,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "distribution",
+      "element_id": "zw_1",
+      "zoom_word_hit_ms": 21593.9
+    }
+  },
+  {
+    "id": "word_51",
+    "start_ms": 21593.9,
+    "end_ms": 21953.8,
+    "type": "word",
+    "text": "distribution,",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_81",
+    "start_ms": 22017.3,
+    "end_ms": 23017.3,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e8"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_80",
+    "start_ms": 22017.3,
+    "end_ms": 22377.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "determinism,",
+      "index": 4,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_52",
+    "start_ms": 22017.3,
+    "end_ms": 22377.2,
+    "type": "word",
+    "text": "determinism,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_82",
+    "start_ms": 22440.7,
+    "end_ms": 22800.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "and",
+      "index": 5,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_53",
+    "start_ms": 22440.7,
+    "end_ms": 22800.6,
+    "type": "word",
+    "text": "and",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_85",
+    "start_ms": 22864.1,
+    "end_ms": 23864.1,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e9"
+    }
+  },
+  {
+    "id": "segment_subtitle_show_83",
+    "start_ms": 22864.1,
+    "end_ms": 25341.1,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "minimal",
+          "start_ms": 22864.1,
+          "end_ms": 23224.0
+        },
+        {
+          "word": "collisions.",
+          "start_ms": 23287.5,
+          "end_ms": 23647.4
+        },
+        {
+          "word": "Let's",
+          "start_ms": 23710.9,
+          "end_ms": 24070.8
+        },
+        {
+          "word": "break",
+          "start_ms": 24134.3,
+          "end_ms": 24494.2
+        },
+        {
+          "word": "down",
+          "start_ms": 24557.7,
+          "end_ms": 24917.6
+        },
+        {
+          "word": "the",
+          "start_ms": 24981.2,
+          "end_ms": 25341.1
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_84",
+    "start_ms": 22864.1,
+    "end_ms": 23224.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "minimal",
+      "index": 0,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "word_54",
+    "start_ms": 22864.1,
+    "end_ms": 23224.0,
+    "type": "word",
+    "text": "minimal",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_86",
+    "start_ms": 23287.5,
+    "end_ms": 23647.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "collisions.",
+      "index": 1,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "word_55",
+    "start_ms": 23287.5,
+    "end_ms": 23647.4,
+    "type": "word",
+    "text": "collisions.",
+    "payload": {}
+  },
+  {
+    "id": "seg_bullet_2_2",
+    "start_ms": 23660.9,
+    "end_ms": 32129.1,
+    "type": "bullet",
+    "text": "bullet_2_2",
+    "payload": {}
+  },
+  {
+    "id": "segment_bullet_enter_87",
+    "start_ms": 23660.9,
+    "end_ms": 24260.9,
+    "type": "segment",
+    "text": "bullet_enter",
+    "payload": {
+      "index": 2,
+      "text": "Let's break down the hashing process step by step",
+      "zoom_word": "let's",
+      "num": "03"
+    }
+  },
+  {
+    "id": "segment_subtitle_dim_90",
+    "start_ms": 23710.9,
+    "end_ms": 24270.8,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_88",
+    "start_ms": 23710.9,
+    "end_ms": 24070.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Let's",
+      "index": 2,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_89",
+    "start_ms": 23710.9,
+    "end_ms": 24270.8,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "let's",
+      "element_id": "zw_2",
+      "zoom_word_hit_ms": 23710.9
+    }
+  },
+  {
+    "id": "sentence_4",
+    "start_ms": 23710.9,
+    "end_ms": 27458.1,
+    "type": "sentence",
+    "text": "Let's break down the hashing process step by step.",
+    "payload": {}
+  },
+  {
+    "id": "word_56",
+    "start_ms": 23710.9,
+    "end_ms": 24070.8,
+    "type": "word",
+    "text": "Let's",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_91",
+    "start_ms": 24134.3,
+    "end_ms": 24494.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "break",
+      "index": 3,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "word_57",
+    "start_ms": 24134.3,
+    "end_ms": 24494.2,
+    "type": "word",
+    "text": "break",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_92",
+    "start_ms": 24557.7,
+    "end_ms": 24917.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "down",
+      "index": 4,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "word_58",
+    "start_ms": 24557.7,
+    "end_ms": 24917.6,
+    "type": "word",
+    "text": "down",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_93",
+    "start_ms": 24981.2,
+    "end_ms": 25341.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 5,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "word_59",
+    "start_ms": 24981.2,
+    "end_ms": 25341.1,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_94",
+    "start_ms": 25404.6,
+    "end_ms": 27881.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "hashing",
+          "start_ms": 25404.6,
+          "end_ms": 25764.5
+        },
+        {
+          "word": "process",
+          "start_ms": 25828.0,
+          "end_ms": 26187.9
+        },
+        {
+          "word": "step",
+          "start_ms": 26251.4,
+          "end_ms": 26611.3
+        },
+        {
+          "word": "by",
+          "start_ms": 26674.8,
+          "end_ms": 27034.7
+        },
+        {
+          "word": "step.",
+          "start_ms": 27098.2,
+          "end_ms": 27458.1
+        },
+        {
+          "word": "First,",
+          "start_ms": 27521.6,
+          "end_ms": 27881.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_95",
+    "start_ms": 25404.6,
+    "end_ms": 25764.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "hashing",
+      "index": 0,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "word_60",
+    "start_ms": 25404.6,
+    "end_ms": 25764.5,
+    "type": "word",
+    "text": "hashing",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_96",
+    "start_ms": 25828.0,
+    "end_ms": 26187.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "process",
+      "index": 1,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "word_61",
+    "start_ms": 25828.0,
+    "end_ms": 26187.9,
+    "type": "word",
+    "text": "process",
+    "payload": {}
+  },
+  {
+    "id": "segment_formula_step_97",
+    "start_ms": 26051.4,
+    "end_ms": 28051.4,
+    "type": "segment",
+    "text": "formula_step",
+    "payload": {
+      "step_index": 0,
+      "latex": "Hashing allows us to achieve this by mapping keys to unique indices using a hash function",
+      "label": "Step 1",
+      "full_latex": "Introduction to Hashing — Part 2",
+      "total_steps": 4
+    }
+  },
+  {
+    "id": "segment_formula_step_98",
+    "start_ms": 26051.4,
+    "end_ms": 28051.4,
+    "type": "segment",
+    "text": "formula_step",
+    "payload": {
+      "step_index": 1,
+      "latex": "The properties of a good hash function include fast computation, uniform distribution, determinism, and minimal collisions",
+      "label": "Step 2",
+      "full_latex": "Introduction to Hashing — Part 2",
+      "total_steps": 4
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_99",
+    "start_ms": 26251.4,
+    "end_ms": 26611.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "step",
+      "index": 2,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "word_62",
+    "start_ms": 26251.4,
+    "end_ms": 26611.3,
+    "type": "word",
+    "text": "step",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_100",
+    "start_ms": 26674.8,
+    "end_ms": 27034.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "by",
+      "index": 3,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "word_63",
+    "start_ms": 26674.8,
+    "end_ms": 27034.7,
+    "type": "word",
+    "text": "by",
+    "payload": {}
+  },
+  {
+    "id": "segment_formula_step_101",
+    "start_ms": 26851.4,
+    "end_ms": 28851.4,
+    "type": "segment",
+    "text": "formula_step",
+    "payload": {
+      "step_index": 2,
+      "latex": "Let's break down the hashing process step by step",
+      "label": "Step 3",
+      "full_latex": "Introduction to Hashing — Part 2",
+      "total_steps": 4
+    }
+  },
+  {
+    "id": "segment_formula_step_102",
+    "start_ms": 26851.4,
+    "end_ms": 28851.4,
+    "type": "segment",
+    "text": "formula_step",
+    "payload": {
+      "step_index": 3,
+      "latex": "First, we take a key and pass it through the hash function",
+      "label": "Step 4",
+      "full_latex": "Introduction to Hashing — Part 2",
+      "total_steps": 4
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_103",
+    "start_ms": 27098.2,
+    "end_ms": 27458.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "step.",
+      "index": 4,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "word_64",
+    "start_ms": 27098.2,
+    "end_ms": 27458.1,
+    "type": "word",
+    "text": "step.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_104",
+    "start_ms": 27521.6,
+    "end_ms": 27881.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "First,",
+      "index": 5,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "sentence_5",
+    "start_ms": 27521.6,
+    "end_ms": 32539.0,
+    "type": "sentence",
+    "text": "First, we take a key and pass it through the hash function.",
+    "payload": {}
+  },
+  {
+    "id": "word_65",
+    "start_ms": 27521.6,
+    "end_ms": 27881.5,
+    "type": "word",
+    "text": "First,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_105",
+    "start_ms": 27945.0,
+    "end_ms": 30422.0,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "we",
+          "start_ms": 27945.0,
+          "end_ms": 28304.9
+        },
+        {
+          "word": "take",
+          "start_ms": 28368.4,
+          "end_ms": 28728.3
+        },
+        {
+          "word": "a",
+          "start_ms": 28791.8,
+          "end_ms": 29151.7
+        },
+        {
+          "word": "key",
+          "start_ms": 29215.2,
+          "end_ms": 29575.1
+        },
+        {
+          "word": "and",
+          "start_ms": 29638.7,
+          "end_ms": 29998.6
+        },
+        {
+          "word": "pass",
+          "start_ms": 30062.1,
+          "end_ms": 30422.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_106",
+    "start_ms": 27945.0,
+    "end_ms": 28304.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "we",
+      "index": 0,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "word_66",
+    "start_ms": 27945.0,
+    "end_ms": 28304.9,
+    "type": "word",
+    "text": "we",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_107",
+    "start_ms": 28368.4,
+    "end_ms": 28728.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "take",
+      "index": 1,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "word_67",
+    "start_ms": 28368.4,
+    "end_ms": 28728.3,
+    "type": "word",
+    "text": "take",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_108",
+    "start_ms": 28791.8,
+    "end_ms": 29151.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 2,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "word_68",
+    "start_ms": 28791.8,
+    "end_ms": 29151.7,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_110",
+    "start_ms": 29215.2,
+    "end_ms": 30215.2,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e1"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_109",
+    "start_ms": 29215.2,
+    "end_ms": 29575.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "key",
+      "index": 3,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "word_69",
+    "start_ms": 29215.2,
+    "end_ms": 29575.1,
+    "type": "word",
+    "text": "key",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_111",
+    "start_ms": 29638.7,
+    "end_ms": 29998.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "and",
+      "index": 4,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "word_70",
+    "start_ms": 29638.7,
+    "end_ms": 29998.6,
+    "type": "word",
+    "text": "and",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_113",
+    "start_ms": 30062.1,
+    "end_ms": 31062.1,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e16"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_112",
+    "start_ms": 30062.1,
+    "end_ms": 30422.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "pass",
+      "index": 5,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "word_71",
+    "start_ms": 30062.1,
+    "end_ms": 30422.0,
+    "type": "word",
+    "text": "pass",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_114",
+    "start_ms": 30485.5,
+    "end_ms": 32962.4,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "it",
+          "start_ms": 30485.5,
+          "end_ms": 30845.4
+        },
+        {
+          "word": "through",
+          "start_ms": 30908.9,
+          "end_ms": 31268.8
+        },
+        {
+          "word": "the",
+          "start_ms": 31332.3,
+          "end_ms": 31692.2
+        },
+        {
+          "word": "hash",
+          "start_ms": 31755.7,
+          "end_ms": 32115.6
+        },
+        {
+          "word": "function.",
+          "start_ms": 32179.1,
+          "end_ms": 32539.0
+        },
+        {
+          "word": "Then,",
+          "start_ms": 32602.5,
+          "end_ms": 32962.4
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_115",
+    "start_ms": 30485.5,
+    "end_ms": 30845.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "it",
+      "index": 0,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "word_72",
+    "start_ms": 30485.5,
+    "end_ms": 30845.4,
+    "type": "word",
+    "text": "it",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_116",
+    "start_ms": 30908.9,
+    "end_ms": 31268.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "through",
+      "index": 1,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "word_73",
+    "start_ms": 30908.9,
+    "end_ms": 31268.8,
+    "type": "word",
+    "text": "through",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_117",
+    "start_ms": 31332.3,
+    "end_ms": 31692.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 2,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "word_74",
+    "start_ms": 31332.3,
+    "end_ms": 31692.2,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_118",
+    "start_ms": 31755.7,
+    "end_ms": 32115.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "hash",
+      "index": 3,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "word_75",
+    "start_ms": 31755.7,
+    "end_ms": 32115.6,
+    "type": "word",
+    "text": "hash",
+    "payload": {}
+  },
+  {
+    "id": "seg_bullet_2_3",
+    "start_ms": 32129.1,
+    "end_ms": 63288.0,
+    "type": "bullet",
+    "text": "bullet_2_3",
+    "payload": {}
+  },
+  {
+    "id": "segment_bullet_enter_119",
+    "start_ms": 32129.1,
+    "end_ms": 32729.1,
+    "type": "segment",
+    "text": "bullet_enter",
+    "payload": {
+      "index": 3,
+      "text": "First, we take a key and pass it through the hash function",
+      "zoom_word": "function",
+      "num": "04"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_120",
+    "start_ms": 32179.1,
+    "end_ms": 32539.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "function.",
+      "index": 4,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "word_76",
+    "start_ms": 32179.1,
+    "end_ms": 32539.0,
+    "type": "word",
+    "text": "function.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_121",
+    "start_ms": 32602.5,
+    "end_ms": 32962.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Then,",
+      "index": 5,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "sentence_6",
+    "start_ms": 32602.5,
+    "end_ms": 39313.6,
+    "type": "sentence",
+    "text": "Then, the hash function generates an index, and we store the corresponding data at that index.",
+    "payload": {}
+  },
+  {
+    "id": "word_77",
+    "start_ms": 32602.5,
+    "end_ms": 32962.4,
+    "type": "word",
+    "text": "Then,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_122",
+    "start_ms": 33025.9,
+    "end_ms": 35502.9,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "the",
+          "start_ms": 33025.9,
+          "end_ms": 33385.8
+        },
+        {
+          "word": "hash",
+          "start_ms": 33449.3,
+          "end_ms": 33809.2
+        },
+        {
+          "word": "function",
+          "start_ms": 33872.8,
+          "end_ms": 34232.7
+        },
+        {
+          "word": "generates",
+          "start_ms": 34296.2,
+          "end_ms": 34656.1
+        },
+        {
+          "word": "an",
+          "start_ms": 34719.6,
+          "end_ms": 35079.5
+        },
+        {
+          "word": "index,",
+          "start_ms": 35143.0,
+          "end_ms": 35502.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_123",
+    "start_ms": 33025.9,
+    "end_ms": 33385.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 0,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "word_78",
+    "start_ms": 33025.9,
+    "end_ms": 33385.8,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_124",
+    "start_ms": 33449.3,
+    "end_ms": 33809.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "hash",
+      "index": 1,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "word_79",
+    "start_ms": 33449.3,
+    "end_ms": 33809.2,
+    "type": "word",
+    "text": "hash",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_125",
+    "start_ms": 33872.8,
+    "end_ms": 34232.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "function",
+      "index": 2,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "word_80",
+    "start_ms": 33872.8,
+    "end_ms": 34232.7,
+    "type": "word",
+    "text": "function",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_126",
+    "start_ms": 34296.2,
+    "end_ms": 34656.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "generates",
+      "index": 3,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "word_81",
+    "start_ms": 34296.2,
+    "end_ms": 34656.1,
+    "type": "word",
+    "text": "generates",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_127",
+    "start_ms": 34719.6,
+    "end_ms": 35079.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "an",
+      "index": 4,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "word_82",
+    "start_ms": 34719.6,
+    "end_ms": 35079.5,
+    "type": "word",
+    "text": "an",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_insert_129",
+    "start_ms": 35143.0,
+    "end_ms": 36143.0,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e3"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_128",
+    "start_ms": 35143.0,
+    "end_ms": 35502.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "index,",
+      "index": 5,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "word_83",
+    "start_ms": 35143.0,
+    "end_ms": 35502.9,
+    "type": "word",
+    "text": "index,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_130",
+    "start_ms": 35566.4,
+    "end_ms": 38043.3,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "and",
+          "start_ms": 35566.4,
+          "end_ms": 35926.3
+        },
+        {
+          "word": "we",
+          "start_ms": 35989.8,
+          "end_ms": 36349.7
+        },
+        {
+          "word": "store",
+          "start_ms": 36413.2,
+          "end_ms": 36773.1
+        },
+        {
+          "word": "the",
+          "start_ms": 36836.6,
+          "end_ms": 37196.5
+        },
+        {
+          "word": "corresponding",
+          "start_ms": 37260.0,
+          "end_ms": 37619.9
+        },
+        {
+          "word": "data",
+          "start_ms": 37683.4,
+          "end_ms": 38043.3
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_131",
+    "start_ms": 35566.4,
+    "end_ms": 35926.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "and",
+      "index": 0,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_84",
+    "start_ms": 35566.4,
+    "end_ms": 35926.3,
+    "type": "word",
+    "text": "and",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_132",
+    "start_ms": 35989.8,
+    "end_ms": 36349.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "we",
+      "index": 1,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_85",
+    "start_ms": 35989.8,
+    "end_ms": 36349.7,
+    "type": "word",
+    "text": "we",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_133",
+    "start_ms": 36413.2,
+    "end_ms": 36773.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "store",
+      "index": 2,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_86",
+    "start_ms": 36413.2,
+    "end_ms": 36773.1,
+    "type": "word",
+    "text": "store",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_134",
+    "start_ms": 36836.6,
+    "end_ms": 37196.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 3,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_87",
+    "start_ms": 36836.6,
+    "end_ms": 37196.5,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_diagram_expand_136",
+    "start_ms": 37129.1,
+    "end_ms": 38129.1,
+    "type": "segment",
+    "text": "diagram_expand",
+    "payload": {
+      "mode": "fullscreen"
+    }
+  },
+  {
+    "id": "segment_diagram_phase_start_135",
+    "start_ms": 37129.1,
+    "end_ms": 38129.1,
+    "type": "segment",
+    "text": "diagram_phase_start",
+    "payload": {
+      "mode": "fullscreen"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_137",
+    "start_ms": 37260.0,
+    "end_ms": 37619.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "corresponding",
+      "index": 4,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_88",
+    "start_ms": 37260.0,
+    "end_ms": 37619.9,
+    "type": "word",
+    "text": "corresponding",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_138",
+    "start_ms": 37683.4,
+    "end_ms": 38043.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "data",
+      "index": 5,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_89",
+    "start_ms": 37683.4,
+    "end_ms": 38043.3,
+    "type": "word",
+    "text": "data",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_diagram_overview_139",
+    "start_ms": 37929.1,
+    "end_ms": 38929.1,
+    "type": "segment",
+    "text": "prog_diagram_overview",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_140",
+    "start_ms": 38106.8,
+    "end_ms": 40583.8,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "at",
+          "start_ms": 38106.8,
+          "end_ms": 38466.7
+        },
+        {
+          "word": "that",
+          "start_ms": 38530.3,
+          "end_ms": 38890.2
+        },
+        {
+          "word": "index.",
+          "start_ms": 38953.7,
+          "end_ms": 39313.6
+        },
+        {
+          "word": "Notice",
+          "start_ms": 39377.1,
+          "end_ms": 39737.0
+        },
+        {
+          "word": "how",
+          "start_ms": 39800.5,
+          "end_ms": 40160.4
+        },
+        {
+          "word": "the",
+          "start_ms": 40223.9,
+          "end_ms": 40583.8
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_141",
+    "start_ms": 38106.8,
+    "end_ms": 38466.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "at",
+      "index": 0,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "word_90",
+    "start_ms": 38106.8,
+    "end_ms": 38466.7,
+    "type": "word",
+    "text": "at",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_142",
+    "start_ms": 38530.3,
+    "end_ms": 38890.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "that",
+      "index": 1,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "word_91",
+    "start_ms": 38530.3,
+    "end_ms": 38890.2,
+    "type": "word",
+    "text": "that",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_143",
+    "start_ms": 38729.1,
+    "end_ms": 39729.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e10",
+      "appear_order": 10
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_144",
+    "start_ms": 38953.7,
+    "end_ms": 39313.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "index.",
+      "index": 2,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "word_92",
+    "start_ms": 38953.7,
+    "end_ms": 39313.6,
+    "type": "word",
+    "text": "index.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_145",
+    "start_ms": 39377.1,
+    "end_ms": 39737.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Notice",
+      "index": 3,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "sentence_7",
+    "start_ms": 39377.1,
+    "end_ms": 45664.7,
+    "type": "sentence",
+    "text": "Notice how the hash table is divided into indices, each containing a specific key-value pair.",
+    "payload": {}
+  },
+  {
+    "id": "word_93",
+    "start_ms": 39377.1,
+    "end_ms": 39737.0,
+    "type": "word",
+    "text": "Notice",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_highlight_146",
+    "start_ms": 39529.1,
+    "end_ms": 40529.1,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e10",
+      "color": "amber"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_147",
+    "start_ms": 39800.5,
+    "end_ms": 40160.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "how",
+      "index": 4,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "word_94",
+    "start_ms": 39800.5,
+    "end_ms": 40160.4,
+    "type": "word",
+    "text": "how",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_148",
+    "start_ms": 40223.9,
+    "end_ms": 40583.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 5,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "word_95",
+    "start_ms": 40223.9,
+    "end_ms": 40583.8,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_149",
+    "start_ms": 40329.1,
+    "end_ms": 41329.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e11",
+      "appear_order": 11
+    }
+  },
+  {
+    "id": "segment_subtitle_show_150",
+    "start_ms": 40647.3,
+    "end_ms": 43124.2,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "hash",
+          "start_ms": 40647.3,
+          "end_ms": 41007.2
+        },
+        {
+          "word": "table",
+          "start_ms": 41070.7,
+          "end_ms": 41430.6
+        },
+        {
+          "word": "is",
+          "start_ms": 41494.1,
+          "end_ms": 41854.0
+        },
+        {
+          "word": "divided",
+          "start_ms": 41917.5,
+          "end_ms": 42277.4
+        },
+        {
+          "word": "into",
+          "start_ms": 42340.9,
+          "end_ms": 42700.8
+        },
+        {
+          "word": "indices,",
+          "start_ms": 42764.3,
+          "end_ms": 43124.2
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_151",
+    "start_ms": 40647.3,
+    "end_ms": 41007.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "hash",
+      "index": 0,
+      "group_idx": 16
+    }
+  },
+  {
+    "id": "word_96",
+    "start_ms": 40647.3,
+    "end_ms": 41007.2,
+    "type": "word",
+    "text": "hash",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_152",
+    "start_ms": 41070.7,
+    "end_ms": 41430.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "table",
+      "index": 1,
+      "group_idx": 16
+    }
+  },
+  {
+    "id": "word_97",
+    "start_ms": 41070.7,
+    "end_ms": 41430.6,
+    "type": "word",
+    "text": "table",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_highlight_153",
+    "start_ms": 41129.1,
+    "end_ms": 42129.1,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e11",
+      "color": "amber"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_154",
+    "start_ms": 41494.1,
+    "end_ms": 41854.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "is",
+      "index": 2,
+      "group_idx": 16
+    }
+  },
+  {
+    "id": "word_98",
+    "start_ms": 41494.1,
+    "end_ms": 41854.0,
+    "type": "word",
+    "text": "is",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_155",
+    "start_ms": 41917.5,
+    "end_ms": 42277.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "divided",
+      "index": 3,
+      "group_idx": 16
+    }
+  },
+  {
+    "id": "word_99",
+    "start_ms": 41917.5,
+    "end_ms": 42277.4,
+    "type": "word",
+    "text": "divided",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_156",
+    "start_ms": 41929.1,
+    "end_ms": 42929.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e4",
+      "appear_order": 4
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_157",
+    "start_ms": 42340.9,
+    "end_ms": 42700.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "into",
+      "index": 4,
+      "group_idx": 16
+    }
+  },
+  {
+    "id": "word_100",
+    "start_ms": 42340.9,
+    "end_ms": 42700.8,
+    "type": "word",
+    "text": "into",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_highlight_158",
+    "start_ms": 42729.1,
+    "end_ms": 43729.1,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e4",
+      "color": "green"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_159",
+    "start_ms": 42764.3,
+    "end_ms": 43124.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "indices,",
+      "index": 5,
+      "group_idx": 16
+    }
+  },
+  {
+    "id": "word_101",
+    "start_ms": 42764.3,
+    "end_ms": 43124.2,
+    "type": "word",
+    "text": "indices,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_160",
+    "start_ms": 43187.8,
+    "end_ms": 45664.7,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "each",
+          "start_ms": 43187.8,
+          "end_ms": 43547.7
+        },
+        {
+          "word": "containing",
+          "start_ms": 43611.2,
+          "end_ms": 43971.1
+        },
+        {
+          "word": "a",
+          "start_ms": 44034.6,
+          "end_ms": 44394.5
+        },
+        {
+          "word": "specific",
+          "start_ms": 44458.0,
+          "end_ms": 44817.9
+        },
+        {
+          "word": "key-value",
+          "start_ms": 44881.4,
+          "end_ms": 45241.3
+        },
+        {
+          "word": "pair.",
+          "start_ms": 45304.8,
+          "end_ms": 45664.7
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_161",
+    "start_ms": 43187.8,
+    "end_ms": 43547.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "each",
+      "index": 0,
+      "group_idx": 17
+    }
+  },
+  {
+    "id": "word_102",
+    "start_ms": 43187.8,
+    "end_ms": 43547.7,
+    "type": "word",
+    "text": "each",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_162",
+    "start_ms": 43529.1,
+    "end_ms": 44529.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e2",
+      "appear_order": 2
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_163",
+    "start_ms": 43611.2,
+    "end_ms": 43971.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "containing",
+      "index": 1,
+      "group_idx": 17
+    }
+  },
+  {
+    "id": "word_103",
+    "start_ms": 43611.2,
+    "end_ms": 43971.1,
+    "type": "word",
+    "text": "containing",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_164",
+    "start_ms": 44034.6,
+    "end_ms": 44394.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 2,
+      "group_idx": 17
+    }
+  },
+  {
+    "id": "word_104",
+    "start_ms": 44034.6,
+    "end_ms": 44394.5,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_highlight_165",
+    "start_ms": 44329.1,
+    "end_ms": 45329.1,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e2",
+      "color": "amber"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_166",
+    "start_ms": 44458.0,
+    "end_ms": 44817.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "specific",
+      "index": 3,
+      "group_idx": 17
+    }
+  },
+  {
+    "id": "word_105",
+    "start_ms": 44458.0,
+    "end_ms": 44817.9,
+    "type": "word",
+    "text": "specific",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_167",
+    "start_ms": 44881.4,
+    "end_ms": 45241.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "key-value",
+      "index": 4,
+      "group_idx": 17
+    }
+  },
+  {
+    "id": "word_106",
+    "start_ms": 44881.4,
+    "end_ms": 45241.3,
+    "type": "word",
+    "text": "key-value",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_168",
+    "start_ms": 45129.1,
+    "end_ms": 46129.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e5",
+      "appear_order": 5
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_169",
+    "start_ms": 45304.8,
+    "end_ms": 45664.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "pair.",
+      "index": 5,
+      "group_idx": 17
+    }
+  },
+  {
+    "id": "word_107",
+    "start_ms": 45304.8,
+    "end_ms": 45664.7,
+    "type": "word",
+    "text": "pair.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_170",
+    "start_ms": 45728.2,
+    "end_ms": 48205.2,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "Observe",
+          "start_ms": 45728.2,
+          "end_ms": 46088.1
+        },
+        {
+          "word": "the",
+          "start_ms": 46151.6,
+          "end_ms": 46511.5
+        },
+        {
+          "word": "flow",
+          "start_ms": 46575.0,
+          "end_ms": 46934.9
+        },
+        {
+          "word": "from",
+          "start_ms": 46998.4,
+          "end_ms": 47358.3
+        },
+        {
+          "word": "key",
+          "start_ms": 47421.9,
+          "end_ms": 47781.8
+        },
+        {
+          "word": "to",
+          "start_ms": 47845.3,
+          "end_ms": 48205.2
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_171",
+    "start_ms": 45728.2,
+    "end_ms": 46088.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Observe",
+      "index": 0,
+      "group_idx": 18
+    }
+  },
+  {
+    "id": "sentence_8",
+    "start_ms": 45728.2,
+    "end_ms": 51592.4,
+    "type": "sentence",
+    "text": "Observe the flow from key to hash function to index, highlighting the one-step jump.",
+    "payload": {}
+  },
+  {
+    "id": "word_108",
+    "start_ms": 45728.2,
+    "end_ms": 46088.1,
+    "type": "word",
+    "text": "Observe",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_highlight_172",
+    "start_ms": 45929.1,
+    "end_ms": 46929.1,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e5",
+      "color": "blue"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_173",
+    "start_ms": 46151.6,
+    "end_ms": 46511.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 1,
+      "group_idx": 18
+    }
+  },
+  {
+    "id": "word_109",
+    "start_ms": 46151.6,
+    "end_ms": 46511.5,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_174",
+    "start_ms": 46575.0,
+    "end_ms": 46934.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "flow",
+      "index": 2,
+      "group_idx": 18
+    }
+  },
+  {
+    "id": "word_110",
+    "start_ms": 46575.0,
+    "end_ms": 46934.9,
+    "type": "word",
+    "text": "flow",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_connection_draw_175",
+    "start_ms": 46729.1,
+    "end_ms": 47729.1,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e5_e10",
+      "length": 199.7,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_176",
+    "start_ms": 46998.4,
+    "end_ms": 47358.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "from",
+      "index": 3,
+      "group_idx": 18
+    }
+  },
+  {
+    "id": "word_111",
+    "start_ms": 46998.4,
+    "end_ms": 47358.3,
+    "type": "word",
+    "text": "from",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_177",
+    "start_ms": 47421.9,
+    "end_ms": 47781.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "key",
+      "index": 4,
+      "group_idx": 18
+    }
+  },
+  {
+    "id": "word_112",
+    "start_ms": 47421.9,
+    "end_ms": 47781.8,
+    "type": "word",
+    "text": "key",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_connection_draw_178",
+    "start_ms": 47529.1,
+    "end_ms": 48529.1,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e5_e11",
+      "length": 144.7,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_179",
+    "start_ms": 47845.3,
+    "end_ms": 48205.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "to",
+      "index": 5,
+      "group_idx": 18
+    }
+  },
+  {
+    "id": "word_113",
+    "start_ms": 47845.3,
+    "end_ms": 48205.2,
+    "type": "word",
+    "text": "to",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_180",
+    "start_ms": 48268.7,
+    "end_ms": 50745.6,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "hash",
+          "start_ms": 48268.7,
+          "end_ms": 48628.6
+        },
+        {
+          "word": "function",
+          "start_ms": 48692.1,
+          "end_ms": 49052.0
+        },
+        {
+          "word": "to",
+          "start_ms": 49115.5,
+          "end_ms": 49475.4
+        },
+        {
+          "word": "index,",
+          "start_ms": 49538.9,
+          "end_ms": 49898.8
+        },
+        {
+          "word": "highlighting",
+          "start_ms": 49962.3,
+          "end_ms": 50322.2
+        },
+        {
+          "word": "the",
+          "start_ms": 50385.7,
+          "end_ms": 50745.6
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_181",
+    "start_ms": 48268.7,
+    "end_ms": 48628.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "hash",
+      "index": 0,
+      "group_idx": 19
+    }
+  },
+  {
+    "id": "word_114",
+    "start_ms": 48268.7,
+    "end_ms": 48628.6,
+    "type": "word",
+    "text": "hash",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_182",
+    "start_ms": 48329.1,
+    "end_ms": 49329.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e6",
+      "appear_order": 6
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_183",
+    "start_ms": 48692.1,
+    "end_ms": 49052.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "function",
+      "index": 1,
+      "group_idx": 19
+    }
+  },
+  {
+    "id": "word_115",
+    "start_ms": 48692.1,
+    "end_ms": 49052.0,
+    "type": "word",
+    "text": "function",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_184",
+    "start_ms": 49115.5,
+    "end_ms": 49475.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "to",
+      "index": 2,
+      "group_idx": 19
+    }
+  },
+  {
+    "id": "word_116",
+    "start_ms": 49115.5,
+    "end_ms": 49475.4,
+    "type": "word",
+    "text": "to",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_185",
+    "start_ms": 49129.1,
+    "end_ms": 50129.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e12",
+      "appear_order": 12
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_186",
+    "start_ms": 49538.9,
+    "end_ms": 49898.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "index,",
+      "index": 3,
+      "group_idx": 19
+    }
+  },
+  {
+    "id": "word_117",
+    "start_ms": 49538.9,
+    "end_ms": 49898.8,
+    "type": "word",
+    "text": "index,",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_highlight_187",
+    "start_ms": 49929.1,
+    "end_ms": 50929.1,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e6",
+      "color": "blue"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_188",
+    "start_ms": 49962.3,
+    "end_ms": 50322.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "highlighting",
+      "index": 4,
+      "group_idx": 19
+    }
+  },
+  {
+    "id": "word_118",
+    "start_ms": 49962.3,
+    "end_ms": 50322.2,
+    "type": "word",
+    "text": "highlighting",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_189",
+    "start_ms": 50385.7,
+    "end_ms": 50745.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 5,
+      "group_idx": 19
+    }
+  },
+  {
+    "id": "word_119",
+    "start_ms": 50385.7,
+    "end_ms": 50745.6,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_takeaway_show_190",
+    "start_ms": 50630.4,
+    "end_ms": 63288.0,
+    "type": "segment",
+    "text": "takeaway_show",
+    "payload": {
+      "text": "Hashing enables fast data retrieval"
+    }
+  },
+  {
+    "id": "segment_prog_node_highlight_191",
+    "start_ms": 50729.1,
+    "end_ms": 51729.1,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e12",
+      "color": "green"
+    }
+  },
+  {
+    "id": "segment_subtitle_show_192",
+    "start_ms": 50809.1,
+    "end_ms": 53286.1,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "one-step",
+          "start_ms": 50809.1,
+          "end_ms": 51169.0
+        },
+        {
+          "word": "jump.",
+          "start_ms": 51232.5,
+          "end_ms": 51592.4
+        },
+        {
+          "word": "This",
+          "start_ms": 51655.9,
+          "end_ms": 52015.8
+        },
+        {
+          "word": "efficient",
+          "start_ms": 52079.4,
+          "end_ms": 52439.3
+        },
+        {
+          "word": "process",
+          "start_ms": 52502.8,
+          "end_ms": 52862.7
+        },
+        {
+          "word": "enables",
+          "start_ms": 52926.2,
+          "end_ms": 53286.1
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_193",
+    "start_ms": 50809.1,
+    "end_ms": 51169.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "one-step",
+      "index": 0,
+      "group_idx": 20
+    }
+  },
+  {
+    "id": "word_120",
+    "start_ms": 50809.1,
+    "end_ms": 51169.0,
+    "type": "word",
+    "text": "one-step",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_194",
+    "start_ms": 51232.5,
+    "end_ms": 51592.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "jump.",
+      "index": 1,
+      "group_idx": 20
+    }
+  },
+  {
+    "id": "word_121",
+    "start_ms": 51232.5,
+    "end_ms": 51592.4,
+    "type": "word",
+    "text": "jump.",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_connection_draw_195",
+    "start_ms": 51529.1,
+    "end_ms": 52529.1,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e2_e6",
+      "length": 643.7,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_196",
+    "start_ms": 51655.9,
+    "end_ms": 52015.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "This",
+      "index": 2,
+      "group_idx": 20
+    }
+  },
+  {
+    "id": "sentence_9",
+    "start_ms": 51655.9,
+    "end_ms": 56249.9,
+    "type": "sentence",
+    "text": "This efficient process enables fast lookup, insertion, and deletion of data.",
+    "payload": {}
+  },
+  {
+    "id": "word_122",
+    "start_ms": 51655.9,
+    "end_ms": 52015.8,
+    "type": "word",
+    "text": "This",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_197",
+    "start_ms": 52079.4,
+    "end_ms": 52439.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "efficient",
+      "index": 3,
+      "group_idx": 20
+    }
+  },
+  {
+    "id": "word_123",
+    "start_ms": 52079.4,
+    "end_ms": 52439.3,
+    "type": "word",
+    "text": "efficient",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_connection_draw_198",
+    "start_ms": 52329.1,
+    "end_ms": 53329.1,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e5_e12",
+      "length": 199.7,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_199",
+    "start_ms": 52502.8,
+    "end_ms": 52862.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "process",
+      "index": 4,
+      "group_idx": 20
+    }
+  },
+  {
+    "id": "word_124",
+    "start_ms": 52502.8,
+    "end_ms": 52862.7,
+    "type": "word",
+    "text": "process",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_200",
+    "start_ms": 52926.2,
+    "end_ms": 53286.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "enables",
+      "index": 5,
+      "group_idx": 20
+    }
+  },
+  {
+    "id": "word_125",
+    "start_ms": 52926.2,
+    "end_ms": 53286.1,
+    "type": "word",
+    "text": "enables",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_201",
+    "start_ms": 53129.1,
+    "end_ms": 54129.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e7",
+      "appear_order": 7
+    }
+  },
+  {
+    "id": "segment_subtitle_show_202",
+    "start_ms": 53349.6,
+    "end_ms": 55826.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "fast",
+          "start_ms": 53349.6,
+          "end_ms": 53709.5
+        },
+        {
+          "word": "lookup,",
+          "start_ms": 53773.0,
+          "end_ms": 54132.9
+        },
+        {
+          "word": "insertion,",
+          "start_ms": 54196.4,
+          "end_ms": 54556.3
+        },
+        {
+          "word": "and",
+          "start_ms": 54619.8,
+          "end_ms": 54979.7
+        },
+        {
+          "word": "deletion",
+          "start_ms": 55043.2,
+          "end_ms": 55403.1
+        },
+        {
+          "word": "of",
+          "start_ms": 55466.6,
+          "end_ms": 55826.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_203",
+    "start_ms": 53349.6,
+    "end_ms": 53709.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "fast",
+      "index": 0,
+      "group_idx": 21
+    }
+  },
+  {
+    "id": "word_126",
+    "start_ms": 53349.6,
+    "end_ms": 53709.5,
+    "type": "word",
+    "text": "fast",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_204",
+    "start_ms": 53773.0,
+    "end_ms": 54132.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "lookup,",
+      "index": 1,
+      "group_idx": 21
+    }
+  },
+  {
+    "id": "word_127",
+    "start_ms": 53773.0,
+    "end_ms": 54132.9,
+    "type": "word",
+    "text": "lookup,",
+    "payload": {}
+  },
+  {
+    "id": "segment_summary_strip_enter_205",
+    "start_ms": 53794.8,
+    "end_ms": 63288.0,
+    "type": "segment",
+    "text": "summary_strip_enter",
+    "payload": {
+      "text": "Hashing enables fast data retrieval"
+    }
+  },
+  {
+    "id": "segment_prog_node_highlight_206",
+    "start_ms": 53929.1,
+    "end_ms": 54929.1,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e7",
+      "color": "blue"
+    }
+  },
+  {
+    "id": "segment_prog_node_insert_208",
+    "start_ms": 54196.4,
+    "end_ms": 55196.4,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e13"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_207",
+    "start_ms": 54196.4,
+    "end_ms": 54556.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "insertion,",
+      "index": 2,
+      "group_idx": 21
+    }
+  },
+  {
+    "id": "word_128",
+    "start_ms": 54196.4,
+    "end_ms": 54556.3,
+    "type": "word",
+    "text": "insertion,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_209",
+    "start_ms": 54619.8,
+    "end_ms": 54979.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "and",
+      "index": 3,
+      "group_idx": 21
+    }
+  },
+  {
+    "id": "word_129",
+    "start_ms": 54619.8,
+    "end_ms": 54979.7,
+    "type": "word",
+    "text": "and",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_connection_draw_210",
+    "start_ms": 54729.1,
+    "end_ms": 55729.1,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e2_e7",
+      "length": 199.7,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_prog_node_insert_212",
+    "start_ms": 55043.2,
+    "end_ms": 56043.2,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e14"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_211",
+    "start_ms": 55043.2,
+    "end_ms": 55403.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "deletion",
+      "index": 4,
+      "group_idx": 21
+    }
+  },
+  {
+    "id": "word_130",
+    "start_ms": 55043.2,
+    "end_ms": 55403.1,
+    "type": "word",
+    "text": "deletion",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_213",
+    "start_ms": 55466.6,
+    "end_ms": 55826.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "of",
+      "index": 5,
+      "group_idx": 21
+    }
+  },
+  {
+    "id": "word_131",
+    "start_ms": 55466.6,
+    "end_ms": 55826.5,
+    "type": "word",
+    "text": "of",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_214",
+    "start_ms": 55529.1,
+    "end_ms": 56529.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e8",
+      "appear_order": 8
+    }
+  },
+  {
+    "id": "segment_subtitle_show_215",
+    "start_ms": 55890.0,
+    "end_ms": 58367.0,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "data.",
+          "start_ms": 55890.0,
+          "end_ms": 56249.9
+        },
+        {
+          "word": "By",
+          "start_ms": 56313.4,
+          "end_ms": 56673.3
+        },
+        {
+          "word": "understanding",
+          "start_ms": 56736.9,
+          "end_ms": 57096.8
+        },
+        {
+          "word": "hashing,",
+          "start_ms": 57160.3,
+          "end_ms": 57520.2
+        },
+        {
+          "word": "we",
+          "start_ms": 57583.7,
+          "end_ms": 57943.6
+        },
+        {
+          "word": "can",
+          "start_ms": 58007.1,
+          "end_ms": 58367.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_216",
+    "start_ms": 55890.0,
+    "end_ms": 56249.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "data.",
+      "index": 0,
+      "group_idx": 22
+    }
+  },
+  {
+    "id": "word_132",
+    "start_ms": 55890.0,
+    "end_ms": 56249.9,
+    "type": "word",
+    "text": "data.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_217",
+    "start_ms": 56313.4,
+    "end_ms": 56673.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "By",
+      "index": 1,
+      "group_idx": 22
+    }
+  },
+  {
+    "id": "sentence_10",
+    "start_ms": 56313.4,
+    "end_ms": 63024.5,
+    "type": "sentence",
+    "text": "By understanding hashing, we can appreciate its importance in various applications, including databases and password storage.",
+    "payload": {}
+  },
+  {
+    "id": "word_133",
+    "start_ms": 56313.4,
+    "end_ms": 56673.3,
+    "type": "word",
+    "text": "By",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_highlight_218",
+    "start_ms": 56329.1,
+    "end_ms": 57329.1,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e8",
+      "color": "blue"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_219",
+    "start_ms": 56736.9,
+    "end_ms": 57096.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "understanding",
+      "index": 2,
+      "group_idx": 22
+    }
+  },
+  {
+    "id": "word_134",
+    "start_ms": 56736.9,
+    "end_ms": 57096.8,
+    "type": "word",
+    "text": "understanding",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_connection_draw_220",
+    "start_ms": 57129.1,
+    "end_ms": 58129.1,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e2_e8",
+      "length": 144.7,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_221",
+    "start_ms": 57160.3,
+    "end_ms": 57520.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "hashing,",
+      "index": 3,
+      "group_idx": 22
+    }
+  },
+  {
+    "id": "word_135",
+    "start_ms": 57160.3,
+    "end_ms": 57520.2,
+    "type": "word",
+    "text": "hashing,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_222",
+    "start_ms": 57583.7,
+    "end_ms": 57943.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "we",
+      "index": 4,
+      "group_idx": 22
+    }
+  },
+  {
+    "id": "word_136",
+    "start_ms": 57583.7,
+    "end_ms": 57943.6,
+    "type": "word",
+    "text": "we",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_223",
+    "start_ms": 57929.1,
+    "end_ms": 58929.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e9",
+      "appear_order": 9
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_224",
+    "start_ms": 58007.1,
+    "end_ms": 58367.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "can",
+      "index": 5,
+      "group_idx": 22
+    }
+  },
+  {
+    "id": "word_137",
+    "start_ms": 58007.1,
+    "end_ms": 58367.0,
+    "type": "word",
+    "text": "can",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_225",
+    "start_ms": 58430.5,
+    "end_ms": 60907.4,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "appreciate",
+          "start_ms": 58430.5,
+          "end_ms": 58790.4
+        },
+        {
+          "word": "its",
+          "start_ms": 58853.9,
+          "end_ms": 59213.8
+        },
+        {
+          "word": "importance",
+          "start_ms": 59277.3,
+          "end_ms": 59637.2
+        },
+        {
+          "word": "in",
+          "start_ms": 59700.7,
+          "end_ms": 60060.6
+        },
+        {
+          "word": "various",
+          "start_ms": 60124.1,
+          "end_ms": 60484.0
+        },
+        {
+          "word": "applications,",
+          "start_ms": 60547.5,
+          "end_ms": 60907.4
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_226",
+    "start_ms": 58430.5,
+    "end_ms": 58790.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "appreciate",
+      "index": 0,
+      "group_idx": 23
+    }
+  },
+  {
+    "id": "word_138",
+    "start_ms": 58430.5,
+    "end_ms": 58790.4,
+    "type": "word",
+    "text": "appreciate",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_highlight_227",
+    "start_ms": 58729.1,
+    "end_ms": 59729.1,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e9",
+      "color": "blue"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_228",
+    "start_ms": 58853.9,
+    "end_ms": 59213.8,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "its",
+      "index": 1,
+      "group_idx": 23
+    }
+  },
+  {
+    "id": "word_139",
+    "start_ms": 58853.9,
+    "end_ms": 59213.8,
+    "type": "word",
+    "text": "its",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_229",
+    "start_ms": 59277.3,
+    "end_ms": 59637.2,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "importance",
+      "index": 2,
+      "group_idx": 23
+    }
+  },
+  {
+    "id": "word_140",
+    "start_ms": 59277.3,
+    "end_ms": 59637.2,
+    "type": "word",
+    "text": "importance",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_connection_draw_230",
+    "start_ms": 59529.1,
+    "end_ms": 60529.1,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e2_e9",
+      "length": 199.7,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_231",
+    "start_ms": 59700.7,
+    "end_ms": 60060.6,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "in",
+      "index": 3,
+      "group_idx": 23
+    }
+  },
+  {
+    "id": "word_141",
+    "start_ms": 59700.7,
+    "end_ms": 60060.6,
+    "type": "word",
+    "text": "in",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_232",
+    "start_ms": 60124.1,
+    "end_ms": 60484.0,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "various",
+      "index": 4,
+      "group_idx": 23
+    }
+  },
+  {
+    "id": "word_142",
+    "start_ms": 60124.1,
+    "end_ms": 60484.0,
+    "type": "word",
+    "text": "various",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_233",
+    "start_ms": 60329.1,
+    "end_ms": 61329.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e1",
+      "appear_order": 1
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_234",
+    "start_ms": 60547.5,
+    "end_ms": 60907.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "applications,",
+      "index": 5,
+      "group_idx": 23
+    }
+  },
+  {
+    "id": "word_143",
+    "start_ms": 60547.5,
+    "end_ms": 60907.4,
+    "type": "word",
+    "text": "applications,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_235",
+    "start_ms": 60971.0,
+    "end_ms": 63024.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "including",
+          "start_ms": 60971.0,
+          "end_ms": 61330.9
+        },
+        {
+          "word": "databases",
+          "start_ms": 61394.4,
+          "end_ms": 61754.3
+        },
+        {
+          "word": "and",
+          "start_ms": 61817.8,
+          "end_ms": 62177.7
+        },
+        {
+          "word": "password",
+          "start_ms": 62241.2,
+          "end_ms": 62601.1
+        },
+        {
+          "word": "storage.",
+          "start_ms": 62664.6,
+          "end_ms": 63024.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_236",
+    "start_ms": 60971.0,
+    "end_ms": 61330.9,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "including",
+      "index": 0,
+      "group_idx": 24
+    }
+  },
+  {
+    "id": "word_144",
+    "start_ms": 60971.0,
+    "end_ms": 61330.9,
+    "type": "word",
+    "text": "including",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_highlight_237",
+    "start_ms": 61129.1,
+    "end_ms": 62129.1,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e1",
+      "color": "blue"
+    }
+  },
+  {
+    "id": "segment_prog_node_insert_239",
+    "start_ms": 61394.4,
+    "end_ms": 62394.4,
+    "type": "segment",
+    "text": "prog_node_insert",
+    "payload": {
+      "element_id": "e15"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_238",
+    "start_ms": 61394.4,
+    "end_ms": 61754.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "databases",
+      "index": 1,
+      "group_idx": 24
+    }
+  },
+  {
+    "id": "word_145",
+    "start_ms": 61394.4,
+    "end_ms": 61754.3,
+    "type": "word",
+    "text": "databases",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_240",
+    "start_ms": 61817.8,
+    "end_ms": 62177.7,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "and",
+      "index": 2,
+      "group_idx": 24
+    }
+  },
+  {
+    "id": "word_146",
+    "start_ms": 61817.8,
+    "end_ms": 62177.7,
+    "type": "word",
+    "text": "and",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_connection_draw_241",
+    "start_ms": 61929.1,
+    "end_ms": 62929.1,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e1_e2",
+      "length": 53.7,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_242",
+    "start_ms": 62241.2,
+    "end_ms": 62601.1,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "password",
+      "index": 3,
+      "group_idx": 24
+    }
+  },
+  {
+    "id": "word_147",
+    "start_ms": 62241.2,
+    "end_ms": 62601.1,
+    "type": "word",
+    "text": "password",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_243",
+    "start_ms": 62664.6,
+    "end_ms": 63024.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "storage.",
+      "index": 4,
+      "group_idx": 24
+    }
+  },
+  {
+    "id": "word_148",
+    "start_ms": 62664.6,
+    "end_ms": 63024.5,
+    "type": "word",
+    "text": "storage.",
+    "payload": {}
+  },
+  {
+    "id": "segment_prog_node_appear_244",
+    "start_ms": 62729.1,
+    "end_ms": 63729.1,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e16",
+      "appear_order": 16
+    }
+  },
+  {
+    "id": "segment_prog_connection_draw_247",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e5_e16",
+      "length": 389.1,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_prog_connection_draw_250",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e2_e3",
+      "length": 53.7,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_prog_connection_draw_251",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e3_e4",
+      "length": 53.7,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_prog_connection_draw_252",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e3_e5",
+      "length": 250.3,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_prog_connection_draw_255",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e5_e13",
+      "length": 755.3,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_prog_connection_draw_258",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e5_e14",
+      "length": 612.3,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_prog_connection_draw_261",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_connection_draw",
+    "payload": {
+      "connection_id": "conn_e5_e15",
+      "length": 485.0,
+      "weight": ""
+    }
+  },
+  {
+    "id": "segment_prog_node_appear_248",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e3",
+      "appear_order": 3
+    }
+  },
+  {
+    "id": "segment_prog_node_appear_253",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e13",
+      "appear_order": 13
+    }
+  },
+  {
+    "id": "segment_prog_node_appear_256",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e14",
+      "appear_order": 14
+    }
+  },
+  {
+    "id": "segment_prog_node_appear_259",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_node_appear",
+    "payload": {
+      "element_id": "e15",
+      "appear_order": 15
+    }
+  },
+  {
+    "id": "segment_prog_node_highlight_246",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e16",
+      "color": "teal"
+    }
+  },
+  {
+    "id": "segment_prog_node_highlight_249",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e3",
+      "color": "blue"
+    }
+  },
+  {
+    "id": "segment_prog_node_highlight_254",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e13",
+      "color": "green"
+    }
+  },
+  {
+    "id": "segment_prog_node_highlight_257",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e14",
+      "color": "red"
+    }
+  },
+  {
+    "id": "segment_prog_node_highlight_260",
+    "start_ms": 62788.0,
+    "end_ms": 63788.0,
+    "type": "segment",
+    "text": "prog_node_highlight",
+    "payload": {
+      "element_id": "e15",
+      "color": "teal"
+    }
+  },
+  {
+    "id": "segment_scene_end_245",
+    "start_ms": 62788.0,
+    "end_ms": 63288.0,
+    "type": "segment",
+    "text": "scene_end",
+    "payload": {}
+  }
+]
