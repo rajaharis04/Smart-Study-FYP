@@ -46,9 +46,13 @@ app.*.map.json
 
 # Python Virtual Environments & Packages
 venv/
+venv*/
 */venv/
 **/venv/
+**/venv*/
 env/
+**/env/
+**/env
 .env
 
 # Python Cache & compiled files
