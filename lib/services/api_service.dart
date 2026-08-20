@@ -833,4 +833,107 @@ class ApiService {
       return null;
     }
   }
+
+  // ══════════════════════════════════════════════════════════════════
+  //  ATTENTION & PRESENCE MONITOR (CV) — webcam attendance/engagement
+  //  Backend must run from the CV venv (.venv-attention) so these are live.
+  // ══════════════════════════════════════════════════════════════════
+
+  // Attention CV calls can be slow on the FIRST hit (server loads TensorFlow /
+  // ArcFace ~15-40s). Use a generous receive timeout so the client doesn't give
+  // up and wrongly report the engine as "offline" during that cold start.
+  static const Duration _kAttentionTimeout = Duration(seconds: 90);
+
+  /// GET /api/attention/status
+  /// Diagnostic — is the CV engine available on the server? (no auth needed)
+  Future<Map<String, dynamic>> getAttentionStatus() async {
+    try {
+      final response = await _dio.get(
+        '/attention/status',
+        options: Options(receiveTimeout: _kAttentionTimeout),
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
+
+  /// POST /api/attention/enroll
+  /// Register the student's face from 3-5 base64 photos (one-time).
+  Future<Map<String, dynamic>> enrollFace(List<String> imagesBase64) async {
+    try {
+      final response = await _dio.post(
+        '/attention/enroll',
+        data: {'images_base64': imagesBase64},
+        options: Options(receiveTimeout: _kAttentionTimeout),
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
+
+  /// POST /api/attention/session/start
+  /// Begin a monitored viewing session; optional first frame for recognition.
+  /// Returns { session_id, recognized, unrecognized_viewer, ... }.
+  Future<Map<String, dynamic>> startAttentionSession({
+    int? lectureId,
+    String? imageBase64,
+  }) async {
+    try {
+      final response = await _dio.post('/attention/session/start', data: {
+        'lecture_id': lectureId,
+        'image_base64': imageBase64,
+      });
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
+  /// POST /api/attention/frame
+  /// Send ONE sampled frame (~1 fps). Returns per-frame metrics + running ratio.
+  /// Failures are swallowed (returns null) so streaming never breaks playback.
+  Future<Map<String, dynamic>?> sendAttentionFrame({
+    required int sessionId,
+    required String imageBase64,
+  }) async {
+    try {
+      final response = await _dio.post('/attention/frame', data: {
+        'session_id': sessionId,
+        'image_base64': imageBase64,
+      });
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (_) {
+      return null;
+    }
+  }
+
+  /// POST /api/attention/session/end
+  /// Finalize a session → ratio + Present/Absent verdict (also updates Attendance).
+  Future<Map<String, dynamic>?> endAttentionSession(int sessionId) async {
+    try {
+      final response = await _dio.post('/attention/session/end', data: {
+        'session_id': sessionId,
+      });
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (_) {
+      return null;
+    }
+  }
+
+  /// GET /api/attention/report/{student_id}
+  /// A student's own attention-session history.
+  Future<Map<String, dynamic>> getAttentionReport(int studentId) async {
+    try {
+      final response = await _dio.get('/attention/report/$studentId');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
 }
+
+

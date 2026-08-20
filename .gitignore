@@ -50,10 +50,16 @@ venv*/
 */venv/
 **/venv/
 **/venv*/
+# dot-prefixed venvs (e.g. the CV venv .venv-attention) — huge, never commit
+.venv/
+.venv*/
+**/.venv/
+**/.venv*/
 env/
 **/env/
 **/env
 .env
+
 
 # Python Cache & compiled files
 **/__pycache__/

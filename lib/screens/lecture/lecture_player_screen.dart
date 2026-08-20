@@ -10,9 +10,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
 import '../../providers/lecture_provider.dart';
+import '../../providers/attention_provider.dart';
 import 'mid_check_overlay.dart';
 import 'qna_overlay.dart';
+import 'attention_overlay.dart';
 import '../../services/storage_service.dart';
+
 
 // ════════════════════════════════════════════════════════════════════
 //  Chapter definition
@@ -71,8 +74,31 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
       await _startSession();
       // Load mid-quiz from DB (ready when 50% triggers)
       await notifier.loadMidQuiz(int.parse(widget.lectureId));
+      // Offer webcam-based Attention & Presence monitoring (web + CV backend).
+      await _offerAttentionMonitoring();
     });
   }
+
+  // ── Attention & Presence Monitor integration ──────────────────────
+  bool _attentionFinalized = false;
+
+  Future<void> _offerAttentionMonitoring() async {
+    if (!mounted) return;
+    // Presents enroll/start dialog; gracefully no-ops if unsupported/offline.
+    await showAttentionStartDialog(context, ref, int.tryParse(widget.lectureId));
+  }
+
+  /// Finalize the attention session (idempotent) and show the verdict once.
+  Future<void> _finalizeAttention() async {
+    if (_attentionFinalized) return;
+    final st = ref.read(attentionProvider);
+    if (st.sessionId == null) return; // monitoring never started
+    _attentionFinalized = true;
+    await ref.read(attentionProvider.notifier).stopMonitoring();
+    if (!mounted) return;
+    await showAttentionVerdictDialog(context, ref.read(attentionProvider));
+  }
+
 
   Future<void> _initVideo(String videoUrl) async {
     _controller = VideoPlayerController.networkUrl(
@@ -132,11 +158,14 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
     // Reset video position to 0 when ended
     await StorageService().saveVideoPosition(int.parse(widget.lectureId), 0);
     await ref.read(lectureProvider.notifier).endSession();
+    // Finalize attention monitoring + show Present/Absent verdict (if active).
+    await _finalizeAttention();
     if (mounted) {
       // Navigate to PostQuiz (Phase 6) — for now just pop
       context.pop();
     }
   }
+
 
   void _togglePlay() {
     if (_controller == null) return;
@@ -400,8 +429,10 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
                   color: Colors.white, size: 20),
               onPressed: () async {
                 await ref.read(lectureProvider.notifier).endSession();
+                await _finalizeAttention();
                 if (mounted) context.pop();
               },
+
             ),
             Expanded(
               child: Text(
@@ -413,6 +444,8 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
                 ),
               ),
             ),
+            const AttentionLiveBadge(),
+            const SizedBox(width: 8),
             IconButton(
               icon: Icon(
                 _isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
@@ -421,6 +454,7 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
               ),
               onPressed: () => setState(() => _isFullScreen = !_isFullScreen),
             ),
+
           ],
         ),
       ),

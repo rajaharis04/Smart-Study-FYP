@@ -1,380 +1,528 @@
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║              STORAGE SERVICE — SECURE VAULT                      ║
-// ║  JWT token ko phone ke encrypted storage mein save karta hai     ║
-// ║  Android: Keystore  |  iOS: Keychain                             ║
+// ║              STORAGE SERVICE — CROSS PLATFORM                   ║
+// ║  Android: Keystore | iOS/macOS: Keychain | Web: WebCrypto       ║
+// ║  Windows/Linux: Platform secure storage                         ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-import 'dart:io';
 import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import '../core/constants.dart';
-import '../core/router.dart'; // AppAuthNotifier ke liye
+import '../core/router.dart';
 
 /// ──────────────────────────────────────────────────────────────────
 /// StorageService
 /// ──────────────────────────────────────────────────────────────────
-/// Yeh class phone ke encrypted storage ko access karti hai.
 ///
-/// Kyun secure storage?
-///   → JWT token bohot sensitive hota hai
-///   → Normal SharedPreferences plain-text mein store karti hai
-///   → flutter_secure_storage hardware-level encryption use karta hai
+/// Cross-platform secure storage service.
 ///
-/// Usage (kaise use karein):
-/// ```dart
-///   final storage = StorageService();
-///   await storage.saveToken('eyJhbGci...');
-///   final token = await storage.getToken();
-/// ```
+/// Supported platforms:
+///   → Android
+///   → iOS
+///   → macOS
+///   → Windows
+///   → Linux
+///   → Web
+///
+/// IMPORTANT:
+/// We intentionally DO NOT use `dart:io` or `Platform.isMacOS`.
+/// Those APIs are not supported by Flutter Web.
+///
+/// `flutter_secure_storage` automatically selects the appropriate
+/// implementation for the current platform.
 /// ──────────────────────────────────────────────────────────────────
+
 class StorageService {
-  // Static in-memory fallback cache to allow the app to work seamlessly
-  // and avoid annoying macOS Keychain password dialogs during local execution.
-  static final Map<String, String> _fallbackStorage = {};
+  // In-memory fallback.
+  //
+  // This is useful if secure storage temporarily fails.
+  // It also allows the application to continue running instead of
+  // completely crashing because of a storage exception.
+  static final Map<String, String> _fallbackStorage =
+      <String, String>{};
 
-  /// Router ke liye synchronous token access — no async needed.
-  /// GoRouter redirect function mein use hota hai.
-  static String? get fallbackToken => _fallbackStorage[AppConstants.keyAuthToken];
+  /// Synchronous token access for router/auth logic.
+  ///
+  /// IMPORTANT:
+  /// This is only the in-memory fallback.
+  /// The real persistent token is stored asynchronously using
+  /// FlutterSecureStorage.
+  static String? get fallbackToken =>
+      _fallbackStorage[AppConstants.keyAuthToken];
 
-  // Check if target platform is macOS desktop
-  bool get _isMac => Platform.isMacOS;
+  // ─────────────────────────────────────────────────────────────────
+  // SECURE STORAGE
+  // ─────────────────────────────────────────────────────────────────
 
-  // ── Private instance — flutter_secure_storage ka object ────────────
-  // Yeh Android Options aur iOS Options configure karta hai
-  final FlutterSecureStorage _storage = const FlutterSecureStorage(
-    // Android: EncryptedSharedPreferences use karo (more secure)
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    // iOS: Keychain mein save karo, device unlock hone par accessible ho
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-    // macOS: File-based storage use karo (Keychain needs Apple Developer signing)
-    mOptions: MacOsOptions(useDataProtectionKeyChain: false),
+  final FlutterSecureStorage _storage =
+      const FlutterSecureStorage(
+    // Android
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+
+    // iOS
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock,
+    ),
+
+    // macOS
+    mOptions: MacOsOptions(
+      useDataProtectionKeyChain: false,
+    ),
+
+    // Web
+    //
+    // flutter_secure_storage provides its own WebCrypto-based
+    // implementation.
+    //
+    // Do NOT use dart:io here.
+    webOptions: WebOptions(),
+    
   );
 
   // ══════════════════════════════════════════════════════════════════
-  //  METHOD 1: saveToken
-  //  Token ko encrypted storage mein save karo
+  // AUTH TOKEN
   // ══════════════════════════════════════════════════════════════════
 
-  /// Login ke baad backend se mila JWT token save karta hai.
-  ///
-  /// [token] — Backend se aaya hua JWT string
-  ///           Example: "eyJhbGciOiJIUzI1NiIs..."
-  ///
-  /// Kab call hota hai: Login successful hone par
+  /// Save JWT authentication token.
   Future<void> saveToken(String token) async {
+    // Always update fallback first.
     _fallbackStorage[AppConstants.keyAuthToken] = token;
-    // Auth notifier ko batao — GoRouter logged-in state update karega
+
+    // Tell router/auth system that user is logged in.
     AppAuthNotifier.instance.setLoggedIn(true);
-    if (_isMac) {
-      // macOS par dialog bypass karne ke liye local memory storage use karte hain
-      return;
-    }
+
     try {
-      await _storage.write(key: AppConstants.keyAuthToken, value: token);
+      await _storage.write(
+        key: AppConstants.keyAuthToken,
+        value: token,
+      );
     } catch (e) {
       print('StorageService.saveToken error: $e');
+
+      // Keep fallback token so application can continue running.
+      _fallbackStorage[AppConstants.keyAuthToken] = token;
     }
   }
 
-  // ══════════════════════════════════════════════════════════════════
-  //  METHOD 2: getToken
-  //  Stored token wapas lao
-  // ══════════════════════════════════════════════════════════════════
-
-  /// Encrypted storage se JWT token nikalta hai.
-  ///
-  /// Returns: token string — agar stored hai
-  ///          null — agar koi token nahi mila (user logged out ya pehli baar)
-  ///
-  /// Kab call hota hai: Har API request se pehle (interceptor use karta hai)
+  /// Get saved JWT token.
   Future<String?> getToken() async {
-    if (_isMac) {
-      return _fallbackStorage[AppConstants.keyAuthToken];
-    }
     try {
-      return await _storage.read(key: AppConstants.keyAuthToken);
+      final String? token = await _storage.read(
+        key: AppConstants.keyAuthToken,
+      );
+
+      // If secure storage has token, use it.
+      if (token != null && token.isNotEmpty) {
+        // Keep fallback synchronized.
+        _fallbackStorage[AppConstants.keyAuthToken] = token;
+        return token;
+      }
+
+      // Otherwise use fallback.
+      return _fallbackStorage[AppConstants.keyAuthToken];
     } catch (e) {
       print('StorageService.getToken error: $e');
+
       return _fallbackStorage[AppConstants.keyAuthToken];
     }
   }
 
-  // ══════════════════════════════════════════════════════════════════
-  //  METHOD 3: deleteToken
-  //  Logout par token delete karo
-  // ══════════════════════════════════════════════════════════════════
-
-  /// Logout karte waqt JWT token ko permanently delete karta hai.
-  ///
-  /// Iske baad:
-  ///   → getToken() null return karega
-  ///   → hasToken() false return karega
-  ///   → User ko login screen par redirect kiya jaega
-  ///
-  /// Kab call hota hai: Logout button press karne par
+  /// Delete JWT token during logout.
   Future<void> deleteToken() async {
     _fallbackStorage.remove(AppConstants.keyAuthToken);
-    // Auth notifier ko batao — GoRouter redirect karega login par
+
+    // Tell router/auth system that user is logged out.
     AppAuthNotifier.instance.setLoggedIn(false);
-    if (_isMac) {
-      return;
-    }
+
     try {
-      await _storage.delete(key: AppConstants.keyAuthToken);
+      await _storage.delete(
+        key: AppConstants.keyAuthToken,
+      );
     } catch (e) {
       print('StorageService.deleteToken error: $e');
     }
   }
 
-  // ══════════════════════════════════════════════════════════════════
-  //  METHOD 4: hasToken
-  //  Check karo — kya phone mein token hai?
-  // ══════════════════════════════════════════════════════════════════
-
-  /// Phone mein pehle se JWT token hai ya nahi — check karta hai.
-  ///
-  /// Returns: true  — token mila, user logged in hai
-  ///          false — token nahi mila, user ko login karna hoga
-  ///
-  /// Kab call hota hai: Splash screen par
-  ///   → true  → Dashboard screen
-  ///   → false → Login screen
+  /// Check whether a JWT token exists.
   Future<bool> hasToken() async {
-    // Token nikalo
-    final token = await getToken();
-    // null nahi hai to token hai = true
-    // null hai to token nahi = false
+    final String? token = await getToken();
+
     return token != null && token.isNotEmpty;
   }
 
   // ══════════════════════════════════════════════════════════════════
-  //  BONUS: saveUserRole & getUserRole
-  //  Role bhi store karo (student / instructor)
+  // USER ROLE
   // ══════════════════════════════════════════════════════════════════
 
-  /// User role save karo (e.g., 'student', 'instructor')
+  /// Save user role.
+  ///
+  /// Example:
+  ///   student
+  ///   instructor
   Future<void> saveUserRole(String role) async {
     _fallbackStorage['user_role'] = role;
-    if (_isMac) {
-      return;
-    }
+
     try {
-      await _storage.write(key: 'user_role', value: role);
+      await _storage.write(
+        key: 'user_role',
+        value: role,
+      );
     } catch (e) {
       print('StorageService.saveUserRole error: $e');
     }
   }
 
-  /// Stored user role wapas lao
+  /// Get saved user role.
   Future<String?> getUserRole() async {
-    if (_isMac) {
-      return _fallbackStorage['user_role'];
-    }
     try {
-      return await _storage.read(key: 'user_role');
+      final String? role = await _storage.read(
+        key: 'user_role',
+      );
+
+      if (role != null) {
+        _fallbackStorage['user_role'] = role;
+        return role;
+      }
+
+      return _fallbackStorage['user_role'];
     } catch (e) {
       print('StorageService.getUserRole error: $e');
+
       return _fallbackStorage['user_role'];
     }
   }
 
   // ══════════════════════════════════════════════════════════════════
-  //  BONUS: saveUserName & getUserName
-  //  Full name bhi store karo
+  // USER NAME
   // ══════════════════════════════════════════════════════════════════
 
-  /// User ka full name save karo
+  /// Save user's full name.
   Future<void> saveUserName(String name) async {
     _fallbackStorage['user_name'] = name;
-    if (_isMac) {
-      return;
-    }
+
     try {
-      await _storage.write(key: 'user_name', value: name);
+      await _storage.write(
+        key: 'user_name',
+        value: name,
+      );
     } catch (e) {
       print('StorageService.saveUserName error: $e');
     }
   }
 
-  /// Stored full name wapas lao
+  /// Get saved user's full name.
   Future<String?> getUserName() async {
-    if (_isMac) {
-      return _fallbackStorage['user_name'];
-    }
     try {
-      return await _storage.read(key: 'user_name');
+      final String? name = await _storage.read(
+        key: 'user_name',
+      );
+
+      if (name != null) {
+        _fallbackStorage['user_name'] = name;
+        return name;
+      }
+
+      return _fallbackStorage['user_name'];
     } catch (e) {
       print('StorageService.getUserName error: $e');
+
       return _fallbackStorage['user_name'];
     }
   }
 
   // ══════════════════════════════════════════════════════════════════
-  //  GENERIC KEY-VALUE METHODS FOR PREFERENCES
+  // GENERIC KEY-VALUE STORAGE
   // ══════════════════════════════════════════════════════════════════
 
-  /// Generic write method to save local settings preferences.
-  Future<void> write(String key, String value) async {
+  /// Generic write method.
+  Future<void> write(
+    String key,
+    String value,
+  ) async {
     _fallbackStorage[key] = value;
-    if (_isMac) {
-      return;
-    }
+
     try {
-      await _storage.write(key: key, value: value);
+      await _storage.write(
+        key: key,
+        value: value,
+      );
     } catch (e) {
       print('StorageService.write error: $e');
     }
   }
 
-  /// Generic read method to retrieve stored preferences.
+  /// Generic read method.
   Future<String?> read(String key) async {
-    if (_isMac) {
-      return _fallbackStorage[key];
-    }
     try {
-      return await _storage.read(key: key);
+      final String? value = await _storage.read(
+        key: key,
+      );
+
+      if (value != null) {
+        _fallbackStorage[key] = value;
+        return value;
+      }
+
+      return _fallbackStorage[key];
     } catch (e) {
       print('StorageService.read error: $e');
+
       return _fallbackStorage[key];
     }
   }
 
-  /// Generic delete method to remove stored preference.
+  /// Generic delete method.
   Future<void> delete(String key) async {
     _fallbackStorage.remove(key);
-    if (_isMac) {
-      return;
-    }
+
     try {
-      await _storage.delete(key: key);
+      await _storage.delete(
+        key: key,
+      );
     } catch (e) {
       print('StorageService.delete error: $e');
     }
   }
 
   // ══════════════════════════════════════════════════════════════════
-  //  VIDEO PLAYER AUTO-RESUME CACHE
+  // VIDEO PLAYER AUTO-RESUME CACHE
   // ══════════════════════════════════════════════════════════════════
 
-  Future<void> saveVideoPosition(int lectureId, int seconds) async {
-    await write('video_pos_$lectureId', seconds.toString());
+  /// Save video playback position.
+  Future<void> saveVideoPosition(
+    int lectureId,
+    int seconds,
+  ) async {
+    await write(
+      'video_pos_$lectureId',
+      seconds.toString(),
+    );
   }
 
-  Future<int> getVideoPosition(int lectureId) async {
-    final posStr = await read('video_pos_$lectureId');
-    return posStr != null ? (int.tryParse(posStr) ?? 0) : 0;
+  /// Get video playback position.
+  Future<int> getVideoPosition(
+    int lectureId,
+  ) async {
+    final String? posStr =
+        await read('video_pos_$lectureId');
+
+    if (posStr == null) {
+      return 0;
+    }
+
+    return int.tryParse(posStr) ?? 0;
   }
 
   // ══════════════════════════════════════════════════════════════════
-  //  Q&A DYNAMIC BOOKMARKS
+  // Q&A DYNAMIC BOOKMARKS
   // ══════════════════════════════════════════════════════════════════
 
+  /// Get all bookmarked Q&As.
   Future<List<Map<String, dynamic>>> getBookmarkedQnAs() async {
-    final raw = await read('bookmarked_qnas');
-    if (raw == null) return [];
+    final String? raw = await read('bookmarked_qnas');
+
+    if (raw == null || raw.isEmpty) {
+      return <Map<String, dynamic>>[];
+    }
+
     try {
-      final List<dynamic> decoded = json.decode(raw);
-      return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
-    } catch (_) {
-      return [];
+      final List<dynamic> decoded =
+          json.decode(raw) as List<dynamic>;
+
+      return decoded
+          .map(
+            (dynamic e) =>
+                Map<String, dynamic>.from(e as Map),
+          )
+          .toList();
+    } catch (e) {
+      print(
+        'StorageService.getBookmarkedQnAs error: $e',
+      );
+
+      return <Map<String, dynamic>>[];
     }
   }
 
-  Future<void> toggleQnABookmark(Map<String, dynamic> qnaMap) async {
-    final bookmarks = await getBookmarkedQnAs();
-    final questionText = qnaMap['question'] as String;
-    
-    final index = bookmarks.indexWhere((b) => b['question'] == questionText);
+  /// Toggle Q&A bookmark.
+  Future<void> toggleQnABookmark(
+    Map<String, dynamic> qnaMap,
+  ) async {
+    final List<Map<String, dynamic>> bookmarks =
+        await getBookmarkedQnAs();
+
+    final String questionText =
+        qnaMap['question'] as String;
+
+    final int index = bookmarks.indexWhere(
+      (Map<String, dynamic> bookmark) =>
+          bookmark['question'] == questionText,
+    );
+
     if (index >= 0) {
       bookmarks.removeAt(index);
     } else {
       bookmarks.add(qnaMap);
     }
-    
-    await write('bookmarked_qnas', json.encode(bookmarks));
+
+    await write(
+      'bookmarked_qnas',
+      json.encode(bookmarks),
+    );
   }
 
-  Future<bool> isQnABookmarked(String questionText) async {
-    final bookmarks = await getBookmarkedQnAs();
-    return bookmarks.any((b) => b['question'] == questionText);
+  /// Check whether Q&A is bookmarked.
+  Future<bool> isQnABookmarked(
+    String questionText,
+  ) async {
+    final List<Map<String, dynamic>> bookmarks =
+        await getBookmarkedQnAs();
+
+    return bookmarks.any(
+      (Map<String, dynamic> bookmark) =>
+          bookmark['question'] == questionText,
+    );
   }
 
   // ══════════════════════════════════════════════════════════════════
-  //  NOTIFICATION HUB HISTORY
+  // NOTIFICATION HUB HISTORY
   // ══════════════════════════════════════════════════════════════════
 
+  /// Get notification history.
   Future<List<Map<String, dynamic>>> getNotificationLogs() async {
-    final raw = await read('notification_logs');
-    if (raw == null) {
-      final defaultAlerts = [
-        {
+    final String? raw =
+        await read('notification_logs');
+
+    // First run — create default notifications.
+    if (raw == null || raw.isEmpty) {
+      final List<Map<String, dynamic>> defaultAlerts =
+          <Map<String, dynamic>>[
+        <String, dynamic>{
           'id': '1',
           'title': 'Welcome to SmartStudy 🎓',
-          'content': 'Check your Course tab to view newly published lectures.',
-          'timestamp': DateTime.now().subtract(const Duration(hours: 3)).toIso8601String(),
-          'read': false
+          'content':
+              'Check your Course tab to view newly published lectures.',
+          'timestamp': DateTime.now()
+              .subtract(
+                const Duration(hours: 3),
+              )
+              .toIso8601String(),
+          'read': false,
         },
-        {
+        <String, dynamic>{
           'id': '2',
           'title': 'New Announcement Posted',
-          'content': 'Teacher posted: DSA Quiz is scheduled next Monday. Practice wrong questions from Question Bank.',
-          'timestamp': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-          'read': false
-        }
+          'content':
+              'Teacher posted: DSA Quiz is scheduled next Monday. Practice wrong questions from Question Bank.',
+          'timestamp': DateTime.now()
+              .subtract(
+                const Duration(days: 1),
+              )
+              .toIso8601String(),
+          'read': false,
+        },
       ];
-      await write('notification_logs', json.encode(defaultAlerts));
+
+      await write(
+        'notification_logs',
+        json.encode(defaultAlerts),
+      );
+
       return defaultAlerts;
     }
+
     try {
-      final List<dynamic> decoded = json.decode(raw);
-      return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
-    } catch (_) {
-      return [];
+      final List<dynamic> decoded =
+          json.decode(raw) as List<dynamic>;
+
+      return decoded
+          .map(
+            (dynamic e) =>
+                Map<String, dynamic>.from(e as Map),
+          )
+          .toList();
+    } catch (e) {
+      print(
+        'StorageService.getNotificationLogs error: $e',
+      );
+
+      return <Map<String, dynamic>>[];
     }
   }
 
-  Future<void> addNotificationLog(String title, String content) async {
-    final logs = await getNotificationLogs();
-    logs.insert(0, {
-      'id': DateTime.now().millisecondsSinceEpoch.toString(),
-      'title': title,
-      'content': content,
-      'timestamp': DateTime.now().toIso8601String(),
-      'read': false
-    });
-    await write('notification_logs', json.encode(logs));
+  /// Add notification to history.
+  Future<void> addNotificationLog(
+    String title,
+    String content,
+  ) async {
+    final List<Map<String, dynamic>> logs =
+        await getNotificationLogs();
+
+    logs.insert(
+      0,
+      <String, dynamic>{
+        'id':
+            DateTime.now().millisecondsSinceEpoch.toString(),
+        'title': title,
+        'content': content,
+        'timestamp':
+            DateTime.now().toIso8601String(),
+        'read': false,
+      },
+    );
+
+    await write(
+      'notification_logs',
+      json.encode(logs),
+    );
   }
 
-  Future<void> markNotificationRead(String id) async {
-    final logs = await getNotificationLogs();
-    for (var log in logs) {
+  /// Mark notification as read.
+  Future<void> markNotificationRead(
+    String id,
+  ) async {
+    final List<Map<String, dynamic>> logs =
+        await getNotificationLogs();
+
+    for (final Map<String, dynamic> log in logs) {
       if (log['id'] == id) {
         log['read'] = true;
       }
     }
-    await write('notification_logs', json.encode(logs));
+
+    await write(
+      'notification_logs',
+      json.encode(logs),
+    );
   }
 
+  /// Clear notification history.
   Future<void> clearNotificationLogs() async {
-    await write('notification_logs', json.encode(<Map<String, dynamic>>[]));
+    await write(
+      'notification_logs',
+      json.encode(
+        <Map<String, dynamic>>[],
+      ),
+    );
   }
 
   // ══════════════════════════════════════════════════════════════════
-  //  clearAll — Sab data delete (nuclear option)
+  // CLEAR ALL
   // ══════════════════════════════════════════════════════════════════
 
-  /// Storage ka sara data delete karo.
-  /// Complete logout / account switch ke liye use karo.
+  /// Delete all locally stored application data.
   Future<void> clearAll() async {
     _fallbackStorage.clear();
-    if (_isMac) {
-      return;
-    }
+
     try {
       await _storage.deleteAll();
     } catch (e) {
-      print('StorageService.clearAll error: $e');
+      print(
+        'StorageService.clearAll error: $e',
+      );
     }
   }
 }
-

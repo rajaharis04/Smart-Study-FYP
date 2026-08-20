@@ -341,10 +341,19 @@ class Attendance(Base):
     is_present = Column(Boolean, default=False)
     marked_at  = Column(DateTime, default=datetime.utcnow)
 
+    # ── Attention & Presence Monitor (CV) — additive columns ──────────
+    # Populated by the Attention Monitor module when a session ends. These are
+    # nullable so existing watch-%-based attendance keeps working untouched.
+    attention_ratio     = Column(Float, nullable=True)      # 0.0–1.0 attentive-frame fraction
+    attention_status    = Column(String(10), nullable=True) # "Present" | "Absent"
+    attention_flags     = Column(Text, nullable=True)       # JSON array of edge-case flags
+    attention_marked_at = Column(DateTime, nullable=True)   # when CV verdict was written
+
     # Relationships
     student = relationship("Student", back_populates="attendance_records")
     lecture = relationship("Lecture", back_populates="attendance_records")
     section = relationship("Section", back_populates="attendance_records")
+
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -712,3 +721,69 @@ class RegradeRequest(Base):
     # Relationships
     submission = relationship("AssignmentSubmission")
     student    = relationship("Student")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  ATTENTION & PRESENCE MONITOR  (Computer-Vision module)
+#  New self-contained tables. Detection/scoring logic lives in the pure,
+#  DB-independent package `video-lecture/modules/attention_monitor/`.
+#  Only DERIVED metrics are stored here — never raw webcam frames (§6).
+# ════════════════════════════════════════════════════════════════════
+
+class EnrolledFace(Base):
+    """One ArcFace identity embedding per enrolled student.
+
+    Stores the 512-d ArcFace centroid (averaged over 3-5 reference photos) as
+    JSON text. Raw photos are NEVER persisted — only the embedding vector.
+    Linked to the real `students` table so recognition maps to actual students.
+    """
+    __tablename__ = "attention_enrolled_faces"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    student_id  = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"),
+                         nullable=False, index=True)
+    embedding   = Column(Text, nullable=False)              # JSON array (512 floats)
+    model_name  = Column(String(50), default="ArcFace")     # DeepFace backend used
+    num_photos  = Column(Integer, default=0)                # usable photos averaged
+    created_at  = Column(DateTime, default=datetime.utcnow)
+    updated_at  = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    student = relationship("Student")
+
+
+class AttentionSession(Base):
+    """Per-viewing-session attention record (spec §6).
+
+    Created at /attention/session/start, finalized at /attention/session/end.
+    Persists only derived numbers/booleans/flags — no image data.
+    """
+    __tablename__ = "attention_sessions"
+
+    id                   = Column(Integer, primary_key=True, index=True)
+    student_id           = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"),
+                                  nullable=False, index=True)
+    lecture_id           = Column(Integer, ForeignKey("lectures.id", ondelete="SET NULL"),
+                                  nullable=True, index=True)
+    # `video_id` mirrors the spec's field name; for this system it equals lecture_id.
+    video_id             = Column(Integer, nullable=True)
+
+    session_start        = Column(DateTime, default=datetime.utcnow)
+    session_end          = Column(DateTime, nullable=True)
+
+    total_sampled_frames = Column(Integer, default=0)
+    attentive_frames     = Column(Integer, default=0)
+    attention_ratio      = Column(Float, default=0.0)       # 0.0–1.0
+    status               = Column(String(10), nullable=True)  # "Present" | "Absent"
+    flags                = Column(Text, nullable=True)      # JSON array of edge-case flags
+
+    # Identity outcome
+    recognized_student_id = Column(Integer, nullable=True)  # who was matched at start
+    unrecognized_viewer   = Column(Boolean, default=False)
+    is_complete           = Column(Boolean, default=False)
+
+    # Relationships
+    student = relationship("Student")
+    lecture = relationship("Lecture")
+
+

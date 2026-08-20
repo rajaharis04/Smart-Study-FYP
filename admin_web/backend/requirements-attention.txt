@@ -1,0 +1,80 @@
+# ════════════════════════════════════════════════════════════════════
+#  Attention & Presence Monitor — CV dependencies (SEPARATE venv)
+# ════════════════════════════════════════════════════════════════════
+#
+#  WHY A SEPARATE FILE?
+#  The main backend (requirements.txt) is intentionally lean. This CV stack
+#  (MediaPipe + DeepFace→TensorFlow + OpenCV + optional L2CS-Net→PyTorch) is
+#  large (~2-3 GB) and can conflict with the lean venv. Install this ONLY in a
+#  dedicated virtualenv used to run the Attention Monitor endpoints.
+#
+#  PYTHON VERSION — IMPORTANT (supports 3.10, 3.11, 3.12):
+#      • Python 3.13 is NOT supported yet (MediaPipe/TensorFlow have no 3.13
+#        wheels). Do NOT use 3.13 for this venv.
+#      • On THIS machine use **Python 3.12** (you have it; 3.10 is not installed).
+#      • The TensorFlow pin auto-switches by Python version (markers below):
+#          - py < 3.12  → tensorflow 2.15  (best on 3.10/3.11)
+#          - py >= 3.12 → tensorflow 2.16  (first TF with cp312 wheels)
+#
+#  SETUP (from admin_web/backend/) — using Python 3.12:
+#      py -3.12 -m venv .venv-attention
+#      .venv-attention\Scripts\activate        (Windows)
+#      python -m pip install --upgrade pip
+#      pip install -r requirements.txt          # base app deps
+#      pip install -r requirements-attention.txt
+#      # >>> REQUIRED post-install step (see "KNOWN CONFLICTS" below):
+#      pip uninstall -y jax jaxlib
+#      # then run the backend from THIS venv to enable /api/attention/* routes:
+#      python run.py    (or: uvicorn main:app --port 8001)
+#
+#  Verify the CV engine loaded:  GET http://localhost:8001/api/attention/status
+#
+#  KNOWN CONFLICTS (both are handled — do the steps below):
+#   1) jax/ml_dtypes vs TensorFlow:
+#        MediaPipe pulls in `jax`, but TF 2.16 pins `ml_dtypes~=0.3.1` while
+#        jax needs a newer ml_dtypes → `import tensorflow` crashes with
+#        "module 'ml_dtypes' has no attribute 'float8_e3m4'".
+#        FIX: `pip uninstall -y jax jaxlib`. Nothing in this module uses jax
+#        (MediaPipe FaceMesh + DeepFace + our code don't need it), and TF wraps
+#        the jax import in try/except, so removing it is safe.
+#   2) DeepFace vs Keras 3:
+#        TF 2.16 defaults to Keras 3, which breaks DeepFace
+#        ("'KerasHistory' object has no attribute 'layer'").
+#        FIX: use the legacy tf-keras (Keras 2) backend. This is handled IN CODE
+#        via `os.environ["TF_USE_LEGACY_KERAS"]="1"` at the top of
+#        modules/attention_monitor/config.py (imported before TF loads). The
+#        `tf-keras` package below provides that backend.
+# --------------------------------------------------------------------
+
+
+# ── Core CV ──────────────────────────────────────────────────────────
+# NumPy pinned <2.0 for MediaPipe/TensorFlow/OpenCV binary compatibility.
+# 1.26.x is the first line with cp312 wheels, so it covers 3.10–3.12.
+numpy>=1.26,<2.0
+opencv-python>=4.8,<5.0
+
+# ── Face landmarks (MediaPipe Face Mesh, 468 pts) — Apache-2.0 ────────
+# 0.10.14 ships cp310/cp311/cp312 wheels.
+mediapipe==0.10.14
+
+# ── Face recognition (DeepFace + ArcFace backend) — MIT ──────────────
+# DeepFace pulls in tensorflow + tf-keras. TF version auto-selected per
+# Python version via environment markers (TF 2.16 is the first with 3.12 wheels).
+deepface==0.0.93
+tensorflow==2.15.0 ; python_version < "3.12"
+tf-keras==2.15.0 ; python_version < "3.12"
+tensorflow==2.16.1 ; python_version >= "3.12"
+tf-keras==2.16.0 ; python_version >= "3.12"
+
+
+# ── Gaze (L2CS-Net) — OPTIONAL / feature-flagged (ENABLE_GAZE) ───────
+# Torch is NOT auto-installed here to keep the default install lighter and
+# because the correct CPU/CUDA wheel is platform-specific. To enable gaze:
+#   1) pip install torch torchvision            (pick CPU/CUDA build)
+#   2) git clone https://github.com/Ahmednull/L2CS-Net external/L2CS-Net
+#   3) pip install -e external/L2CS-Net
+#   4) download the pretrained weights per its README (see SETUP notes)
+#   5) set env:  ATTN_ENABLE_GAZE=true  ATTN_GAZE_WEIGHTS_PATH=...
+# (Left commented so the core pipeline installs without heavyweight Torch.)
+# torch>=2.0
+# torchvision>=0.15

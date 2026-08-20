@@ -30,12 +30,15 @@ export default function Sidebar() {
     { to: '/teachers', label: 'Teachers', icon: Users },
     { to: '/academic-sections', label: 'Students & Sections', icon: School },
     { to: '/courses', label: 'Courses', icon: BookOpen },
+    { to: '/sections', label: 'Class Sections', icon: Layers },
+    { to: '/registration-week', label: 'Registration Week', icon: ClipboardList },
     { to: '/enrollments', label: 'Enrolled', icon: UserCheck },
     { to: '/semesters', label: 'Semesters', icon: Calendar },
     { to: '/grading-policy', label: 'Grading Policy & Results', icon: Sliders },
     { to: '/reports', label: 'Reports', icon: BarChart3 },
     { to: '/accounts', label: 'Accounts', icon: Settings },
   ];
+
 
   const teacherNavItems = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },

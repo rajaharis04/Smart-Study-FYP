@@ -34,8 +34,10 @@ from app.api.resources import (
     announcements_router,
 )
 from app.api.academic_sections import router as academic_sections_router
+from app.api.attention import router as attention_router  # Attention & Presence Monitor (CV)
 
 from sqlalchemy import text
+
 
 # ── Create all tables ───────────────────────────────────────────────────────
 Base.metadata.create_all(bind=engine)
@@ -59,7 +61,13 @@ def _run_db_migrations():
         ("assignment_submissions", "attached_file_url", "VARCHAR(500)"),
         ("assignment_submissions", "attached_file_name", "VARCHAR(255)"),
         ("grading_policies", "drop_lowest_quiz", "BOOLEAN DEFAULT FALSE"),
+        # ── Attention & Presence Monitor (CV) — additive columns ──────────
+        ("attendance", "attention_ratio", "FLOAT"),
+        ("attendance", "attention_status", "VARCHAR(10)"),
+        ("attendance", "attention_flags", "TEXT"),
+        ("attendance", "attention_marked_at", "TIMESTAMP"),
     ]
+
     with engine.connect() as conn:
         for table, col, col_type in columns_to_add:
             try:
@@ -91,7 +99,10 @@ UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
-# ── CORS — allow React dev server (port 5173) and production ────────────────
+# ── CORS — allow React dev server (5173/5174/3000) + any localhost port ─────
+# `allow_origin_regex` lets Flutter Web (which serves on a random localhost
+# port via `flutter run -d chrome`) pass the CORS preflight without having to
+# hard-code its ever-changing port. Bearer-token auth is unaffected.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -101,6 +112,7 @@ app.add_middleware(
         "http://127.0.0.1:5174",
         "http://localhost:3000",
     ],
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -130,6 +142,8 @@ app.include_router(questionbank_router,   prefix=API_PREFIX)
 app.include_router(qa_router,             prefix=API_PREFIX)
 app.include_router(academic_sections_router, prefix=API_PREFIX)
 app.include_router(learning_router,       prefix=API_PREFIX)  # Learning profile & post-quiz feedback
+app.include_router(attention_router,      prefix=API_PREFIX)  # Attention & Presence Monitor (CV)
+
 
 
 @app.get("/")
@@ -144,6 +158,27 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# ── Warm up the Attention CV engine in the background at startup ────────────
+# The CV stack (TensorFlow/MediaPipe/DeepFace) takes ~15-40s to load the first
+# time. Doing it lazily inside the first request made the Flutter client time
+# out and show "engine offline". We kick off warm-up in a daemon thread so the
+# server boots instantly and the models are ready before the student presses
+# play. In the lean venv (no CV libs) this is a harmless no-op.
+@app.on_event("startup")
+def _warmup_attention_cv():
+    import threading
+
+    def _bg():
+        try:
+            from app.api.attention import warmup
+            warmup()
+        except Exception as exc:  # pragma: no cover
+            print(f"⚠️  Attention warm-up thread error (non-fatal): {exc}")
+
+    threading.Thread(target=_bg, name="attention-warmup", daemon=True).start()
+
 
 
 if __name__ == "__main__":
