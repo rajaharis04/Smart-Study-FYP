@@ -859,9 +859,24 @@ class ApiService {
   }
 
 
+  /// GET /api/attention/enrollment/status
+  /// Has this student already enrolled their face? Drives the one-time wizard.
+  Future<Map<String, dynamic>> getEnrollmentStatus() async {
+    try {
+      final response = await _dio.get(
+        '/attention/enrollment/status',
+        options: Options(receiveTimeout: _kAttentionTimeout),
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
   /// POST /api/attention/enroll
   /// Register the student's face from 3-5 base64 photos (one-time).
   Future<Map<String, dynamic>> enrollFace(List<String> imagesBase64) async {
+
     try {
       final response = await _dio.post(
         '/attention/enroll',

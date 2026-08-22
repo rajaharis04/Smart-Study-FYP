@@ -82,23 +82,47 @@ Eyes "closed/half-closed" when `EAR < EAR_THRESHOLD` (0.20).
 mouth corners) against a generic 3D face model → `cv2.Rodrigues` →
 `cv2.RQDecomp3x3` → yaw/pitch/roll. "Frontal" when `|yaw| < 25°` and `|pitch| < 20°`.
 
-**Per-frame attentiveness:**
+**Per-frame STATE (v2):** each frame resolves to exactly ONE state, most-severe
+first, so the student sees *why* they are (in)attentive:
 ```
-is_attentive = face_detected
-               AND head_pose is frontal
-               AND EAR ≥ threshold
-               AND (gaze on-screen  — only when gaze is available)
+no_face > multiple_faces > spoof > not_you > drowsy > eyes_closed
+        > looking_away > attentive
 ```
+Only `attentive` counts toward the ratio. `attentive` requires: one face, the
+enrolled identity (locked), head frontal, eyes open (a short blink is fine),
+and gaze on-screen (iris gaze always; L2CS-Net when available).
+
+**Blink vs drowsy (temporal, `temporal.py`):** a brief eye-closure
+(≤ `BLINK_MAX_SECONDS`, 0.5s) is a normal **blink** and does NOT break
+attention; a continuous closure ≥ `DROWSY_MIN_SECONDS` (1.5s) OR a high
+**PERCLOS** (closed-time fraction ≥ 0.45 over a 20s window) is **drowsy**.
+
+**Iris gaze (cheap, per-frame, `formulas.py`):** MediaPipe iris points (468–477)
+give a normalized horizontal/vertical offset — "looking away" when it exceeds
+`IRIS_H_RATIO_MAX` / `IRIS_V_RATIO_MAX`. The heavy L2CS-Net gaze only confirms.
+
+**Anti-spoof (`liveness.py`):** DeepFace MiniFASNet passive texture check +
+behavioural blink check (a real viewer blinks; a static photo has ~0 EAR
+variance and never blinks) → `spoof` state / `spoof_suspected` flag.
 
 **Session decision:**
 ```
 attention_ratio = attentive_frames / total_sampled_frames
 status = "Present" if attention_ratio ≥ ATTENDANCE_THRESHOLD else "Absent"
 ```
-Sampling rate: **1 frame/second**.
 
-**Edge-case flags (spec §5):** `left_seat` (no face >30s continuous),
-`multiple_faces_detected`, `viewer_changed`, `unrecognized_viewer`.
+**Two-tier sampling (CPU):** the client streams ~**3 fps**. Every frame runs the
+LIGHT tier (landmarks + EAR + head-pose + iris gaze). The HEAVY models are
+THROTTLED per session on the backend:
+`recognition` every `RECOGNITION_REFRESH_SECONDS` (4s, identity-locked),
+`L2CS-Net gaze` every `GAZE_REFRESH_SECONDS` (2s, face-crop),
+`anti-spoof` every `LIVENESS_REFRESH_SECONDS` (5s). A short N-frame majority
+vote (`SMOOTHING_WINDOW_FRAMES`) stabilises the DISPLAY state (anti-flicker).
+
+**Edge-case flags (spec §5 + v2):** `left_seat` (no face >30s continuous),
+`multiple_faces_detected`, `viewer_changed`, `unrecognized_viewer`,
+`drowsy_detected`, `spoof_suspected`.
+
 
 ---
 

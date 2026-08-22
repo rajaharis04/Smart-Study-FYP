@@ -161,6 +161,64 @@ class GazeEstimator:
             available=True,
         )
 
+    def estimate_gaze_from_crop(
+        self,
+        frame_bgr: np.ndarray,
+        bbox: Optional[tuple] = None,
+    ) -> GazeResult:
+        """CPU-friendly gaze: run L2CS on a pre-cropped face region.
+
+        L2CS-Net's `Pipeline.step()` internally runs a RetinaFace detector on
+        the WHOLE frame, which dominates CPU cost. When we already know where
+        the face is (from MediaPipe), we crop+pad around it and hand L2CS a
+        small image, so its detector has almost no work to do. This is a big
+        speed-up on CPU and is why the API layer only calls this (throttled).
+
+        Parameters
+        ----------
+        frame_bgr : np.ndarray
+            Full decoded BGR frame.
+        bbox : tuple(x_min, y_min, x_max, y_max) | None
+            Face box in pixel coords (e.g. from MediaPipe landmark extents).
+            If None or cropping is disabled, falls back to `estimate_gaze()`.
+        """
+        if not self.available:
+            return GazeResult.unavailable()
+
+        if bbox is None or not config.GAZE_USE_FACE_CROP:
+            return self.estimate_gaze(frame_bgr)
+
+        try:
+            h, w = frame_bgr.shape[:2]
+            x0, y0, x1, y1 = bbox
+            bw = x1 - x0
+            bh = y1 - y0
+            pad_x = bw * config.GAZE_CROP_PADDING
+            pad_y = bh * config.GAZE_CROP_PADDING
+            cx0 = max(0, int(x0 - pad_x))
+            cy0 = max(0, int(y0 - pad_y))
+            cx1 = min(w, int(x1 + pad_x))
+            cy1 = min(h, int(y1 + pad_y))
+            if cx1 <= cx0 or cy1 <= cy0:
+                return self.estimate_gaze(frame_bgr)
+            crop = frame_bgr[cy0:cy1, cx0:cx1]
+            results = self._pipeline.step(crop)
+        except Exception:
+            return GazeResult.unavailable()
+
+        yaw_deg, pitch_deg = self._extract_primary_angles(results)
+        if yaw_deg is None or pitch_deg is None:
+            return GazeResult.unavailable()
+
+        cone = config.GAZE_SCREEN_CONE_DEG
+        on_screen = abs(yaw_deg) <= cone and abs(pitch_deg) <= cone
+        return GazeResult(
+            yaw_deg=float(yaw_deg),
+            pitch_deg=float(pitch_deg),
+            on_screen=bool(on_screen),
+            available=True,
+        )
+
     @staticmethod
     def _extract_primary_angles(results) -> tuple[Optional[float], Optional[float]]:
         """Pull (yaw_deg, pitch_deg) for the first face from an L2CS result.

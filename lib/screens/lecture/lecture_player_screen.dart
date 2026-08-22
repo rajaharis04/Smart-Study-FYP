@@ -326,6 +326,15 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
                 ),
               ),
 
+            // ── Live attention panel (camera preview + live state) ──
+            // Shown only while monitoring; sits top-right under the app bar.
+            if (!_isFullScreen)
+              Positioned(
+                right: 12,
+                top: MediaQuery.of(context).padding.top + 52,
+                child: const AttentionLivePanel(),
+              ),
+
             // ── Q&A floating button (only when Q&A is closed) ──────
             if (!_showQna && !lectureState.showMidCheck)
               Positioned(
@@ -344,6 +353,7 @@ class _LecturePlayerScreenState extends ConsumerState<LecturePlayerScreen>
       ),
     );
   }
+
 
   // ── Video area with controls overlay ──────────────────────────────
 

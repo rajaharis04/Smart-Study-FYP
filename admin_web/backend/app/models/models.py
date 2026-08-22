@@ -782,8 +782,17 @@ class AttentionSession(Base):
     unrecognized_viewer   = Column(Boolean, default=False)
     is_complete           = Column(Boolean, default=False)
 
+    # ── v2 intelligence telemetry (blink/drowsy/spoof/gaze) ───────────
+    # All nullable + auto-migrated so older DBs keep working untouched.
+    drowsy_events   = Column(Integer, nullable=True)   # # of drowsiness onsets
+    blink_count     = Column(Integer, nullable=True)   # completed blinks observed
+    spoof_frames    = Column(Integer, nullable=True)   # frames flagged as spoof
+    avg_perclos     = Column(Float, nullable=True)     # mean PERCLOS (fatigue) 0..1
+    state_breakdown = Column(Text, nullable=True)      # JSON {state: frame_count}
+
     # Relationships
     student = relationship("Student")
     lecture = relationship("Lecture")
+
 
 

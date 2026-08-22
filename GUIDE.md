@@ -209,19 +209,36 @@ Student app (Flutter Chrome) mein login karo (jaise
      jahan student khud apni batch ki offered sections register kar sakta hai.
 2. Course card par **"View Lectures"** → us section ki published lectures ki list.
 3. Kisi lecture par tap → **Lecture Player** khulta hai (video stream hota hai).
-4. **Attention & Presence Monitor** dialog aata hai:
-   - **"Enroll & Start"** (pehli dafa): webcam se 5 photo le kar aapka chehra register hoga,
-     phir monitoring shuru.
-   - **"Already enrolled"**: seedha monitoring shuru.
+4. **Attention & Presence Monitor** dialog aata hai (system khud check karta hai ke aap
+   pehle se enrolled hain ya nahi):
+   - **"Enroll & Start"** (sirf pehli dafa): ek **guided wizard** khulta hai jismein aapko
+     apna **live camera preview** dikhta hai aur 5 poses step-by-step guide hote hain
+     (seedha dekho → thoda left → thoda right → thoda upar → smile). Har step par
+     "Capture" dabao; aakhri par chehra register ho kar monitoring shuru ho jaati hai.
+     (Photo camera ke saamne rakh ke dhoka nahi chalega — **anti-spoof** check lagta hai.)
+   - **"Start"**: agar aap pehle se enrolled hain to seedha monitoring shuru.
    - **"Skip"**: bina attention ke normal video.
-5. Video ke doran upar ek **live badge** chalta hai: `Attentive / Distracted / No face + %`.
-   Backend ~1 fps par frames le kar face-recognition + eye/head-pose se attentiveness naapta hai.
+5. Video ke doran ek **live badge** (upar) + ek **live panel** (camera preview ke saath)
+   chalta hai jo real-time batata hai: **Attentive / Looking away / Eyes closed /
+   Drowsy / No face / Multiple faces / Not you / Spoof** + attention %.
+   - Backend ~**3 fps** par frames leta hai (light checks har frame), aur bhaari models
+     (face-recognition, precise **gaze**, anti-spoof) **throttled** chalte hain taake
+     CPU par bojh na parre. Ek **jhapki (blink)** normal hai; **lambi aankh band** ya
+     zyada band-time = **Drowsy** flag.
 6. Video khatam / back par → **Present / Absent** verdict dialog aata hai
-   (ratio ≥ 80% → Present) aur yeh **Attendance** mein save ho jaata hai.
+   (ratio ≥ 80% → Present), saath mein drowsy episodes / spoof frames / flags bhi, aur
+   yeh **Attendance** mein save ho jaata hai.
 
 > **Privacy:** koi video/photo server par save nahi hoti — sirf numbers/metrics store hote hain.
 > **Note:** Attention tab hi chalega jab backend **CV venv (Option A)** se chal raha ho aur
 > student **Chrome/Edge** par ho (webcam chahiye).
+> **Gaze (optional, behtar accuracy):** precise L2CS-Net gaze on karne ke liye CV venv mein:
+> `pip install torch==2.2.2 torchvision==0.17.2 --index-url https://download.pytorch.org/whl/cpu`
+> phir `pip install git+https://github.com/Ahmednull/L2CS-Net.git` aur
+> `python video-lecture/scripts/download_l2cs_weights.py` — backend restart par
+> `/api/attention/status` mein `gaze_available:true` aa jayega. Na ho to bhi kaam chalta
+> rahega (MediaPipe iris gaze fallback).
+
 
 ---
 

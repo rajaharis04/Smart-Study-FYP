@@ -53,6 +53,22 @@ class FaceLandmarks:
         """Return the (x, y) pixel coordinate for a given landmark index."""
         return self.points[idx]
 
+    def bbox(self) -> tuple[int, int, int, int]:
+        """Axis-aligned face bounding box (x_min, y_min, x_max, y_max) in px.
+
+        Computed from the landmark extents and clamped to the image bounds.
+        Used to hand the L2CS-Net gaze estimator a tight face crop (big CPU
+        speed-up vs. re-detecting the face on the whole frame).
+        """
+        xs = self.points[:, 0]
+        ys = self.points[:, 1]
+        x_min = max(0, int(np.floor(xs.min())))
+        y_min = max(0, int(np.floor(ys.min())))
+        x_max = min(self.image_width, int(np.ceil(xs.max())))
+        y_max = min(self.image_height, int(np.ceil(ys.max())))
+        return x_min, y_min, x_max, y_max
+
+
 
 class FaceMeshDetector:
     """Thin, reusable wrapper around MediaPipe's Face Mesh solution.

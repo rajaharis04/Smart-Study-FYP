@@ -190,3 +190,106 @@ def is_frontal(
     y_max = config.HEAD_YAW_MAX_DEG if yaw_max is None else yaw_max
     p_max = config.HEAD_PITCH_MAX_DEG if pitch_max is None else pitch_max
     return abs(pose.yaw) < y_max and abs(pose.pitch) < p_max
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  IRIS-BASED GAZE  (cheap, per-frame — no extra model)
+# ══════════════════════════════════════════════════════════════════════════
+#
+# MediaPipe's refined mesh (refine_landmarks=True) gives iris points 468-477.
+# By locating each iris centre RELATIVE to its eye corners (and the eye's
+# vertical span) we get a normalized gaze offset — horizontally and vertically
+# — for essentially free. This is our per-frame "looking at screen" gate; the
+# heavy L2CS-Net estimator (gaze.py) only runs throttled as a precise confirm.
+
+
+@dataclass
+class IrisGaze:
+    """Normalized iris-offset gaze estimate for one face.
+
+    h_ratio : horizontal offset of the iris from the eye centre, in roughly
+              [-1, 1] (0 = centred, negative = toward outer/temple side,
+              positive = toward inner/nose side — sign is not relied upon; we
+              use the magnitude).
+    v_ratio : vertical offset of the iris from the eye centre, similar scale.
+    on_screen : True when BOTH offsets are within the configured bounds.
+    success : whether the iris landmarks were present (refine_landmarks on).
+    """
+
+    h_ratio: float
+    v_ratio: float
+    on_screen: bool
+    success: bool
+
+    @classmethod
+    def unavailable(cls) -> "IrisGaze":
+        """Neutral, non-blocking result (used when iris points are missing)."""
+        return cls(h_ratio=0.0, v_ratio=0.0, on_screen=True, success=False)
+
+
+def _iris_center(points: np.ndarray, iris_idx: Sequence[int]) -> np.ndarray:
+    """Mean of the iris landmark points → the iris centre (x, y)."""
+    pts = np.array([points[i] for i in iris_idx], dtype=np.float64)
+    return pts.mean(axis=0)
+
+
+def _eye_gaze_ratio(
+    points: np.ndarray,
+    iris_idx: Sequence[int],
+    corner_idx: Sequence[int],
+) -> tuple[float, float]:
+    """Return (h_ratio, v_ratio) of one iris relative to its eye box.
+
+    h_ratio: iris centre position along the outer→inner corner axis, remapped
+             so 0 = midpoint, ±1 ≈ at a corner.
+    v_ratio: iris centre vertical position relative to the eye-corner midline,
+             normalized by the eye's half-width (a stable, roll-tolerant scale).
+    """
+    iris_c = _iris_center(points, iris_idx)
+    outer = np.asarray(points[corner_idx[0]], dtype=np.float64)
+    inner = np.asarray(points[corner_idx[1]], dtype=np.float64)
+
+    eye_center = (outer + inner) / 2.0
+    half_width = float(np.linalg.norm(inner - outer)) / 2.0
+    if half_width <= 1e-6:
+        return 0.0, 0.0
+
+    # Horizontal: project (iris - eye_center) onto the corner-to-corner axis.
+    axis = (inner - outer)
+    axis_norm = float(np.linalg.norm(axis))
+    if axis_norm <= 1e-6:
+        return 0.0, 0.0
+    axis_unit = axis / axis_norm
+    delta = iris_c - eye_center
+    h = float(np.dot(delta, axis_unit)) / half_width
+
+    # Vertical: perpendicular component, normalized by the same half-width.
+    perp_unit = np.array([-axis_unit[1], axis_unit[0]], dtype=np.float64)
+    v = float(np.dot(delta, perp_unit)) / half_width
+
+    return h, v
+
+
+def estimate_iris_gaze(face: FaceLandmarks) -> IrisGaze:
+    """Estimate a cheap, per-frame gaze from MediaPipe iris landmarks.
+
+    Requires FACE_MESH_REFINE_LANDMARKS=True (points 468-477 present). If those
+    points are missing the result is `IrisGaze.unavailable()` (non-blocking).
+    """
+    n = face.points.shape[0]
+    needed = max(config.LEFT_IRIS_IDX + config.RIGHT_IRIS_IDX)
+    if n <= needed:
+        # Iris points not available (refine_landmarks off / older mesh).
+        return IrisGaze.unavailable()
+
+    lh, lv = _eye_gaze_ratio(face.points, config.LEFT_IRIS_IDX, config.LEFT_EYE_CORNER_IDX)
+    rh, rv = _eye_gaze_ratio(face.points, config.RIGHT_IRIS_IDX, config.RIGHT_EYE_CORNER_IDX)
+
+    h_ratio = (lh + rh) / 2.0
+    v_ratio = (lv + rv) / 2.0
+
+    on_screen = (
+        abs(h_ratio) <= config.IRIS_H_RATIO_MAX
+        and abs(v_ratio) <= config.IRIS_V_RATIO_MAX
+    )
+    return IrisGaze(h_ratio=h_ratio, v_ratio=v_ratio, on_screen=on_screen, success=True)

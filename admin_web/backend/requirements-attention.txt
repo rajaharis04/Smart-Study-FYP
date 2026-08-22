@@ -67,14 +67,30 @@ tensorflow==2.16.1 ; python_version >= "3.12"
 tf-keras==2.16.0 ; python_version >= "3.12"
 
 
-# ── Gaze (L2CS-Net) — OPTIONAL / feature-flagged (ENABLE_GAZE) ───────
-# Torch is NOT auto-installed here to keep the default install lighter and
-# because the correct CPU/CUDA wheel is platform-specific. To enable gaze:
-#   1) pip install torch torchvision            (pick CPU/CUDA build)
-#   2) git clone https://github.com/Ahmednull/L2CS-Net external/L2CS-Net
-#   3) pip install -e external/L2CS-Net
-#   4) download the pretrained weights per its README (see SETUP notes)
-#   5) set env:  ATTN_ENABLE_GAZE=true  ATTN_GAZE_WEIGHTS_PATH=...
-# (Left commented so the core pipeline installs without heavyweight Torch.)
-# torch>=2.0
-# torchvision>=0.15
+# ── Gaze (L2CS-Net) — precise gaze confirm (ENABLE_GAZE, now ON by default) ──
+# CPU-only setup (this machine has no CUDA). The PRECISE L2CS-Net gaze is
+# THROTTLED on the backend so CPU stays comfortable; if these aren't installed
+# or the weights are missing, the pipeline gracefully falls back to the free
+# MediaPipe iris gaze — it never crashes.
+#
+# INSTALL (from admin_web/backend/, inside .venv-attention):
+#   # 1) PyTorch — CPU wheels (Windows/Linux). Keep versions modest for CPU.
+#   pip install torch==2.2.2 torchvision==0.17.2 --index-url https://download.pytorch.org/whl/cpu
+#   # 2) L2CS-Net package (provides the `l2cs` import used by gaze.py):
+#   pip install git+https://github.com/Ahmednull/L2CS-Net.git
+#   # 3) Download the Gaze360 weights (auto — lands in external/L2CS-Net/models):
+#   python ../../video-lecture/scripts/download_l2cs_weights.py
+#   # 4) (optional) tune via env, e.g. ATTN_GAZE_REFRESH_SECONDS, ATTN_ENABLE_GAZE
+#
+# NOTE: torch/torchvision/l2cs are intentionally listed as comments (not hard
+# pins) because the correct wheel is index-specific (CPU vs CUDA); installing
+# them via the commands above avoids pip pulling a wrong/huge build.
+# torch==2.2.2            (CPU: --index-url https://download.pytorch.org/whl/cpu)
+# torchvision==0.17.2     (CPU: --index-url https://download.pytorch.org/whl/cpu)
+# git+https://github.com/Ahmednull/L2CS-Net.git
+
+# ── Weights downloader helper (Google-Drive confirm-token handling) ──
+# Used by video-lecture/scripts/download_l2cs_weights.py. Small, safe to keep.
+gdown>=5.1.0
+
+

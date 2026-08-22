@@ -179,29 +179,40 @@ def main() -> int:
                 last_sample = now
                 sample_count += 1
 
+                # Exercise the v2 pipeline: light tier every sample, heavy models
+                # (gaze / recognition / liveness) throttled like the real backend.
+                run_gaze = config.ENABLE_GAZE
+                run_reco = bool(enrolled)
+                run_live = config.ENABLE_ANTISPOOF and (sample_count % 5 == 0)
+
                 fr = scorer.analyze_frame(
                     frame,
                     detector,
                     gaze_estimator=gaze,
                     enrolled=enrolled or None,
+                    run_gaze_model=run_gaze,
+                    run_recognition=run_reco,
+                    run_liveness=run_live,
                 )
-                aggregator.add(fr)
+                live = aggregator.add(fr, timestamp=now - start_time)
 
-                status_word = "ATTENTIVE" if fr.is_attentive else "---------"
                 ident = ""
                 if fr.identity_checked:
                     ident = (f" | id={fr.matched_student_id} "
                              f"sim={fr.identity_similarity:.2f} "
                              f"{'MATCH' if fr.identity_matched else 'nomatch'}")
                 print(
-                    f"[{sample_count:03d}] {status_word} "
+                    f"[{sample_count:03d}] {live.state.upper():<14} "
                     f"faces={fr.face_count} "
                     f"EAR={fr.ear:.3f}({'open' if fr.eyes_open else 'shut'}) "
                     f"yaw={fr.yaw_deg:+.1f} pitch={fr.pitch_deg:+.1f} "
-                    f"frontal={fr.head_frontal} "
+                    f"perclos={live.perclos:.2f} "
+                    f"{'DROWSY ' if live.drowsy else ''}"
+                    f"{'SPOOF ' if live.spoof_suspected else ''}"
                     f"ratio={aggregator.snapshot_ratio():.2f}"
                     f"{ident}"
                 )
+
 
             # Live preview (optional)
             if not args.no_preview:

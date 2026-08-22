@@ -66,7 +66,14 @@ def _run_db_migrations():
         ("attendance", "attention_status", "VARCHAR(10)"),
         ("attendance", "attention_flags", "TEXT"),
         ("attendance", "attention_marked_at", "TIMESTAMP"),
+        # ── Attention Monitor v2 — session intelligence telemetry ─────────
+        ("attention_sessions", "drowsy_events", "INTEGER"),
+        ("attention_sessions", "blink_count", "INTEGER"),
+        ("attention_sessions", "spoof_frames", "INTEGER"),
+        ("attention_sessions", "avg_perclos", "FLOAT"),
+        ("attention_sessions", "state_breakdown", "TEXT"),
     ]
+
 
     with engine.connect() as conn:
         for table, col, col_type in columns_to_add:

@@ -9,14 +9,24 @@ This router is the ONLY place where the CV module meets the web app + DB. It:
     `_get_current_student` auth pattern.
 
 ────────────────────────────────────────────────────────────────────────────
+TWO-TIER CPU DESIGN (v2):
+  Every sampled frame runs the LIGHT tier (MediaPipe landmarks + EAR +
+  head-pose + iris gaze) — cheap enough for a few fps on CPU. The HEAVY models
+  are THROTTLED per session on their own timers so they don't overload the CPU:
+    • ArcFace recognition   → every config.RECOGNITION_REFRESH_SECONDS
+    • L2CS-Net precise gaze  → every config.GAZE_REFRESH_SECONDS
+    • MiniFASNet anti-spoof  → every config.LIVENESS_REFRESH_SECONDS
+  Identity is LOCKED at session start; between recognition refreshes the lock
+  holds. The temporal layer (blink-vs-drowsy, PERCLOS, smoothing) lives in the
+  aggregator so the live state is stable and time-aware.
+────────────────────────────────────────────────────────────────────────────
+
 LAZY-IMPORT DESIGN (so the lean production backend keeps booting):
   The heavy CV stack (MediaPipe / DeepFace→TensorFlow / OpenCV / L2CS→Torch)
   is NEVER imported at module import-time. It is imported inside request
   handlers via `_load_cv()`. If those libraries aren't installed (i.e. the
   server is running in the lean venv), the CV endpoints return a clean
-  HTTP 503 instead of crashing the whole app. Run the backend from the
-  dedicated CV venv (requirements-attention.txt) to enable these endpoints.
-────────────────────────────────────────────────────────────────────────────
+  HTTP 503 instead of crashing the whole app.
 
 PRIVACY (spec §6 — hard constraint, enforced in code, not comments):
   Webcam frames arrive base64-encoded, are decoded into an in-memory numpy
@@ -29,6 +39,7 @@ from __future__ import annotations
 import os
 import sys
 import json
+import time
 import base64
 import threading
 from datetime import datetime
@@ -104,7 +115,7 @@ def _load_cv() -> dict:
         import numpy as np              # noqa: N813
         import cv2                       # noqa: F401
         from attention_monitor import config as cv_config
-        from attention_monitor import recognition, scorer
+        from attention_monitor import recognition, scorer, liveness
         from attention_monitor.landmarks import FaceMeshDetector
         from attention_monitor.gaze import get_default_estimator
     except Exception as exc:  # ImportError or native-lib load failure
@@ -124,6 +135,7 @@ def _load_cv() -> dict:
         config=cv_config,
         recognition=recognition,
         scorer=scorer,
+        liveness=liveness,
         FaceMeshDetector=FaceMeshDetector,
         get_default_estimator=get_default_estimator,
     )
@@ -135,12 +147,12 @@ def _load_cv() -> dict:
 # ══════════════════════════════════════════════════════════════════════════
 
 _LOCK = threading.Lock()          # guards detector use + registry (MediaPipe
-                                  # is not thread-safe; 1fps/student → fine).
+                                  # is not thread-safe; low fps/student → fine).
 _DETECTOR = None                  # FaceMeshDetector singleton (lazy)
 
 # Active viewing sessions keyed by the persisted AttentionSession.id.
-# Each value: {"aggregator": SessionAggregator, "enrolled": {sid: np.ndarray},
-#              "student_id": int, "lecture_id": Optional[int]}
+# Each value: {"aggregator", "enrolled", "student_id", "lecture_id",
+#              "start_ts", "last_reco_ts", "last_gaze_ts", "last_liveness_ts"}
 _SESSIONS: Dict[int, dict] = {}
 
 
@@ -154,30 +166,42 @@ def _get_detector():
 
 
 def warmup() -> bool:
-    """Eagerly load the whole CV stack ONCE (heavy: TF/MediaPipe/DeepFace).
+    """Eagerly load the whole CV stack ONCE (heavy: TF/MediaPipe/DeepFace/Torch).
 
     Called from a background thread at server startup so the very first real
-    request (/attention/status, /enroll, /frame) is fast instead of paying the
-    ~15-40s TensorFlow/ArcFace cold-start cost mid-request (which made the
-    Flutter client time out and show "engine offline"). Safe no-op / False in
-    the lean venv where the CV libs aren't installed.
+    request is fast instead of paying the ~15-40s cold-start cost mid-request.
+    Warms ArcFace, the L2CS-Net gaze pipeline, and the anti-spoof model too so
+    their first throttled use during a session doesn't stall a frame. Safe
+    no-op / False in the lean venv where the CV libs aren't installed.
     """
     try:
         cv = _load_cv()          # numpy/cv2/mediapipe/deepface/tensorflow imports
         _get_detector()          # build MediaPipe FaceMesh
+        np = cv["np"]
+        dummy = np.full((160, 160, 3), 127, dtype=np.uint8)
         # Force the DeepFace/ArcFace model to build+cache with a dummy frame.
         try:
-            np = cv["np"]
-            dummy = np.full((160, 160, 3), 127, dtype=np.uint8)
             cv["recognition"].embed_face(dummy)
         except Exception:
-            # A no-face dummy may raise after the model is built — that's fine;
-            # the expensive weight-loading is already cached inside DeepFace.
+            pass  # no-face dummy may raise AFTER the model is cached — fine.
+        # Warm the L2CS-Net gaze pipeline (loads Torch + weights if present).
+        try:
+            gaze = cv["get_default_estimator"]()
+            if gaze.available:
+                gaze.estimate_gaze(dummy)
+                print("✅ L2CS-Net gaze warmed up.")
+            else:
+                print(f"ℹ️  Gaze not active ({gaze.load_error}); using iris gaze.")
+        except Exception as exc:
+            print(f"ℹ️  Gaze warm-up skipped: {exc}")
+        # Warm the anti-spoof model.
+        try:
+            cv["liveness"].passive_is_real(dummy)
+        except Exception:
             pass
         print("✅ Attention CV engine warmed up (models loaded).")
         return True
     except HTTPException:
-        # Lean venv: CV libs not installed — attention endpoints stay 503.
         print("ℹ️  Attention CV engine not installed here; skipping warm-up.")
         return False
     except Exception as exc:  # pragma: no cover
@@ -185,11 +209,18 @@ def warmup() -> bool:
         return False
 
 
+def _load_enrolled(db: Session, student_id: Optional[int] = None):
+    """Load enrolled embeddings as {student_id: np.ndarray} for matching.
 
-def _load_enrolled(db: Session):
-    """Load ALL enrolled embeddings as {student_id: np.ndarray} for matching."""
+    If `student_id` is given, load ONLY that student's embedding (identity-lock:
+    during a session we only need to confirm the same person, which keeps the
+    match fast and unambiguous). Otherwise load all (used at session start).
+    """
     cv = _load_cv()
-    rows = db.query(EnrolledFace).all()
+    q = db.query(EnrolledFace)
+    if student_id is not None:
+        q = q.filter(EnrolledFace.student_id == student_id)
+    rows = q.all()
     enrolled: Dict[int, "cv['np'].ndarray"] = {}
     for row in rows:
         try:
@@ -272,7 +303,29 @@ def attention_status():
         "gaze_enabled": cv["config"].ENABLE_GAZE,
         "gaze_available": gaze.available,
         "gaze_load_error": gaze.load_error,
+        "antispoof_enabled": cv["config"].ENABLE_ANTISPOOF,
         "active_sessions": len(_SESSIONS),
+    }
+
+
+# ── Enrollment status ───────────────────────────────────────────────────────
+@router.get("/enrollment/status")
+def enrollment_status(
+    student: Student = Depends(_get_current_student),
+    db: Session = Depends(get_db),
+):
+    """Has THIS student already enrolled their face? Drives the one-time wizard.
+
+    The Flutter client calls this before offering monitoring: if `enrolled` is
+    true it skips the capture wizard and goes straight to monitoring.
+    """
+    row = db.query(EnrolledFace).filter(EnrolledFace.student_id == student.id).first()
+    return {
+        "enrolled": row is not None,
+        "student_id": student.id,
+        "num_photos": row.num_photos if row else 0,
+        "model": row.model_name if row else None,
+        "updated_at": row.updated_at.isoformat() if row and row.updated_at else None,
     }
 
 
@@ -286,20 +339,38 @@ def enroll_student(
     """Register the authenticated student's face (spec §5.1).
 
     Captures 3-5 reference photos, builds ONE averaged ArcFace embedding, and
-    stores it in `attention_enrolled_faces` (upsert). Raw photos are decoded in
-    memory and discarded — never written anywhere.
+    stores it in `attention_enrolled_faces` (upsert). Each photo is also run
+    through the anti-spoof check so a student can't enrol from a photo of a
+    photo. Raw photos are decoded in memory and discarded — never written.
     """
     cv = _load_cv()
     recognition = cv["recognition"]
+    liveness = cv["liveness"]
+    config = cv["config"]
 
     if not payload.images_base64:
         raise HTTPException(status_code=400, detail="No photos provided.")
 
     # Decode all photos into memory.
     frames = []
+    spoof_hits = 0
     try:
         for b64 in payload.images_base64:
             frames.append(_decode_frame(b64))
+
+        # Anti-spoof gate on enrolment (best-effort; skips if model unavailable).
+        if config.ENABLE_ANTISPOOF:
+            for f in frames:
+                res = liveness.passive_is_real(f)
+                if res.checked and res.is_real is False:
+                    spoof_hits += 1
+            # If the MAJORITY of usable photos look like spoofs, reject.
+            if spoof_hits > len(frames) // 2:
+                raise HTTPException(
+                    status_code=422,
+                    detail="Enrollment photos look like a photo/screen (spoof). "
+                           "Please enroll using your live face.",
+                )
 
         try:
             embedding = recognition.build_enrollment_embedding(frames)
@@ -318,14 +389,14 @@ def enroll_student(
     row = db.query(EnrolledFace).filter(EnrolledFace.student_id == student.id).first()
     if row:
         row.embedding = embedding_json
-        row.model_name = cv["config"].RECOGNITION_MODEL_NAME
+        row.model_name = config.RECOGNITION_MODEL_NAME
         row.num_photos = num_photos
         row.updated_at = datetime.utcnow()
     else:
         row = EnrolledFace(
             student_id=student.id,
             embedding=embedding_json,
-            model_name=cv["config"].RECOGNITION_MODEL_NAME,
+            model_name=config.RECOGNITION_MODEL_NAME,
             num_photos=num_photos,
         )
         db.add(row)
@@ -351,8 +422,8 @@ def session_start(
     """Begin a monitored viewing session (spec §5.2).
 
     Creates an `attention_sessions` row and an in-memory aggregator. If a first
-    frame is supplied, runs recognition immediately; a non-match sets the
-    `unrecognized_viewer` flag ("do not silently proceed").
+    frame is supplied, runs recognition immediately to LOCK the identity; a
+    non-match sets the `unrecognized_viewer` flag ("do not silently proceed").
     """
     cv = _load_cv()
     scorer = cv["scorer"]
@@ -373,7 +444,8 @@ def session_start(
     db.commit()
     db.refresh(db_session)
 
-    enrolled = _load_enrolled(db)
+    # Identity-lock: only this student's embedding is needed during the session.
+    enrolled = _load_enrolled(db, student_id=student.id)
     aggregator = scorer.SessionAggregator(expected_student_id=student.id)
 
     recognized = False
@@ -395,13 +467,19 @@ def session_start(
     db_session.unrecognized_viewer = unrecognized_viewer
     db.commit()
 
-    # Stash the live aggregator + enrolled set for the /frame calls.
+    now = time.monotonic()
+    # Stash the live aggregator + enrolled set + throttle timers for /frame.
     with _LOCK:
         _SESSIONS[db_session.id] = {
             "aggregator": aggregator,
             "enrolled": enrolled,
             "student_id": student.id,
             "lecture_id": payload.lecture_id,
+            "start_ts": now,
+            # Seed the recognition timer so the first refresh waits the interval.
+            "last_reco_ts": now,
+            "last_gaze_ts": 0.0,       # 0 → run gaze on the very first frame
+            "last_liveness_ts": 0.0,   # 0 → run liveness on the very first frame
         }
 
     return {
@@ -420,14 +498,15 @@ def session_frame(
     student: Student = Depends(_get_current_student),
     db: Session = Depends(get_db),
 ):
-    """Process ONE sampled frame (~1 fps) for an active session (spec §5.3).
+    """Process ONE sampled frame for an active session (spec §5.3, two-tier).
 
-    Computes per-frame attentiveness (face + head-pose + EAR + optional gaze +
-    identity), folds it into the session aggregator, and returns the derived,
-    image-free metrics. The frame is destroyed before returning.
+    LIGHT tier runs every frame; HEAVY models (recognition/gaze/liveness) run
+    only when their per-session throttle interval has elapsed. Returns the
+    smoothed live state + metrics; the frame is destroyed before returning.
     """
     cv = _load_cv()
     scorer = cv["scorer"]
+    config = cv["config"]
 
     with _LOCK:
         state = _SESSIONS.get(payload.session_id)
@@ -440,6 +519,15 @@ def session_frame(
     if state["student_id"] != student.id:
         raise HTTPException(status_code=403, detail="Session does not belong to you.")
 
+    # ── Decide which HEAVY models run this frame (CPU throttle) ────────
+    now = time.monotonic()
+    run_reco = (now - state.get("last_reco_ts", 0.0)) >= config.RECOGNITION_REFRESH_SECONDS
+    run_gaze = (now - state.get("last_gaze_ts", 0.0)) >= config.GAZE_REFRESH_SECONDS
+    run_live = (
+        config.ENABLE_ANTISPOOF
+        and (now - state.get("last_liveness_ts", 0.0)) >= config.LIVENESS_REFRESH_SECONDS
+    )
+
     frame = _decode_frame(payload.image_base64)
     try:
         detector = _get_detector()
@@ -450,16 +538,24 @@ def session_frame(
                 frame,
                 detector,
                 gaze_estimator=gaze,
-                enrolled=state["enrolled"] or None,
+                enrolled=(state["enrolled"] or None),
+                run_gaze_model=run_gaze,
+                run_recognition=run_reco,
+                run_liveness=run_live,
             )
-            state["aggregator"].add(frame_result)
-            ratio_so_far = state["aggregator"].snapshot_ratio()
+            live = state["aggregator"].add(frame_result, timestamp=now - state["start_ts"])
+            # Advance the throttle timers only for models that actually ran.
+            if run_reco:
+                state["last_reco_ts"] = now
+            if run_gaze:
+                state["last_gaze_ts"] = now
+            if run_live:
+                state["last_liveness_ts"] = now
     finally:
         del frame  # privacy §6 — no image survives this request
 
-    result = frame_result.to_dict()
+    result = live.to_dict()
     result["session_id"] = payload.session_id
-    result["attention_ratio_so_far"] = round(ratio_so_far, 4)
     return result
 
 
@@ -503,11 +599,14 @@ def session_end(
     db_session.flags = json.dumps(session_result.flags)
     db_session.unrecognized_viewer = session_result.unrecognized_viewer
     db_session.is_complete = True
+    # New v2 telemetry (columns are nullable / auto-migrated).
+    _set_if_has(db_session, "drowsy_events", session_result.drowsy_events)
+    _set_if_has(db_session, "blink_count", session_result.blink_count)
+    _set_if_has(db_session, "spoof_frames", session_result.spoof_frames)
+    _set_if_has(db_session, "avg_perclos", session_result.avg_perclos)
+    _set_if_has(db_session, "state_breakdown", json.dumps(session_result.state_breakdown))
 
     # ── Update the existing Attendance table (decision #1) ─────────────
-    # The attention verdict OWNS is_present when this module runs (it is the
-    # stronger presence check: identity-verified + attentive). Watch-%-based
-    # marking in lectures.py still works independently for non-CV lectures.
     attendance_written = False
     lecture_id = state.get("lecture_id")
     if lecture_id:
@@ -598,6 +697,8 @@ def attention_report(
             "flags": _flags(s),
             "unrecognized_viewer": s.unrecognized_viewer,
             "is_complete": s.is_complete,
+            "drowsy_events": getattr(s, "drowsy_events", None),
+            "avg_perclos": getattr(s, "avg_perclos", None),
         }
         for s in sessions
     ]
@@ -612,3 +713,20 @@ def attention_report(
         "present_sessions": present,
         "sessions": records,
     }
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Internals
+# ══════════════════════════════════════════════════════════════════════════
+
+def _set_if_has(obj, attr: str, value) -> None:
+    """Set an attribute only if the ORM model actually declares it.
+
+    Lets the API populate new v2 telemetry columns when present, while staying
+    compatible with an older DB/model that hasn't been migrated yet.
+    """
+    if hasattr(obj, attr):
+        try:
+            setattr(obj, attr, value)
+        except Exception:
+            pass
